@@ -90,7 +90,7 @@ public class CountryInfoTool implements Tool {
             
             // Extract common name
             String commonName = countryData.getAsJsonObject("name")
-                    .getAsJsonObject("common")
+                    .get("common")
                     .getAsString();
             
             // Extract capital (might be an array)
