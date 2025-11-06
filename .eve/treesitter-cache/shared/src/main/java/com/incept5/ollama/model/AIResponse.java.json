@@ -1,0 +1,12 @@
+{
+  "filePath": "shared/src/main/java/com/incept5/ollama/model/AIResponse.java",
+  "mtime": 1762426412328,
+  "size": 3263,
+  "definitions": [
+    "public String getTimingInfo() {",
+    "private String formatDuration(String label, long nanos) {",
+    "public static AIResponse fromOllamaResponse(OllamaResponse ollamaResponse) {"
+  ],
+  "cachedAt": 1762436782226,
+  "language": "java"
+}

@@ -1,0 +1,37 @@
+repositories:
+  - name: spring-ai
+    url: https://github.com/spring-projects/spring-ai
+    branch: main
+    description: "Spring AI framework - core concepts and APIs"
+    
+  - name: embabel-agent
+    url: https://github.com/embabel/embabel-agent
+    branch: main
+    description: "Embabel agent framework - core library"
+    
+  - name: embabel-examples
+    url: https://github.com/embabel/embabel-agent-examples
+    branch: main
+    description: "Embabel practical examples and patterns"
+    
+  - name: embabel-java-template
+    url: https://github.com/embabel/java-agent-template
+    branch: main
+    description: "Embabel Java project template"
+    
+  - name: embabel-kotlin-template
+    url: https://github.com/embabel/kotlin-agent-template
+    branch: main
+    description: "Embabel Kotlin project template"
+    
+  - name: tripper
+    url: https://github.com/embabel/tripper
+    branch: main
+    description: "Embabel advanced example - travel planner"
+
+settings:
+  chunk_size: 800
+  chunk_overlap: 200
+  similarity_threshold: 0.7
+  embedding_model: nomic-embed-text
+  ollama_base_url: http://localhost:11434

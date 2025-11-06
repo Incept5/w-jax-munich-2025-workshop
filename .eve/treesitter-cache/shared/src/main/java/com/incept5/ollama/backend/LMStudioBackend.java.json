@@ -1,0 +1,19 @@
+{
+  "filePath": "shared/src/main/java/com/incept5/ollama/backend/LMStudioBackend.java",
+  "mtime": 1762426412327,
+  "size": 6864,
+  "definitions": [
+    "public class LMStudioBackend extends AbstractHttpBackend {",
+    "public AIResponse generate(String prompt, String systemPrompt, Map<String, Object> options)",
+    "public AIResponse generateStreaming(",
+    "public CompletableFuture<AIResponse> generateAsync(",
+    "private AIResponse sendRequest(LMStudioRequest request) throws AIBackendException {",
+    "private AIResponse sendStreamingRequest(LMStudioRequest request, Consumer<String> chunkConsumer)",
+    "private AIResponse parseResponse(String jsonResponse) throws AIBackendException {",
+    "public ModelInfo getModelInfo(String modelName) throws AIBackendException {",
+    "public BackendType getBackendType() {",
+    "public boolean supportsModelInfo() {"
+  ],
+  "cachedAt": 1762436782215,
+  "language": "java"
+}
