@@ -22,7 +22,7 @@
         <postgresql.version>42.7.4</postgresql.version>
         <pgvector.version>0.1.6</pgvector.version>
         <hikaricp.version>6.2.1</hikaricp.version>
-        <flyway.version>11.1.0</flyway.version>
+        <flyway.version>10.22.0</flyway.version>
         <snakeyaml.version>2.3</snakeyaml.version>
     </properties>
 
@@ -115,6 +115,8 @@
                         <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                             <mainClass>com.incept5.workshop.stage3.ingestion.IngestionService</mainClass>
                         </transformer>
+                        <!-- Merge service files properly for Flyway plugins -->
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                     </transformers>
                 </configuration>
             </plugin>

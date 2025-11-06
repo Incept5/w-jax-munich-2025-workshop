@@ -90,7 +90,7 @@ if ! curl -s http://localhost:11434/api/tags | grep -q "nomic-embed-text"; then
 fi
 
 # Run the ingestion
-java -jar target/stage-3-agentic-rag.jar repos.yaml
+java -jar target/stage-3-agentic-rag-1.0-SNAPSHOT.jar repos.yaml
 
 echo
 echo -e "${GREEN}✅ Ingestion pipeline complete!${NC}"

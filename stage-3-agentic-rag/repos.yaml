@@ -1,9 +1,4 @@
 repositories:
-  - name: spring-ai
-    url: https://github.com/spring-projects/spring-ai
-    branch: main
-    description: "Spring AI framework - core concepts and APIs"
-    
   - name: embabel-agent
     url: https://github.com/embabel/embabel-agent
     branch: main
@@ -30,8 +25,8 @@ repositories:
     description: "Embabel advanced example - travel planner"
 
 settings:
-  chunk_size: 800          # tokens per chunk
-  chunk_overlap: 200       # overlap for context
-  similarity_threshold: 0.7
-  embedding_model: nomic-embed-text
-  ollama_base_url: http://localhost:11434
+  chunkSize: 800          # tokens per chunk
+  chunkOverlap: 200       # overlap for context
+  similarityThreshold: 0.7
+  embeddingModel: nomic-embed-text
+  ollamaBaseUrl: http://localhost:1143

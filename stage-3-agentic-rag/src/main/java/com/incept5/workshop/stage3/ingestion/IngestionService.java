@@ -188,10 +188,35 @@ public class IngestionService {
         
         // 1. Load configuration
         Yaml yaml = new Yaml();
-        IngestionConfig config;
+        Map<String, Object> yamlData;
         try (FileInputStream fis = new FileInputStream(configFile)) {
-            config = yaml.loadAs(fis, IngestionConfig.class);
+            yamlData = yaml.load(fis);
         }
+        
+        // Parse repositories
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> reposList = (List<Map<String, Object>>) yamlData.get("repositories");
+        List<RepoConfig> repos = reposList.stream()
+            .map(m -> new RepoConfig(
+                (String) m.get("name"),
+                (String) m.get("url"),
+                (String) m.get("branch"),
+                (String) m.get("description")
+            ))
+            .toList();
+        
+        // Parse settings
+        @SuppressWarnings("unchecked")
+        Map<String, Object> settingsMap = (Map<String, Object>) yamlData.get("settings");
+        IngestionConfig.Settings settings = new IngestionConfig.Settings(
+            (Integer) settingsMap.getOrDefault("chunkSize", 800),
+            (Integer) settingsMap.getOrDefault("chunkOverlap", 200),
+            ((Number) settingsMap.getOrDefault("similarityThreshold", 0.7)).doubleValue(),
+            (String) settingsMap.getOrDefault("embeddingModel", "nomic-embed-text"),
+            (String) settingsMap.getOrDefault("ollamaBaseUrl", "http://localhost:11434")
+        );
+        
+        IngestionConfig config = new IngestionConfig(repos, settings);
         
         logger.info("Configuration loaded: {} repositories", config.repositories().size());
         
