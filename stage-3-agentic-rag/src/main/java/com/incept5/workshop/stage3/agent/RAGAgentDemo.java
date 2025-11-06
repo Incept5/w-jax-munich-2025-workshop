@@ -189,8 +189,7 @@ public class RAGAgentDemo {
         System.out.println("\nExample questions:");
         System.out.println("  • What is Embabel?");
         System.out.println("  • How do I create an agent with Embabel?");
-        System.out.println("  • Show me a Spring AI ChatClient example");
-        System.out.println("  • What's the difference between Embabel and LangChain?");
+        System.out.println("  • What is GOAP?");
         System.out.println("\n" + "─".repeat(70));
     }
     

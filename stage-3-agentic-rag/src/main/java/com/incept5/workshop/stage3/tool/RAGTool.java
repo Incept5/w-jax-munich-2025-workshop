@@ -35,7 +35,9 @@ public class RAGTool implements Tool {
      * @param vectorStore The vector store to search
      */
     public RAGTool(PgVectorStore vectorStore) {
-        this(vectorStore, 0.7);
+        // Lower threshold (0.5) based on integration testing
+        // This provides better recall while maintaining good precision
+        this(vectorStore, 0.5);
     }
     
     /**
