@@ -1,0 +1,11 @@
+# Data directory (gitingest outputs)
+data/
+
+# Target directory
+target/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.DS_Store

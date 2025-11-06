@@ -63,8 +63,13 @@ This is a multi-module Maven workshop project demonstrating modern Java 21+ AI a
 |-------|--------|----------|-------|--------|
 | **0** | `stage-0-demo/` | Setup (35min) | Backend abstraction, multi-modal | ✅ Complete |
 | **1** | `stage-1-simple-agent/` | 3h 15min | Tool calling, agent loops | ✅ Complete |
+<<<<<<< HEAD
+| **2** | `stage-2-mcp-server/` | 40min | MCP protocol, tool exposure | ❌ TODO |
+| **3** | `stage-3-agentic-rag/` | 35min | RAG, vector search, embeddings | 🔄 Phase 1 ✅ |
+=======
 | **2** | `stage-2-mcp-server/` | 40min | MCP protocol, tool exposure | ✅ Complete |
 | **3** | `stage-3-agentic-rag/` | 35min | RAG, vector search, embeddings | ❌ TODO |
+>>>>>>> e005ba993c1bba552a7ec2bcb18794ad2ab5ca2d
 | **4** | `stage-4-multi-agent/` | 40min | Multi-agent, orchestration | ❌ TODO |
 | **5** | `stage-5-enterprise/` | 25min | Production patterns | ❌ TODO |
 
@@ -317,9 +322,9 @@ npx @modelcontextprotocol/inspector java -jar target/stage-2-mcp-server.jar
 
 ---
 
-### Stage 3: Agentic RAG (`stage-3-agentic-rag/`) ❌ TODO
+### Stage 3: Agentic RAG (`stage-3-agentic-rag/`) 🔄 IN PROGRESS
 
-**Status**: Not yet implemented  
+**Status**: Phase 1 (Ingestion Pipeline) Complete ✅  
 **Purpose**: Add retrieval-augmented generation with PostgreSQL + pgvector  
 **Workshop Time**: 14:20-14:55 (35 min - Agentic RAG)
 
@@ -337,14 +342,20 @@ npx @modelcontextprotocol/inspector java -jar target/stage-2-mcp-server.jar
 - Integrate RAG into agent reasoning loop
 - Work with Docker for local infrastructure
 
-**Planned Components**:
-- `RAGAgent.java` - Agent with RAG capabilities
-- `PgVectorStore.java` - PostgreSQL + pgvector integration
-- `DocumentProcessor.java` - Chunking and embedding
-- `EmbeddingService.java` - Ollama embedding generation
-- `RAGDemo.java` - Demo with sample document corpus
-- `RAGIntegrationTest.java` - Test with real embeddings
-- `docker-compose.yml` - PostgreSQL + pgvector setup
+**Phase 1 Components (Complete)**:
+- ✅ `PgVectorStore.java` - PostgreSQL + pgvector integration
+- ✅ `DocumentChunker.java` - Chunking with overlap
+- ✅ `EmbeddingService.java` - Ollama embedding generation
+- ✅ `IngestionService.java` - Main ingestion orchestration
+- ✅ `docker-compose.yml` - PostgreSQL + pgvector setup
+- ✅ `ingest.sh` - One-command setup script
+- ✅ `repos.yaml` - Repository configuration
+- ✅ Flyway migrations - Database schema
+
+**Phase 2 Components (TODO)**:
+- ❌ `RAGAgent.java` - Agent with RAG capabilities
+- ❌ `RAGDemo.java` - Interactive demo
+- ❌ `RAGIntegrationTest.java` - End-to-end test
 
 **Dependencies**: `shared`
 
@@ -843,6 +854,15 @@ mvn package -DskipTests
    - Integration test with real Ollama
    - Verbose mode for debugging
 
+<<<<<<< HEAD
+### 🔄 In Progress
+
+- **stage-3-agentic-rag/** - Phase 1 (Ingestion) Complete ✅, Phase 2 (Agent) TODO
+
+### ❌ TODO: Remaining Stages
+
+- **stage-2-mcp-server/** - MCP protocol implementation
+=======
 4. **stage-2-mcp-server/** - MCP server implementation
    - JSON-RPC 2.0 protocol over STDIO
    - Tool discovery and execution
@@ -852,6 +872,7 @@ mvn package -DskipTests
 
 ### ❌ TODO: Remaining Stages
 - **stage-3-agentic-rag/** - RAG with vector search
+>>>>>>> e005ba993c1bba552a7ec2bcb18794ad2ab5ca2d
 - **stage-4-multi-agent/** - Multi-agent orchestration
 - **stage-5-enterprise/** - Production patterns
 
@@ -951,8 +972,3 @@ java -jar target/stage-0-demo.jar -m "qwen2.5:7b" -p "Hello"
 - [Project Loom (Virtual Threads)](https://openjdk.org/projects/loom/)
 
 ---
-
-*Last updated: 2025-11-06*  
-*Architecture Version: 2.2*  
-*Status: 4/6 stages complete (Stages 0, 1, 2 complete; Stages 3-5 TODO)*  
-*Updates: MCP server with JSON-RPC 2.0, STDIO transport, tool discovery*

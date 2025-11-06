@@ -1,0 +1,32 @@
+repositories:
+  - name: embabel-agent
+    url: https://github.com/embabel/embabel-agent
+    branch: main
+    description: "Embabel agent framework - core library"
+    
+  - name: embabel-examples
+    url: https://github.com/embabel/embabel-agent-examples
+    branch: main
+    description: "Embabel practical examples and patterns"
+    
+  - name: embabel-java-template
+    url: https://github.com/embabel/java-agent-template
+    branch: main
+    description: "Embabel Java project template"
+    
+  - name: embabel-kotlin-template
+    url: https://github.com/embabel/kotlin-agent-template
+    branch: main
+    description: "Embabel Kotlin project template"
+    
+  - name: tripper
+    url: https://github.com/embabel/tripper
+    branch: main
+    description: "Embabel advanced example - travel planner"
+
+settings:
+  chunkSize: 800          # tokens per chunk
+  chunkOverlap: 200       # overlap for context
+  similarityThreshold: 0.7
+  embeddingModel: nomic-embed-text
+  ollamaBaseUrl: http://localhost:11434

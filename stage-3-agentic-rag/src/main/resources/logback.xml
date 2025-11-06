@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Console appender with colored output -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Set logging level for the application -->
+    <logger name="com.incept5.workshop.stage3" level="INFO"/>
+
+    <!-- Suppress HikariCP DEBUG spam -->
+    <logger name="com.zaxxer.hikari" level="WARN"/>
+    <logger name="com.zaxxer.hikari.pool" level="WARN"/>
+    <logger name="com.zaxxer.hikari.pool.HikariPool" level="WARN"/>
+
+    <!-- Reduce noise from PostgreSQL driver -->
+    <logger name="org.postgresql" level="WARN"/>
+
+    <!-- Reduce noise from Ollama client -->
+    <logger name="com.incept5.ollama.client" level="INFO"/>
+
+    <!-- Reduce noise from HTTP client -->
+    <logger name="org.apache.http" level="WARN"/>
+    <logger name="java.net.http" level="WARN"/>
+
+    <!-- Root logger configuration -->
+    <root level="WARN">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>
