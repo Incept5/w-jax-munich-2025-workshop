@@ -1,17 +1,17 @@
-# Ollama Java 25 Demo
+# Ollama Java Demo
 
-A modern, feature-rich Java 25 application demonstrating best practices for interacting with AI models. Supports multiple backends including **Ollama**, **LM Studio**, and **MLX-VLM**. This project showcases cutting-edge Java features including records, virtual threads, pattern matching, sealed classes, and more.
+A modern, feature-rich Java application demonstrating best practices for interacting with AI models. Supports multiple backends including **Ollama**, **LM Studio**, and **MLX-VLM**. This project showcases modern Java features including records, virtual threads, pattern matching, sealed classes, and more.
 
 ## Features
 
-### Java 25 Modern Features
-- **Records**: Immutable data models with automatic getters, equals, hashCode, and toString
-- **Virtual Threads**: Efficient concurrency using Project Loom (Java 21+)
-- **Pattern Matching**: Enhanced switch expressions for elegant code
-- **Text Blocks**: Multi-line string literals for better readability
-- **Sealed Classes**: Controlled exception hierarchy
-- **var keyword**: Type inference for cleaner code
-- **Try-with-resources**: Automatic resource management
+### Modern Java Features
+- **Records** (Java 16+): Immutable data models with automatic getters, equals, hashCode, and toString
+- **Virtual Threads** (Java 21+): Efficient concurrency using Project Loom
+- **Pattern Matching** (Java 21+): Enhanced switch expressions for elegant code
+- **Text Blocks** (Java 15+): Multi-line string literals for better readability
+- **Sealed Classes** (Java 17+): Controlled exception hierarchy
+- **var keyword** (Java 10+): Type inference for cleaner code
+- **Try-with-resources** (Java 7+): Automatic resource management
 
 ### Application Features
 - **Multiple Backend Support**: Unified interface for Ollama, LM Studio (OpenAI-compatible), and MLX-VLM
@@ -36,7 +36,7 @@ A modern, feature-rich Java 25 application demonstrating best practices for inte
 
 ## Prerequisites
 
-1. **Java 25** or later installed
+1. **Java 21** or later installed
 2. **Maven 3.9.0** or later installed
 3. At least one AI backend:
    - **Ollama** (default) running on port 11434 with models pulled
@@ -68,29 +68,13 @@ cd ollama-java-demo
 mvn clean package
 
 # Run with default settings
-java --enable-preview -jar target/ollama-java-demo.jar
+java -jar target/ollama-java-demo.jar
 
 # Or use Maven exec plugin
 mvn exec:java
 ```
 
-### Why `--enable-preview`?
 
-The `--enable-preview` flag is required because this project uses **preview features** from Java 25:
-
-- **Enhanced Pattern Matching**: Advanced switch expressions with pattern guards
-- **Flexible Constructor Bodies**: Modern record constructor syntax
-- **String Templates**: (if used in future versions)
-
-**Note**: These features are stable and production-ready in Java 25, but the JVM requires the flag to enable them. You can safely use this flag in production.
-
-```bash
-# Always include --enable-preview when running
-java --enable-preview -jar target/ollama-java-demo.jar
-
-# Without the flag, you'll get an error
-java -jar target/ollama-java-demo.jar  # ❌ Error: preview features not enabled
-```
 
 ## Simple Example - Using OllamaClient in Your Code
 
@@ -119,7 +103,7 @@ public class SimpleExample {
 
 **Run it**:
 ```bash
-java --enable-preview -cp target/ollama-java-demo.jar com.example.ollama.SimpleExample
+java -cp target/ollama-java-demo.jar com.example.ollama.SimpleExample
 ```
 
 This minimal example demonstrates:
@@ -137,13 +121,13 @@ This application supports multiple AI backends through a unified interface. Swit
 ### Ollama (Default)
 ```bash
 # Default - Ollama backend
-java --enable-preview -jar target/ollama-java-demo.jar
+java -jar target/ollama-java-demo.jar
 
 # Explicit Ollama backend
-java --enable-preview -jar target/ollama-java-demo.jar -b ollama
+java -jar target/ollama-java-demo.jar -b ollama
 
 # Ollama with custom URL
-java --enable-preview -jar target/ollama-java-demo.jar -b ollama -u http://localhost:11434
+java -jar target/ollama-java-demo.jar -b ollama -u http://localhost:11434
 ```
 
 **Features:**
@@ -155,13 +139,13 @@ java --enable-preview -jar target/ollama-java-demo.jar -b ollama -u http://local
 ### LM Studio
 ```bash
 # LM Studio backend with local model
-java --enable-preview -jar target/ollama-java-demo.jar -b lmstudio -m "local-model"
+java -jar target/ollama-java-demo.jar -b lmstudio -m "local-model"
 
 # LM Studio with custom URL
-java --enable-preview -jar target/ollama-java-demo.jar -b lmstudio -u http://localhost:1234/v1
+java -jar target/ollama-java-demo.jar -b lmstudio -u http://localhost:1234/v1
 
 # LM Studio with streaming
-java --enable-preview -jar target/ollama-java-demo.jar -b lmstudio -m "llama-3.2-3b" -s
+java -jar target/ollama-java-demo.jar -b lmstudio -m "llama-3.2-3b" -s
 ```
 
 **Features:**
@@ -176,13 +160,13 @@ java --enable-preview -jar target/ollama-java-demo.jar -b lmstudio -m "llama-3.2
 ### MLX-VLM
 ```bash
 # MLX-VLM backend (Apple Silicon optimized)
-java --enable-preview -jar target/ollama-java-demo.jar -b mlx_vlm -m "mlx-community/nanoLLaVA-1.5-8bit"
+java -jar target/ollama-java-demo.jar -b mlx_vlm -m "mlx-community/nanoLLaVA-1.5-8bit"
 
 # MLX-VLM with custom URL
-java --enable-preview -jar target/ollama-java-demo.jar -b mlx_vlm -u http://localhost:8000
+java -jar target/ollama-java-demo.jar -b mlx_vlm -u http://localhost:8000
 
 # MLX-VLM with streaming
-java --enable-preview -jar target/ollama-java-demo.jar -b mlx_vlm -m "mlx-community/nanoLLaVA-1.5-8bit" -s -p "Describe this"
+java -jar target/ollama-java-demo.jar -b mlx_vlm -m "mlx-community/nanoLLaVA-1.5-8bit" -s -p "Describe this"
 ```
 
 **Features:**
@@ -201,63 +185,63 @@ java --enable-preview -jar target/ollama-java-demo.jar -b mlx_vlm -m "mlx-commun
 
 ```bash
 # Default prompt and model (shows model information by default)
-java --enable-preview -jar target/ollama-java-demo.jar
+java -jar target/ollama-java-demo.jar
 
 # Display help message
-java --enable-preview -jar target/ollama-java-demo.jar --help
+java -jar target/ollama-java-demo.jar --help
 ```
 
 ### Custom Prompts
 
 ```bash
 # Custom prompt
-java --enable-preview -jar target/ollama-java-demo.jar -p "Explain quantum computing in simple terms"
+java -jar target/ollama-java-demo.jar -p "Explain quantum computing in simple terms"
 
 # Custom prompt with specific model
-java --enable-preview -jar target/ollama-java-demo.jar -m llama2 -p "What is artificial intelligence?"
+java -jar target/ollama-java-demo.jar -m llama2 -p "What is artificial intelligence?"
 ```
 
 ### Streaming Mode
 
 ```bash
 # Enable streaming for real-time responses
-java --enable-preview -jar target/ollama-java-demo.jar -s
+java -jar target/ollama-java-demo.jar -s
 
 # Streaming with custom prompt
-java --enable-preview -jar target/ollama-java-demo.jar -s -p "Write a short story about space exploration"
+java -jar target/ollama-java-demo.jar -s -p "Write a short story about space exploration"
 ```
 
 ### Raw Output Mode
 
 ```bash
 # Raw mode - only the response (perfect for piping)
-java --enable-preview -jar target/ollama-java-demo.jar -r -p "What is 2+2?"
+java -jar target/ollama-java-demo.jar -r -p "What is 2+2?"
 
 # Raw mode with streaming
-java --enable-preview -jar target/ollama-java-demo.jar -r -s -p "Generate code"
+java -jar target/ollama-java-demo.jar -r -s -p "Generate code"
 
 # Pipe to other commands
-java --enable-preview -jar target/ollama-java-demo.jar -r -p "List programming languages" | grep Java
+java -jar target/ollama-java-demo.jar -r -p "List programming languages" | grep Java
 ```
 
 ### Model Parameters
 
 ```bash
 # Set system prompt
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   --system "You are a helpful coding assistant" \
   -p "How do I reverse a string?"
 
 # Adjust temperature for more creative output
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   --temp 0.8 -p "Write a poem"
 
 # Increase context size for longer responses
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   --ctx 8192 -p "Explain quantum computing in detail"
 
 # Combine multiple parameters
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   --system "Be concise" --temp 0.3 --ctx 4096 \
   -p "Explain virtual threads"
 ```
@@ -266,13 +250,13 @@ java --enable-preview -jar target/ollama-java-demo.jar \
 
 ```bash
 # Custom Ollama server URL
-java --enable-preview -jar target/ollama-java-demo.jar -u http://remote-server:11434
+java -jar target/ollama-java-demo.jar -u http://remote-server:11434
 
 # Custom timeout (in seconds)
-java --enable-preview -jar target/ollama-java-demo.jar -t 600
+java -jar target/ollama-java-demo.jar -t 600
 
 # Combine multiple options
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   -m llama2 -p "Explain machine learning" -s -t 300 \
   --temp 0.5 --ctx 4096
 ```
@@ -305,17 +289,17 @@ Use the `-r` or `--raw` flag to get clean output perfect for scripting and pipin
 
 ```bash
 # Get just the response text
-java --enable-preview -jar target/ollama-java-demo.jar -r -p "What is 2+2?"
+java -jar target/ollama-java-demo.jar -r -p "What is 2+2?"
 # Output: 2 + 2 = 4
 
 # Pipe to other commands
-java --enable-preview -jar target/ollama-java-demo.jar -r -p "List 3 colors" | grep blue
+java -jar target/ollama-java-demo.jar -r -p "List 3 colors" | grep blue
 
 # Save to file without headers
-java --enable-preview -jar target/ollama-java-demo.jar -r -p "Write a poem" > poem.txt
+java -jar target/ollama-java-demo.jar -r -p "Write a poem" > poem.txt
 
 # Raw mode with streaming
-java --enable-preview -jar target/ollama-java-demo.jar -r -s -p "Generate code"
+java -jar target/ollama-java-demo.jar -r -s -p "Generate code"
 ```
 
 **Raw mode features:**
@@ -359,12 +343,12 @@ Sets a system prompt that guides the model's behavior and persona:
 
 ```bash
 # Make the model more concise
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   --system "You are a helpful assistant. Be concise." \
   -p "What is Java?"
 
 # Set a specific role
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   --sys "You are a helpful coding assistant" \
   -p "How do I reverse a string in Java?"
 ```
@@ -378,11 +362,11 @@ Controls randomness in the output (0.0-2.0):
 
 ```bash
 # Focused, deterministic output
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   --temp 0.1 -p "What is 2+2?"
 
 # Creative output
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   --temp 0.8 -p "Write a poem about coding"
 ```
 
@@ -392,11 +376,11 @@ Sets the context window size in tokens. A larger context allows the model to han
 
 ```bash
 # Increase context for longer conversations
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   --ctx 8192 -p "Explain quantum computing in detail"
 
 # Standard context
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   --ctx 4096 -p "Explain Java records"
 ```
 
@@ -406,19 +390,19 @@ You can combine multiple parameters for fine-grained control:
 
 ```bash
 # All three parameters together
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   --system "You are a helpful coding assistant" \
   --temp 0.3 \
   --ctx 4096 \
   -p "How do I reverse a string in Java?"
 
 # Parameters work in raw mode too
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   -r --temp 0.5 --system "Answer in one sentence" \
   -p "What is AI?"
 
 # Parameters work with streaming
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   -s --temp 0.7 --ctx 8192 \
   -p "Write a short story"
 ```
@@ -446,25 +430,25 @@ All three backends now support vision models for analyzing images. The applicati
 
 ```bash
 # Analyze a single image with llava
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   -m llava \
   -i photo.jpg \
   -p "What's in this image?"
 
 # Multiple images
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   -m llava \
   -i image1.jpg image2.png \
   -p "Compare these two images"
 
 # With streaming for real-time response
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   -m llava -s \
   -i landscape.jpg \
   -p "Describe this landscape in detail"
 
 # Combine with other parameters
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   -m llava --temp 0.7 --ctx 8192 \
   -i photo.jpg \
   -p "Write a detailed description"
@@ -474,21 +458,21 @@ java --enable-preview -jar target/ollama-java-demo.jar \
 
 ```bash
 # Analyze image with LM Studio (qwen2-vl or similar)
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   -b lmstudio \
   -m "qwen2-vl-2b" \
   -i document.png \
   -p "Extract the text from this document"
 
 # Multiple images with LM Studio
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   -b lmstudio \
   -m "qwen2-vl-2b" \
   -i chart1.png chart2.png \
   -p "Compare these charts and summarize"
 
 # Raw output mode with images
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   -b lmstudio -m "qwen2-vl-2b" -r \
   -i receipt.jpg \
   -p "Extract the total amount"
@@ -498,21 +482,21 @@ java --enable-preview -jar target/ollama-java-demo.jar \
 
 ```bash
 # Analyze image with MLX-VLM (remember to specify the model!)
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   -b mlx_vlm \
   -m "mlx-community/nanoLLaVA-1.5-8bit" \
   -i screenshot.png \
   -p "What's shown in this screenshot?"
 
 # Multiple images
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   -b mlx_vlm \
   -m "mlx-community/nanoLLaVA-1.5-8bit" \
   -i before.jpg after.jpg \
   -p "What changed between these images?"
 
 # With streaming
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   -b mlx_vlm -s \
   -m "mlx-community/nanoLLaVA-1.5-8bit" \
   -i diagram.png \
@@ -533,7 +517,7 @@ java --enable-preview -jar target/ollama-java-demo.jar \
 
 ```
 ╔══════════════════════════════════════════════════════════╗
-║           Ollama Java 25 Demo Application               ║
+║           Ollama Java Demo Application               ║
 ╚══════════════════════════════════════════════════════════╝
 
 Model: llava
@@ -864,7 +848,7 @@ $ java -Xmx2g -jar ollama-java-demo.jar
 
 **Problem**: `Unsupported class file major version`
 ```
-Solution: Ensure Java 25 is installed and active
+Solution: Ensure Java 21 is installed and active
 $ java -version
 ```
 
@@ -882,7 +866,7 @@ This is a demonstration project for educational purposes.
 ## Contributing
 
 Contributions are welcome! Please ensure:
-- Code follows Java 25 best practices
+- Code follows Java 21 best practices
 - All tests pass
 - Logging is appropriate
 - Documentation is updated
@@ -895,7 +879,7 @@ Contributions are welcome! Please ensure:
 - [MLX-VLM on GitHub](https://github.com/Blaizzy/mlx-vlm)
 
 ### Java
-- [Java 25 Release Notes](https://openjdk.org/)
+- [Java Documentation](https://openjdk.org/)
 - [Maven Documentation](https://maven.apache.org/)
 - [Project Loom (Virtual Threads)](https://openjdk.org/projects/loom/)
 - [Java Records](https://openjdk.org/jeps/395)

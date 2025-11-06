@@ -5,8 +5,8 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.example</groupId>
-    <artifactId>w-jax-munich-2025-workshop</artifactId>
+    <groupId>com.incept5</groupId>
+    <artifactId>ollama-java-demo</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
