@@ -63,7 +63,7 @@ This is a multi-module Maven workshop project demonstrating modern Java 21+ AI a
 |-------|--------|----------|-------|--------|
 | **0** | `stage-0-demo/` | Setup (35min) | Backend abstraction, multi-modal | ✅ Complete |
 | **1** | `stage-1-simple-agent/` | 3h 15min | Tool calling, agent loops | ✅ Complete |
-| **2** | `stage-2-mcp-server/` | 40min | MCP protocol, tool exposure | ❌ TODO |
+| **2** | `stage-2-mcp-server/` | 40min | MCP protocol, tool exposure | ✅ Complete |
 | **3** | `stage-3-agentic-rag/` | 35min | RAG, vector search, embeddings | ❌ TODO |
 | **4** | `stage-4-multi-agent/` | 40min | Multi-agent, orchestration | ❌ TODO |
 | **5** | `stage-5-enterprise/` | 25min | Production patterns | ❌ TODO |
@@ -268,17 +268,17 @@ mvn test  # Runs integration test with real Ollama
 
 ---
 
-### Stage 2: MCP Server (`stage-2-mcp-server/`) ❌ TODO
+### Stage 2: MCP Server (`stage-2-mcp-server/`) ✅
 
-**Status**: Not yet implemented  
+**Status**: Complete  
 **Purpose**: Build Model Context Protocol server using official Java SDK  
 **Workshop Time**: 13:40-14:20 (40 min - MCP Deep Dive)
 
 **What Participants Build**:
-- MCP server that exposes tools via official SDK
-- MCP client for tool discovery using SDK
-- Agent integration with MCP (combining Stage 1 + 2)
-- Integration test with MCP communication
+- MCP server that exposes tools via JSON-RPC 2.0
+- STDIO-based communication for process isolation
+- Tool discovery via standard MCP protocol
+- JSON Schema for parameter validation
 
 **Learning Objectives**:
 - Understand MCP protocol fundamentals
@@ -286,26 +286,34 @@ mvn test  # Runs integration test with real Ollama
 - Expose tools through MCP protocol
 - Connect agent to MCP server
 
-**Planned Components**:
-- `SimpleMCPServer.java` - MCP server using SDK
-- `MCPClientWrapper.java` - MCP client wrapper using SDK
-- `tool/MCPToolAdapter.java` - Adapt Tool interface to MCP
-- `MCPAgent.java` - Agent using MCP client
-- `MCPAgentIntegrationTest.java` - Test with real MCP flow
+**Key Components**:
+- `SimpleMCPServer.java` - MCP server with JSON-RPC 2.0
+- `MCPDemo.java` - Demo application with usage examples
+- `tool/Tool.java` - Tool interface with JSON Schema support
+- `tool/WeatherTool.java` - Weather tool with MCP compatibility
+- `tool/CountryInfoTool.java` - Country info tool with MCP compatibility
 
 **Dependencies**: `shared`
 
-**New Libraries**:
-- **MCP Java SDK**: `io.modelcontextprotocol:sdk` (official SDK)
-- Java built-in HTTP server for transport
+**Protocol Implementation**:
+- JSON-RPC 2.0 over STDIO
+- MCP initialization handshake
+- Tool discovery via `tools/list`
+- Tool execution via `tools/call`
+- JSON Schema parameter validation
 
-**Key SDK Features**:
-- Official protocol implementation
-- Built-in JSON-RPC 2.0 support
-- Type-safe tool definitions
-- Standard resource and prompt support
+**Running**:
+```bash
+cd stage-2-mcp-server
+./run.sh
+```
 
-**Architecture Link**: *To be created*
+**Testing with MCP Inspector**:
+```bash
+npx @modelcontextprotocol/inspector java -jar target/stage-2-mcp-server.jar
+```
+
+**Architecture Link**: *[stage-2-mcp-server/README.md](./stage-2-mcp-server/README.md)*
 
 ---
 
@@ -515,7 +523,7 @@ graph LR
     
     S0[stage-0-demo]:::complete --> SHARED
     S1[stage-1-simple-agent]:::complete --> SHARED
-    S2[stage-2-mcp-server]:::todo --> SHARED
+    S2[stage-2-mcp-server]:::complete --> SHARED
     S3[stage-3-agentic-rag]:::todo --> SHARED
     S4[stage-4-multi-agent]:::todo --> SHARED
     S5[stage-5-enterprise]:::todo --> SHARED
@@ -636,21 +644,18 @@ w-jax-munich-2025-workshop/
 │           ├── README.md            # Test documentation
 │           └── SimpleAgentIntegrationTest.java
 │
-├── stage-2-mcp-server/              # ❌ TODO
+├── stage-2-mcp-server/              # ✅ COMPLETE
 │   ├── pom.xml
 │   ├── README.md
 │   ├── run.sh
 │   └── src/
-│       ├── main/java/com/incept5/workshop/stage2/
-│       │   ├── SimpleMCPServer.java
-│       │   ├── MCPClient.java
-│       │   ├── MCPAgent.java
-│       │   ├── tool/
-│       │   │   └── MCPToolAdapter.java
-│       │   └── MCPDemo.java
-│       └── test/java/com/incept5/workshop/stage2/
-│           ├── README.md
-│           └── MCPIntegrationTest.java
+│       └── main/java/com/incept5/workshop/stage2/
+│           ├── SimpleMCPServer.java
+│           ├── MCPDemo.java
+│           └── tool/
+│               ├── Tool.java
+│               ├── WeatherTool.java
+│               └── CountryInfoTool.java
 │
 ├── stage-3-agentic-rag/             # ❌ TODO
 │   ├── pom.xml
@@ -838,9 +843,14 @@ mvn package -DskipTests
    - Integration test with real Ollama
    - Verbose mode for debugging
 
-### ❌ TODO: Remaining Stages
+4. **stage-2-mcp-server/** - MCP server implementation
+   - JSON-RPC 2.0 protocol over STDIO
+   - Tool discovery and execution
+   - MCP initialization handshake
+   - JSON Schema parameter validation
+   - Compatible with MCP Inspector and Claude Desktop
 
-- **stage-2-mcp-server/** - MCP protocol implementation
+### ❌ TODO: Remaining Stages
 - **stage-3-agentic-rag/** - RAG with vector search
 - **stage-4-multi-agent/** - Multi-agent orchestration
 - **stage-5-enterprise/** - Production patterns
@@ -942,7 +952,7 @@ java -jar target/stage-0-demo.jar -m "qwen2.5:7b" -p "Hello"
 
 ---
 
-*Last updated: 2025-01-06*  
-*Architecture Version: 2.1*  
-*Status: 3/6 stages complete (Stages 0, 1 complete; Stages 2-5 TODO)*  
-*Updates: Official MCP Java SDK, PostgreSQL + pgvector, standard enterprise libraries*
+*Last updated: 2025-11-06*  
+*Architecture Version: 2.2*  
+*Status: 3/6 stages complete (Stages 0, 1, 2 complete; Stages 3-5 TODO)*  
+*Updates: MCP server with JSON-RPC 2.0, STDIO transport, tool discovery*
