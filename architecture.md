@@ -63,13 +63,8 @@ This is a multi-module Maven workshop project demonstrating modern Java 21+ AI a
 |-------|--------|----------|-------|--------|
 | **0** | `stage-0-demo/` | Setup (35min) | Backend abstraction, multi-modal | ✅ Complete |
 | **1** | `stage-1-simple-agent/` | 3h 15min | Tool calling, agent loops | ✅ Complete |
-<<<<<<< HEAD
-| **2** | `stage-2-mcp-server/` | 40min | MCP protocol, tool exposure | ❌ TODO |
-| **3** | `stage-3-agentic-rag/` | 35min | RAG, vector search, embeddings | 🔄 Phase 1 ✅ |
-=======
 | **2** | `stage-2-mcp-server/` | 40min | MCP protocol, tool exposure | ✅ Complete |
 | **3** | `stage-3-agentic-rag/` | 35min | RAG, vector search, embeddings | ❌ TODO |
->>>>>>> e005ba993c1bba552a7ec2bcb18794ad2ab5ca2d
 | **4** | `stage-4-multi-agent/` | 40min | Multi-agent, orchestration | ❌ TODO |
 | **5** | `stage-5-enterprise/` | 25min | Production patterns | ❌ TODO |
 
