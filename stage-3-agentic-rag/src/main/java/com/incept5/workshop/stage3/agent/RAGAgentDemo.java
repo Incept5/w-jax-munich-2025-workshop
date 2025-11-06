@@ -32,8 +32,10 @@ public class RAGAgentDemo {
     
     // Configuration
     private static final String OLLAMA_BASE_URL = "http://localhost:11434";
-    private static final String LLM_MODEL = "incept5/Jan-v1-2509:fp16";
+    private static final String LLM_MODEL = "qwen3:4b";
+
     private static final String EMBEDDING_MODEL = "nomic-embed-text";
+
     
     private static final String DB_URL = "jdbc:postgresql://localhost:5432/workshop_rag";
     private static final String DB_USER = "workshop";
