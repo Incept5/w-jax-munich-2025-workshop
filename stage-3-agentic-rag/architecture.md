@@ -3,9 +3,14 @@
 
 ## Overview
 
-**Status**: ❌ TODO  
+**Status**: ❌ TODO (Phase 1 Ingestion ✅ Complete, Phase 2 Agent TODO)  
 **Purpose**: Build a production-ready RAG (Retrieval-Augmented Generation) pipeline with conversational memory  
 **Workshop Time**: 14:20-14:55 (35 minutes - Agentic RAG & Data Integration)
+
+**PREREQUISITES**: 
+- Ollama must be running: `ollama serve`
+- Embedding model installed: `ollama pull nomic-embed-text`
+- PostgreSQL 17 with pgvector (via Docker Compose)
 
 ## Learning Objectives
 

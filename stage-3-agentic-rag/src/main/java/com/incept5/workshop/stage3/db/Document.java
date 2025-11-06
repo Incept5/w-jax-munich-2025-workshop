@@ -12,13 +12,16 @@ public record Document(
     int id,
     String content,
     String source,
+    String fileHash,
+    int chunkIndex,
     Map<String, Object> metadata,
     double similarity
 ) {
     /**
      * Create a document without similarity score (for storage).
      */
-    public Document(int id, String content, String source, Map<String, Object> metadata) {
-        this(id, content, source, metadata, 0.0);
+    public Document(int id, String content, String source, String fileHash, 
+                   int chunkIndex, Map<String, Object> metadata) {
+        this(id, content, source, fileHash, chunkIndex, metadata, 0.0);
     }
 }

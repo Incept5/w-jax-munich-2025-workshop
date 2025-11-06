@@ -86,7 +86,7 @@ public class PgVectorStore implements AutoCloseable {
         // 2. Execute similarity search
         // Uses cosine distance (<=> operator) from pgvector
         String sql = """
-            SELECT id, content, source, metadata,
+            SELECT id, content, source, file_hash, chunk_index, metadata,
                    1 - (embedding <=> ?::vector) as similarity
             FROM documents
             WHERE 1 - (embedding <=> ?::vector) > ?
@@ -115,6 +115,8 @@ public class PgVectorStore implements AutoCloseable {
                         rs.getInt("id"),
                         rs.getString("content"),
                         rs.getString("source"),
+                        rs.getString("file_hash"),
+                        rs.getInt("chunk_index"),
                         metadata,
                         rs.getDouble("similarity")
                     ));
@@ -177,6 +179,98 @@ public class PgVectorStore implements AutoCloseable {
         }
         
         return counts;
+    }
+    
+    /**
+     * Get a specific chunk by its coordinates.
+     * Used for retrieving neighboring chunks.
+     * 
+     * @param source The source repository
+     * @param fileHash The file hash
+     * @param chunkIndex The chunk index
+     * @return The document if found, null otherwise
+     */
+    public Document getChunkByIndex(String source, String fileHash, int chunkIndex) throws SQLException {
+        String sql = """
+            SELECT id, content, source, file_hash, chunk_index, metadata
+            FROM documents
+            WHERE source = ? AND file_hash = ? AND chunk_index = ?
+            """;
+        
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, source);
+            stmt.setString(2, fileHash);
+            stmt.setInt(3, chunkIndex);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    String metadataJson = rs.getString("metadata");
+                    Map<String, Object> metadata = gson.fromJson(metadataJson,
+                        new TypeToken<Map<String, Object>>(){}.getType());
+                    
+                    return new Document(
+                        rs.getInt("id"),
+                        rs.getString("content"),
+                        rs.getString("source"),
+                        rs.getString("file_hash"),
+                        rs.getInt("chunk_index"),
+                        metadata
+                    );
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Get neighboring chunks around a document.
+     * 
+     * @param doc The center document
+     * @param radius Number of chunks before and after (e.g., 1 = immediate neighbors)
+     * @return List of documents in chunk order (may include the original)
+     */
+    public List<Document> getNeighboringChunks(Document doc, int radius) throws SQLException {
+        String sql = """
+            SELECT id, content, source, file_hash, chunk_index, metadata
+            FROM documents
+            WHERE source = ? AND file_hash = ? 
+              AND chunk_index BETWEEN ? AND ?
+            ORDER BY chunk_index
+            """;
+        
+        List<Document> neighbors = new ArrayList<>();
+        
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, doc.source());
+            stmt.setString(2, doc.fileHash());
+            stmt.setInt(3, doc.chunkIndex() - radius);
+            stmt.setInt(4, doc.chunkIndex() + radius);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    String metadataJson = rs.getString("metadata");
+                    Map<String, Object> metadata = gson.fromJson(metadataJson,
+                        new TypeToken<Map<String, Object>>(){}.getType());
+                    
+                    neighbors.add(new Document(
+                        rs.getInt("id"),
+                        rs.getString("content"),
+                        rs.getString("source"),
+                        rs.getString("file_hash"),
+                        rs.getInt("chunk_index"),
+                        metadata
+                    ));
+                }
+            }
+        }
+        
+        logger.debug("Retrieved {} neighboring chunks for document {}", neighbors.size(), doc.id());
+        return neighbors;
     }
     
     @Override

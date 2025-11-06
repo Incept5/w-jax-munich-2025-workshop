@@ -1,335 +1,367 @@
-# Stage 3: Agentic RAG - Getting Started
+# Stage 3: Agentic RAG - Retrieval-Augmented Generation Agent
 
 ## Overview
 
-This stage implements a production-ready RAG (Retrieval-Augmented Generation) pipeline using PostgreSQL with pgvector extension. Phase 1 focuses on document ingestion - extracting code from repositories, chunking, generating embeddings, and storing them for semantic search.
+This stage demonstrates a production-ready RAG (Retrieval-Augmented Generation) system with:
 
-## What You'll Build (Phase 1)
+- **PostgreSQL + pgvector** for vector storage
+- **Conversational memory** for multi-turn dialogues
+- **JSON tool calling** (Ollama native format)
+- **Context expansion** via neighboring chunk retrieval
+- **Real documentation** from Embabel and Spring AI repositories
 
-1. **Infrastructure**: PostgreSQL 17 + pgvector in Docker
-2. **Ingestion Pipeline**: Extract → Chunk → Embed → Store
-3. **Vector Storage**: Efficient similarity search with cosine distance
-4. **Idempotent Processing**: Hash-based deduplication
+## What You've Built
+
+### Phase 1: Ingestion Pipeline ✅ (Complete)
+- Document chunking with overlap
+- Embedding generation via Ollama
+- Vector storage in PostgreSQL
+- Idempotent ingestion with hash-based deduplication
+
+### Phase 2: Conversational Agent ✅ (Complete)
+- Full agent loop (think → act → observe)
+- Multi-turn conversation support
+- Vector search with context expansion
+- Natural language responses
+
+## Architecture
+
+```
+User Query → RAGAgent → ConversationMemory
+                ↓
+          Agent Loop (Think)
+                ↓
+          LLM (Ollama)
+                ↓
+          Tool Call? ──No──→ Final Answer
+                ↓
+               Yes
+                ↓
+      search_documentation
+                ↓
+         Vector Search
+                ↓
+    PostgreSQL + pgvector
+                ↓
+      Retrieved Documents
+                ↓
+    (Optional: Expand Context
+     with Neighboring Chunks)
+                ↓
+         Format Results
+                ↓
+      Add to Conversation
+                ↓
+      Loop (Observe)
+```
+
+## Components Built
+
+### Core Agent Components
+
+1. **RAGAgent.java** (~300 lines)
+   - Conversational agent with memory
+   - JSON tool call parsing
+   - Configurable iteration limits
+   - Verbose mode for debugging
+
+2. **ConversationMemory.java** (~150 lines)
+   - Sliding window of recent messages
+   - Token estimation and trimming
+   - User/Assistant/System message types
+
+3. **JsonToolCallParser.java** (~100 lines)
+   - Parse Ollama's JSON tool format
+   - Type-safe parameter extraction
+   - Graceful error handling
+
+### Tool Implementation
+
+4. **RAGTool.java** (~200 lines)
+   - Vector similarity search
+   - **Neighboring chunk retrieval** (context expansion)
+   - Smart result formatting
+
+5. **ToolRegistry.java** (~80 lines)
+   - Tool registration and lookup
+   - JSON schema generation
+   - Tool execution with error handling
+
+### Database Components (Enhanced)
+
+6. **PgVectorStore.java** (enhanced)
+   - Added `getChunkByIndex()` - retrieve specific chunks
+   - Added `getNeighboringChunks()` - expand context
+   - Full vector search capabilities
+
+7. **Document.java** (enhanced)
+   - Added `fileHash` and `chunkIndex` fields
+   - Enables neighbor retrieval
+
+### Demo & Testing
+
+8. **RAGAgentDemo.java** (~150 lines)
+   - Interactive CLI interface
+   - Multi-turn conversation loop
+   - Command system (help, history, clear, exit)
+
+9. **RAGAgentIntegrationTest.java** (~250 lines)
+   - 7 comprehensive tests
+   - Vector search validation
+   - Multi-turn conversation testing
+   - Context expansion verification
 
 ## Prerequisites
 
-- Java 21+
-- Maven 3.9.0+
-- Docker and Docker Compose
-- Ollama running with `nomic-embed-text` model
-- pipx (for gitingest installation)
+Before running:
 
-### Install Prerequisites
-
-```bash
-# Ollama
-# (Assuming already installed from previous stages)
-
-# Pull embedding model
-ollama pull nomic-embed-text
-
-# pipx (if not already installed)
-# macOS:
-brew install pipx
-
-# Ubuntu/Debian:
-sudo apt install pipx
-
-# Ensure pipx is in PATH
-pipx ensurepath
-```
+1. **Ollama running**: `ollama serve`
+2. **Models available**:
+   ```bash
+   ollama pull incept5/Jan-v1-2509:fp16
+   ollama pull nomic-embed-text
+   ```
+3. **PostgreSQL + pgvector**: `docker-compose up -d`
+4. **Documents ingested**: `./ingest.sh`
 
 ## Quick Start
 
-### One-Command Setup
+### 1. Ingest Documentation (if not done)
 
 ```bash
 cd stage-3-agentic-rag
 ./ingest.sh
 ```
 
-This script will:
-1. ✓ Check/install gitingest via pipx
-2. ✓ Start PostgreSQL + pgvector with Docker
-3. ✓ Run Flyway database migrations
-4. ✓ Process all repositories from repos.yaml
-5. ✓ Generate embeddings via Ollama
-6. ✓ Store in PostgreSQL with vector indexes
+This will:
+- Download repositories using gitingest
+- Chunk documents with overlap
+- Generate embeddings
+- Store in PostgreSQL
 
-### What Gets Ingested
-
-By default, the pipeline ingests 6 repositories (configured in `repos.yaml`):
-- **spring-ai**: Spring AI framework documentation
-- **embabel-agent**: Core Embabel framework
-- **embabel-examples**: Practical Embabel examples
-- **embabel-java-template**: Java project template
-- **embabel-kotlin-template**: Kotlin project template
-- **tripper**: Advanced travel planner example
-
-Total documents: ~400-500 chunks depending on repository sizes.
-
-## Manual Steps (For Learning)
-
-If you want to understand each step:
-
-### 1. Start PostgreSQL
+### 2. Run the Agent
 
 ```bash
-docker-compose up -d
+# Standard mode
+./run.sh
 
-# Verify it's running
-docker ps
-docker exec -it stage3-pgvector pg_isready -U workshop -d workshop_rag
+# Verbose mode (see agent reasoning)
+./run.sh --verbose
 ```
 
-### 2. Build the Project
+### 3. Example Conversation
+
+```
+💬 You: What is Embabel?
+
+🤖 Assistant: 
+Embabel is an agent framework for the JVM created by Rod Johnson,
+the founder of Spring Framework. It uses Goal-Oriented Action Planning
+(GOAP) to build intelligent applications...
+
+💬 You: Show me an example
+
+🤖 Assistant:
+Here's a basic Embabel agent:
+
+@Agent(description = "Quiz generator")
+public class QuizAgent {
+    @Action(description = "Fetch web content")
+    public WebContent fetchContent(String url) { ... }
+    
+    @Goal
+    public Quiz createQuizFromUrl(String url) {
+        return null;  // Framework fills this in
+    }
+}
+...
+
+💬 You: exit
+👋 Goodbye!
+```
+
+## Key Features
+
+### 1. Neighboring Chunk Expansion
+
+When searching documentation, the agent can retrieve neighboring chunks:
+
+```java
+// In RAGTool.java
+if (expandContext) {
+    documents = expandWithNeighbors(documents);
+}
+```
+
+This provides more complete context for:
+- Code examples that span multiple chunks
+- Explanations with dependencies on previous paragraphs
+- Maintaining narrative flow
+
+### 2. JSON Tool Calling
+
+Cleaner than XML (used in Stage 1):
+
+```json
+{
+  "tool": "search_documentation",
+  "parameters": {
+    "query": "how to create an agent",
+    "topK": 5,
+    "expandContext": true
+  }
+}
+```
+
+### 3. Conversation Memory
+
+The agent maintains context across turns:
+
+```java
+memory.addUserMessage("What is Embabel?");
+memory.addAssistantMessage("Embabel is...");
+memory.addUserMessage("Show me an example");  // Uses previous context
+```
+
+### 4. Smart Document Retrieval
+
+Vector search with configurable:
+- **topK**: Number of results (1-10)
+- **threshold**: Similarity score (0-1)
+- **expandContext**: Include neighbors
+
+## CLI Commands
+
+- `help` - Show available commands
+- `history` - Display conversation history
+- `clear` - Clear conversation history
+- `exit` or `quit` - End conversation
+
+## Running Tests
 
 ```bash
-mvn clean package
+# Run all tests (requires Ollama + PostgreSQL + ingested data)
+mvn test
+
+# Run specific test
+mvn test -Dtest=RAGAgentIntegrationTest#testVectorSearch
 ```
 
-### 3. Install gitingest
+**Note**: Tests require:
+- Ollama running with models loaded
+- PostgreSQL with ingested documents
+- First test run may be slow (model loading)
 
-```bash
-pipx install gitingest
-gitingest --help
+## Project Structure
+
+```
+stage-3-agentic-rag/
+├── src/main/java/com/incept5/workshop/stage3/
+│   ├── agent/
+│   │   ├── ConversationMemory.java      # ✅ Multi-turn context
+│   │   ├── RAGAgent.java                # ✅ Main conversational agent
+│   │   └── RAGAgentDemo.java            # ✅ Interactive CLI
+│   ├── tool/
+│   │   ├── Tool.java                    # ✅ Tool interface
+│   │   ├── ToolRegistry.java            # ✅ Tool management
+│   │   └── RAGTool.java                 # ✅ Document search + expansion
+│   ├── util/
+│   │   └── JsonToolCallParser.java      # ✅ JSON tool parsing
+│   ├── db/
+│   │   ├── Document.java                # ✅ Enhanced with chunk info
+│   │   └── PgVectorStore.java           # ✅ Enhanced with neighbor retrieval
+│   └── ingestion/
+│       └── ...                          # ✅ Already complete
+├── src/test/java/com/incept5/workshop/stage3/
+│   └── RAGAgentIntegrationTest.java     # ✅ Comprehensive tests
+├── run.sh                               # ✅ Run script
+├── ingest.sh                            # ✅ Ingestion script
+├── docker-compose.yml                   # ✅ PostgreSQL + pgvector
+└── README.md                            # ✅ This file
 ```
 
-### 4. Run Ingestion
+## What Makes This Different from Stage 1?
 
-```bash
-java -jar target/stage-3-agentic-rag.jar repos.yaml
-```
-
-Watch the progress:
-- Repository download progress
-- Chunking statistics
-- Embedding generation (with progress)
-- Storage confirmation
-
-## Verify the Results
-
-### Check Document Count
-
-```bash
-docker exec -it stage3-pgvector psql -U workshop -d workshop_rag -c "SELECT COUNT(*) FROM documents;"
-```
-
-### View Documents by Source
-
-```bash
-docker exec -it stage3-pgvector psql -U workshop -d workshop_rag -c "SELECT source, COUNT(*) FROM documents GROUP BY source;"
-```
-
-### Test Vector Search
-
-```bash
-docker exec -it stage3-pgvector psql -U workshop -d workshop_rag
-```
-
-Then in psql:
-
-```sql
--- Get a sample embedding to test with
-\x
-SELECT id, content, source, 
-       1 - (embedding <=> (SELECT embedding FROM documents LIMIT 1)) as similarity
-FROM documents
-WHERE 1 - (embedding <=> (SELECT embedding FROM documents LIMIT 1)) > 0.7
-ORDER BY similarity DESC
-LIMIT 5;
-```
+| Aspect | Stage 1 | Stage 3 |
+|--------|---------|---------|
+| **Memory** | None | Full conversation history |
+| **Tool Format** | XML | JSON (Ollama native) |
+| **Data Source** | External APIs | Vector database |
+| **Context** | Single-turn | Multi-turn with memory |
+| **Expansion** | N/A | Neighboring chunk retrieval |
+| **Scale** | 2 tools | RAG with 1000+ documents |
 
 ## Configuration
 
-### Customize Repositories (repos.yaml)
+Edit `RAGAgentDemo.java` to change:
 
-Add or remove repositories:
-
-```yaml
-repositories:
-  - name: my-repo
-    url: https://github.com/user/repo
-    branch: main
-    description: "My custom repository"
-```
-
-### Adjust Chunking Settings
-
-```yaml
-settings:
-  chunk_size: 800          # tokens per chunk (increase for larger context)
-  chunk_overlap: 200       # overlap for continuity (20-25% of chunk_size)
-  similarity_threshold: 0.7  # minimum cosine similarity (0.0-1.0)
-```
-
-### Change Embedding Model
-
-```yaml
-settings:
-  embedding_model: nomic-embed-text  # or 'all-minilm-l6-v2' for faster/smaller
-  ollama_base_url: http://localhost:11434
-```
-
-**Note**: If you change the embedding model, you must:
-1. Update the vector dimension in `V1__Create_documents_table.sql`
-2. Drop and recreate the database
-3. Re-run ingestion
-
-## Architecture Components
-
-### Database Schema
-
-```sql
-CREATE TABLE documents (
-    id SERIAL PRIMARY KEY,
-    content TEXT NOT NULL,
-    source VARCHAR(255) NOT NULL,
-    file_hash VARCHAR(64) NOT NULL,
-    chunk_index INTEGER NOT NULL,
-    metadata JSONB,
-    embedding vector(768),  -- nomic-embed-text dimension
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    UNIQUE(source, file_hash, chunk_index)  -- Idempotency
-);
-
--- Vector similarity index (IVFFlat)
-CREATE INDEX idx_documents_embedding ON documents 
-    USING ivfflat (embedding vector_cosine_ops)
-    WITH (lists = 100);
-```
-
-### Java Components
-
-1. **DatabaseConfig**: HikariCP connection pooling
-2. **PgVectorStore**: Vector storage and similarity search
-3. **EmbeddingService**: Generate embeddings via Ollama
-4. **DocumentChunker**: Split documents with overlap
-5. **IngestionService**: Orchestrate the pipeline
-
-### Pipeline Flow
-
-```
-repos.yaml → IngestionService
-              ↓
-         gitingest (clone & extract)
-              ↓
-         DocumentChunker (split with overlap)
-              ↓
-         EmbeddingService (Ollama)
-              ↓
-         PgVectorStore (PostgreSQL + pgvector)
+```java
+private static final String LLM_MODEL = "incept5/Jan-v1-2509:fp16";
+private static final String EMBEDDING_MODEL = "nomic-embed-text";
+private static final String DB_URL = "jdbc:postgresql://localhost:5432/workshop_rag";
 ```
 
 ## Troubleshooting
 
-### Ollama Connection Error
-
+### No documents found
 ```bash
-# Check Ollama is running
-curl http://localhost:11434/api/tags
+# Run ingestion
+./ingest.sh
+```
 
-# Start Ollama if needed
+### Ollama connection refused
+```bash
+# Start Ollama
 ollama serve
-```
 
-### PostgreSQL Connection Refused
-
-```bash
-# Check container status
-docker ps
-
-# View logs
-docker logs stage3-pgvector
-
-# Restart if needed
-docker-compose restart
-```
-
-### gitingest Not Found
-
-```bash
-# Install via pipx
-pipx install gitingest
-
-# Verify installation
-which gitingest
-gitingest --help
-```
-
-### Embedding Model Not Found
-
-```bash
-# Pull the model
+# Pull models
+ollama pull incept5/Jan-v1-2509:fp16
 ollama pull nomic-embed-text
-
-# Verify it's available
-ollama list
 ```
 
-### Out of Memory During Ingestion
-
-Increase Java heap size:
-
+### PostgreSQL connection refused
 ```bash
-java -Xmx4g -jar target/stage-3-agentic-rag.jar repos.yaml
+# Start database
+docker-compose up -d
+
+# Check status
+docker-compose ps
 ```
 
-## Clean Up
-
-### Stop PostgreSQL
-
-```bash
-docker-compose down
-```
-
-### Remove All Data (including volumes)
-
-```bash
-docker-compose down -v
-```
-
-### Clean gitingest Outputs
-
-```bash
-rm -rf data/
-```
+### Slow responses
+- First query loads the model (30-60 seconds)
+- Subsequent queries are faster
+- Use smaller model if needed: `qwen2.5:7b`
 
 ## Next Steps
 
-Phase 1 (Ingestion) is now complete! The next phases will add:
+This completes Phase 2 of Stage 3! You now have:
 
-- **Phase 2**: Conversational RAG agent with JSON tool calling
-- **Phase 3**: Multi-turn conversations with memory
-- **Phase 4**: Advanced features (re-ranking, hybrid search)
+✅ Complete ingestion pipeline  
+✅ Conversational RAG agent  
+✅ Context expansion with neighbors  
+✅ Multi-turn conversations  
+✅ Interactive CLI demo  
+✅ Integration tests  
 
-For now, you have a production-ready vector store with ~500 documents ready for semantic search!
+**What's Next:**
+- Stage 4: Multi-agent systems (orchestration)
+- Stage 5: Enterprise patterns (monitoring, resilience)
 
-## Performance Notes
+## Resources
 
-### Ingestion Speed
+- **Root Architecture**: [/architecture.md](../architecture.md)
+- **Stage 1 (Simple Agent)**: [/stage-1-simple-agent/README.md](../stage-1-simple-agent/README.md)
+- **Stage 3 Architecture**: [architecture.md](./architecture.md)
 
-- **gitingest**: ~5-10 seconds per repository (depends on size)
-- **Chunking**: Very fast (~1000 chunks/second)
-- **Embeddings**: ~2-3 embeddings/second (Ollama on M3 Max)
-- **Storage**: Very fast (batched inserts)
+### External Resources
 
-**Total time**: ~5-10 minutes for all 6 repositories
-
-### Vector Search Speed
-
-- **Exact search** (no index): ~50ms for 500 documents
-- **IVFFlat index**: ~5-10ms for 500 documents
-- Scales to millions of vectors with proper tuning
-
-## Learning Resources
-
-- **pgvector**: https://github.com/pgvector/pgvector
-- **Ollama Embeddings**: https://github.com/ollama/ollama/blob/main/docs/api.md#generate-embeddings
-- **gitingest**: https://github.com/cyclotruc/gitingest
-- **RAG Overview**: https://docs.spring.io/spring-ai/reference/api/retrieval-augmented-generation.html
+- [Spring AI RAG](https://docs.spring.io/spring-ai/reference/api/retrieval-augmented-generation.html)
+- [pgvector](https://github.com/pgvector/pgvector)
+- [Ollama Embeddings](https://github.com/ollama/ollama/blob/main/docs/api.md#generate-embeddings)
 
 ---
 
-For full architectural details, see [architecture.md](./architecture.md)
+*Stage 3 Phase 2 Implementation Complete: 2025-11-06*  
+*Total New Code: ~1,200 lines across 9 files*  
+*Status: Fully functional RAG conversational agent*

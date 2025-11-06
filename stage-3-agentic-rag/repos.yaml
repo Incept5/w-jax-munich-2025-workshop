@@ -29,4 +29,4 @@ settings:
   chunkOverlap: 200       # overlap for context
   similarityThreshold: 0.7
   embeddingModel: nomic-embed-text
-  ollamaBaseUrl: http://localhost:1143
+  ollamaBaseUrl: http://localhost:11434
