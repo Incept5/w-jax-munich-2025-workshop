@@ -83,7 +83,7 @@ public class RAGAgent {
             // Build prompt with conversation history
             String prompt = buildPromptWithHistory();
             
-            // Get LLM response
+            // Get LLM response to decide if tool is needed
             if (verbose) {
                 System.out.println("[THINKING...]");
             }
@@ -110,15 +110,15 @@ public class RAGAgent {
             }
             
             if (toolCall.isEmpty()) {
-                // Final answer - not a tool call
+                // Final answer - no tool needed
                 finalResponse = content;
                 memory.addAssistantMessage(content);
                 
                 if (verbose) {
-                    System.out.println("\n[FINAL ANSWER]");
+                    System.out.println("\n[FINAL ANSWER - NO TOOL]");
                 }
                 
-                logger.info("Agent completed in {} iterations", i + 1);
+                logger.info("Agent completed in {} iterations (no tool used)", i + 1);
                 break;
             }
             
@@ -132,8 +132,9 @@ public class RAGAgent {
             logger.info("Executing tool: {} with parameters: {}", 
                 toolCall.get().name(), toolCall.get().parameters());
             
+            String toolResult;
             try {
-                String toolResult = toolRegistry.execute(
+                toolResult = toolRegistry.execute(
                     toolCall.get().name(),
                     toolCall.get().parameters()
                 );
@@ -146,18 +147,38 @@ public class RAGAgent {
                     System.out.println("─".repeat(70));
                 }
                 
-                // Add tool result to memory as system message
-                memory.addSystemMessage("Tool '" + toolCall.get().name() + "' result:\n" + toolResult);
-                
             } catch (Exception e) {
                 logger.error("Tool execution failed", e);
                 String errorMsg = "Error executing tool: " + e.getMessage();
-                memory.addSystemMessage(errorMsg);
                 
                 if (verbose) {
                     System.err.println("\n[ERROR] " + errorMsg);
                 }
+                
+                // On tool error, return error message
+                finalResponse = "I encountered an error while searching the documentation: " + e.getMessage();
+                memory.addAssistantMessage(finalResponse);
+                break;
             }
+            
+            // Now generate answer using the tool result (but don't store tool result in memory)
+            if (verbose) {
+                System.out.println("\n[GENERATING ANSWER WITH CONTEXT]");
+            }
+            
+            String answerPrompt = buildAnswerPrompt(userMessage, toolResult);
+            AIResponse answerResponse = backend.generate(answerPrompt, buildSystemPrompt(), null);
+            finalResponse = answerResponse.response().trim();
+            
+            // Store only the final answer in memory (not the tool results)
+            memory.addAssistantMessage(finalResponse);
+            
+            if (verbose) {
+                System.out.println("\n[FINAL ANSWER - WITH TOOL]");
+            }
+            
+            logger.info("Agent completed in {} iterations (with tool)", i + 1);
+            break;
         }
         
         if (finalResponse == null) {
@@ -217,6 +238,43 @@ public class RAGAgent {
      */
     private String buildPromptWithHistory() {
         return memory.formatHistory();
+    }
+    
+    /**
+     * Build prompt for generating an answer using tool results.
+     * This includes:
+     * 1. Conversation history (for context)
+     * 2. Retrieved documentation (temporary context, not stored)
+     * 3. Current question (prominent)
+     * 
+     * @param question The user's current question
+     * @param toolResult The retrieved documentation or tool output
+     * @return Formatted prompt for answer generation
+     */
+    private String buildAnswerPrompt(String question, String toolResult) {
+        StringBuilder prompt = new StringBuilder();
+        
+        // Include conversation history if it exists (for multi-turn context)
+        String history = memory.formatHistory();
+        if (!history.isEmpty()) {
+            prompt.append("=== CONVERSATION HISTORY ===\n");
+            prompt.append(history);
+            prompt.append("\n");
+        }
+        
+        // Add retrieved documentation as temporary context
+        prompt.append("=== RELEVANT DOCUMENTATION ===\n");
+        prompt.append(toolResult);
+        prompt.append("\n\n");
+        
+        // Make current question prominent
+        prompt.append("=== CURRENT QUESTION ===\n");
+        prompt.append(question);
+        prompt.append("\n\n");
+        prompt.append("Please provide a clear, helpful answer to the current question using the documentation above.\n");
+        prompt.append("Focus on answering the specific question asked.\n");
+        
+        return prompt.toString();
     }
     
     /**

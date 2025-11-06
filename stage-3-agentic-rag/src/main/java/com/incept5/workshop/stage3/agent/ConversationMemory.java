@@ -91,16 +91,21 @@ public class ConversationMemory {
     
     /**
      * Format conversation history for use in LLM prompts.
+     * Only includes user and assistant messages (not system messages).
      * 
-     * @return Formatted string with all messages
+     * @return Formatted string with conversation dialogue
      */
     public String formatHistory() {
         StringBuilder history = new StringBuilder();
         
         for (Message msg : messages) {
-            history.append(msg.role()).append(": ")
-                   .append(msg.content())
-                   .append("\n\n");
+            // Only include user and assistant messages in conversation history
+            // System messages (tool results) are not part of the dialogue
+            if (msg instanceof UserMessage || msg instanceof AssistantMessage) {
+                history.append(msg.role()).append(": ")
+                       .append(msg.content())
+                       .append("\n\n");
+            }
         }
         
         return history.toString();
