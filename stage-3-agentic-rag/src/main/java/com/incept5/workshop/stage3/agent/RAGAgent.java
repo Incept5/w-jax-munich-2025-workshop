@@ -101,6 +101,14 @@ public class RAGAgent {
             // Check if response is a tool call (JSON format)
             Optional<JsonToolCallParser.ToolCall> toolCall = JsonToolCallParser.parse(content);
             
+            if (verbose) {
+                if (toolCall.isPresent()) {
+                    System.out.println("\n✓ Parsed as tool call: " + toolCall.get());
+                } else {
+                    System.out.println("\n✗ Not a tool call, treating as final answer");
+                }
+            }
+            
             if (toolCall.isEmpty()) {
                 // Final answer - not a tool call
                 finalResponse = content;
@@ -180,14 +188,16 @@ public class RAGAgent {
         prompt.append(toolRegistry.generateToolSchemas());
         prompt.append("\n\n");
         
-        prompt.append("To use a tool, respond with ONLY a JSON object in this format:\n");
+        prompt.append("To use a tool, respond with a JSON object in a code block like this:\n");
+        prompt.append("```json\n");
         prompt.append("{\n");
         prompt.append("  \"tool\": \"tool_name\",\n");
         prompt.append("  \"parameters\": {\n");
         prompt.append("    \"param1\": \"value1\",\n");
         prompt.append("    \"param2\": value2\n");
         prompt.append("  }\n");
-        prompt.append("}\n\n");
+        prompt.append("}\n");
+        prompt.append("```\n\n");
         
         prompt.append("Guidelines:\n");
         prompt.append("1. Search documentation when you need specific information about Embabel or Spring AI\n");
@@ -197,6 +207,7 @@ public class RAGAgent {
         prompt.append("5. For follow-up questions, use the conversation history for context\n");
         prompt.append("6. Be concise but thorough in your answers\n");
         prompt.append("7. If you don't find relevant information, say so honestly\n");
+        prompt.append("8. IMPORTANT: Only include ONE tool call per response\n");
         
         return prompt.toString();
     }

@@ -237,7 +237,25 @@ Vector search with configurable:
 - `clear` - Clear conversation history
 - `exit` or `quit` - End conversation
 
-## Running Tests
+## Testing
+
+### Quick Tool Calling Test
+
+Verify that tool calling works correctly:
+```bash
+./test-tool-calling.sh
+```
+
+This script will:
+1. Check prerequisites (Ollama, model, PostgreSQL)
+2. Run a simple query with verbose output
+3. Verify that the agent can parse tool calls from the LLM
+
+Look for:
+- `✓ Parsed as tool call: ToolCall{...}` - Tool calling is working!
+- `✗ Not a tool call, treating as final answer` - Issue with parsing
+
+### Integration Tests
 
 ```bash
 # Run all tests (requires Ollama + PostgreSQL + ingested data)

@@ -11,12 +11,18 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Parser for JSON-format tool calls.
  * 
- * Ollama natively supports JSON tool calling format:
+ * Handles LLM responses that may contain JSON in code blocks or raw JSON.
+ * This parser is based on the proven approach from Stage 1.
+ * 
+ * Supported formats:
  * <pre>
+ * ```json
  * {
  *   "tool": "search_documentation",
  *   "parameters": {
@@ -24,16 +30,41 @@ import java.util.Optional;
  *     "topK": 3
  *   }
  * }
+ * ```
  * </pre>
  * 
- * This is cleaner than XML format used in Stage 1.
+ * Or raw JSON:
+ * <pre>
+ * {
+ *   "tool": "search_documentation",
+ *   "parameters": {
+ *     "query": "how to create an agent"
+ *   }
+ * }
+ * </pre>
  */
 public class JsonToolCallParser {
     private static final Logger logger = LoggerFactory.getLogger(JsonToolCallParser.class);
     private static final Gson gson = new Gson();
     
+    // Pattern to match JSON code blocks (with or without language specifier)
+    private static final Pattern JSON_BLOCK_PATTERN = Pattern.compile(
+            "```(?:json)?\\s*\\n(.*?)\\n```",
+            Pattern.DOTALL
+    );
+    
+    // Pattern to match raw JSON objects (fallback if no code block)
+    // This pattern handles nested braces for the parameters object
+    private static final Pattern RAW_JSON_PATTERN = Pattern.compile(
+            "\\{[^{}]*\"tool\"[^{}]*\\{[^}]*\\}[^}]*\\}",
+            Pattern.DOTALL
+    );
+    
     /**
      * Parse a potential tool call from LLM response.
+     * 
+     * This method first tries to extract JSON from a code block,
+     * then falls back to finding raw JSON in the response.
      * 
      * @param response The LLM response text
      * @return Optional containing ToolCall if valid JSON tool call, empty otherwise
@@ -43,17 +74,30 @@ public class JsonToolCallParser {
             return Optional.empty();
         }
         
-        String trimmed = response.trim();
+        String jsonContent = null;
         
-        // Quick check: does it look like JSON?
-        if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) {
-            logger.debug("Response doesn't look like JSON tool call");
+        // First, try to find JSON in a code block
+        Matcher codeBlockMatcher = JSON_BLOCK_PATTERN.matcher(response);
+        if (codeBlockMatcher.find()) {
+            jsonContent = codeBlockMatcher.group(1).trim();
+            logger.debug("Found JSON in code block: {}", jsonContent);
+        } else {
+            // Fallback: try to find raw JSON object
+            Matcher rawJsonMatcher = RAW_JSON_PATTERN.matcher(response);
+            if (rawJsonMatcher.find()) {
+                jsonContent = rawJsonMatcher.group(0).trim();
+                logger.debug("Found raw JSON object: {}", jsonContent);
+            }
+        }
+        
+        if (jsonContent == null) {
+            logger.debug("No JSON tool call found in response");
             return Optional.empty();
         }
         
+        // Parse the JSON
         try {
-            // Try to parse as JSON
-            JsonObject json = gson.fromJson(trimmed, JsonObject.class);
+            JsonObject json = gson.fromJson(jsonContent, JsonObject.class);
             
             // Check for required fields
             if (!json.has("tool")) {
@@ -72,20 +116,26 @@ public class JsonToolCallParser {
             // Convert parameters to Map
             Map<String, Object> parameters = convertJsonToMap(paramsJson);
             
-            logger.debug("Parsed tool call: {} with {} parameters", toolName, parameters.size());
+            logger.info("Parsed tool call: {} with {} parameters", toolName, parameters.size());
             return Optional.of(new ToolCall(toolName, parameters));
             
         } catch (JsonSyntaxException e) {
-            logger.debug("Failed to parse as JSON: {}", e.getMessage());
+            logger.warn("Failed to parse JSON tool call: {}", e.getMessage());
             return Optional.empty();
         } catch (Exception e) {
-            logger.warn("Unexpected error parsing tool call", e);
+            logger.error("Unexpected error parsing tool call", e);
             return Optional.empty();
         }
     }
     
     /**
      * Convert JsonObject to Map with proper type handling.
+     * 
+     * Preserves the actual types of parameters:
+     * - Strings remain strings
+     * - Integers remain integers
+     * - Floats remain floats
+     * - Booleans remain booleans
      */
     private static Map<String, Object> convertJsonToMap(JsonObject jsonObject) {
         Map<String, Object> map = new HashMap<>();
@@ -113,8 +163,8 @@ public class JsonToolCallParser {
                     map.put(key, primitive.getAsBoolean());
                 }
             } else if (value.isJsonArray() || value.isJsonObject()) {
-                // For now, just store as string representation
-                // Could be enhanced to handle nested structures
+                // For nested structures, store as string representation
+                // Could be enhanced to handle nested structures if needed
                 map.put(key, value.toString());
             }
         }
