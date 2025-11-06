@@ -60,6 +60,15 @@ By the end of this workshop, you'll have built:
 - **MLX-VLM** for Apple Silicon vision models
 - **Alternative Models**: Qwen 2.5 7B, Mistral 7B, Gemma 2 9B
 
+### For Stage 4 (Enterprise Reference)
+
+- **Docker Desktop** with Model Runner for MCP Gateway
+- **API Keys** (for exploration, not required for stages 1-3):
+  - OpenAI API key (GPT-4.1 models)
+  - Brave Search API key (web search)
+  - Google Maps API key (location services)
+- See `stage-4-embabel-tripper/API_KEYS.md` for setup details
+
 ## Quick Start
 
 ### 1. Clone and Build
@@ -194,30 +203,38 @@ docker-compose up -d  # Start PostgreSQL
 
 **Time**: 15:15-16:20  
 **Module**: `stage-4-embabel-tripper/` (External Reference)  
-**Status**: Exploration
+**Repository**: https://github.com/Incept5/tripper  
+**Local Path**: `/Users/adam/dev/opensource/explore-embabel/tripper`  
+**Status**: Exploration & Discussion
 
-Explore a production multi-agent travel planning system.
+Explore a production multi-agent travel planning system built with Spring Boot and Embabel framework.
 
 **What You'll Explore**:
-- Production Spring Boot + Embabel application
-- Multiple LLMs (GPT-4.1, GPT-4.1-mini)
-- MCP at scale (6+ servers: Brave, Wikipedia, Google Maps, Airbnb)
-- Spring Security with OAuth2
-- Docker Compose infrastructure
-- Zipkin distributed tracing
-- Real-world domain model
+- **Production Architecture**: Spring Boot + Embabel agent framework
+- **Multiple LLMs**: GPT-4.1 (planner) + GPT-4.1-mini (researcher)
+- **MCP at Scale**: 6+ MCP servers (Brave, Wikipedia, Google Maps, Airbnb, Puppeteer, GitHub)
+- **Enterprise Security**: Spring Security with OAuth2 (Google)
+- **Infrastructure**: Docker Compose, MCP Gateway, Zipkin tracing
+- **Real Domain**: Travel planning with structured itineraries
 
 **Learning Goals**:
-- Production agent architecture patterns
-- Multi-LLM orchestration
-- Enterprise security (OAuth2, API keys)
-- Infrastructure as code
-- Monitoring and observability
-- MCP gateway pattern
+- Understand production agent architecture with Embabel
+- See multi-LLM orchestration patterns
+- Learn enterprise security (OAuth2, API key management)
+- Explore infrastructure as code
+- Understand monitoring and observability
+- See MCP gateway pattern for tool management
+- Compare action-based vs loop-based agent design
 
-**Repository**: https://github.com/Incept5/tripper
+**Setup Requirements**:
+- Docker Desktop with Model Runner
+- API keys: OpenAI, Brave Search, Google Maps
+- See `stage-4-embabel-tripper/README.md` for detailed setup
+- See `stage-4-embabel-tripper/API_KEYS.md` for API key instructions
 
-**Setup Guide**: See `stage-4-embabel-tripper/README.md`
+**Exploration Guide**: See `stage-4-embabel-tripper/EXPLORATION.md`
+
+**Note**: This stage focuses on reading and discussing production code rather than building from scratch. The goal is to understand how the patterns from stages 1-3 scale to enterprise applications.
 
 ## Project Structure
 
@@ -496,9 +513,10 @@ while (!completed && iterations < maxIterations) {
 1. **Real Integration Tests**: Every stage includes tests with real APIs and real LLMs
 2. **Modern Java**: Showcases Java 21+ features in practical AI scenarios
 3. **Multiple Backends**: Not locked to one provider or API
-4. **Privacy-First**: Everything runs locally by default
-5. **Progressive Complexity**: Each stage builds on previous work
-6. **Production Focus**: Learn patterns for real deployment
+4. **Privacy-First**: Everything runs locally by default (stages 1-3)
+5. **Progressive Complexity**: Build from scratch (stages 1-3), then explore production code (stage 4)
+6. **Production Reference**: Learn from a real-world multi-agent system (Embabel Tripper)
+7. **Enterprise Patterns**: See Spring Boot, OAuth2, distributed tracing, and MCP at scale
 
 ## Contributing
 
