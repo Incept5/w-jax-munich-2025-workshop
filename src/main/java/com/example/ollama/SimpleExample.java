@@ -26,6 +26,7 @@ public class SimpleExample {
         // Try-with-resources ensures client is closed properly
         try (var client = new OllamaClient(config)) {
             // Generate response and print it
+            System.out.println("Sending user input: \"Hello\" to Ollama...");
             var response = client.generate("Hello");
             System.out.println(response.response());
         } catch (Exception e) {
