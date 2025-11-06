@@ -20,6 +20,249 @@ This stage showcases a production-ready RAG (Retrieval-Augmented Generation) sys
 - Natural language Q&A over ingested documentation
 - Full agent loop: Think → Act (search) → Observe → Answer
 
+## How RAG Works in This Stage
+
+### The Problem: Grounding AI in Your Documentation
+
+Large Language Models (LLMs) are trained on general internet data, but they don't know about:
+- Your internal documentation
+- Recent project updates
+- Proprietary frameworks (like Embabel)
+- Specific implementation details
+
+RAG solves this by giving the LLM **relevant context** from your documentation at query time.
+
+### The RAG Pipeline: From Code to Conversation
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ PHASE 1: INGESTION (One-Time Setup via ./ingest.sh)        │
+└─────────────────────────────────────────────────────────────┘
+
+1. Repository Download (via gitingest)
+   ┌──────────────────────────────────┐
+   │  Embabel Agent Repository        │
+   │  • Java source files             │
+   │  • Documentation (*.md)          │
+   │  • Configuration files           │
+   │  • Example code                  │
+   └────────────┬─────────────────────┘
+                │
+                ▼
+2. Document Chunking (DocumentChunker.java)
+   ┌──────────────────────────────────┐
+   │  Split into ~800 token chunks    │
+   │  with 200 token overlap          │
+   │  ────────────────────            │
+   │  Chunk 1: [tokens 0-800]         │
+   │  Chunk 2: [tokens 600-1400] ←─┐  │
+   │  Chunk 3: [tokens 1200-2000]   │  │
+   │           ↑         ↑          │  │
+   │           └─────────┴──────────┘  │
+   │           200 token overlap       │
+   └────────────┬─────────────────────┘
+                │
+                ▼
+3. Embedding Generation (EmbeddingService.java)
+   ┌──────────────────────────────────┐
+   │  For each chunk:                 │
+   │  "@Agent annotation defines..."  │
+   │           ↓                      │
+   │  [Ollama: nomic-embed-text]      │
+   │           ↓                      │
+   │  [0.234, -0.891, 0.456, ...]     │
+   │   ↑                              │
+   │   1024-dimensional vector        │
+   │   (semantic meaning encoded)     │
+   └────────────┬─────────────────────┘
+                │
+                ▼
+4. Vector Storage (PgVectorStore.java)
+   ┌──────────────────────────────────────────┐
+   │  PostgreSQL + pgvector Extension         │
+   │  ┌────────────────────────────────────┐  │
+   │  │ documents table                    │  │
+   │  ├────────────────────────────────────┤  │
+   │  │ id | source | chunk_index | ...   │  │
+   │  │ embedding (vector[1024])           │  │
+   │  │ content (text)                     │  │
+   │  └────────────────────────────────────┘  │
+   │                                           │
+   │  IVFFlat Index for fast similarity search│
+   └──────────────────────────────────────────┘
+
+   Result: 487 searchable document chunks
+
+┌─────────────────────────────────────────────────────────────┐
+│ PHASE 2: QUERY TIME (Interactive via ./run.sh)             │
+└─────────────────────────────────────────────────────────────┘
+
+1. User Question
+   "What is Embabel and how do I use it?"
+                │
+                ▼
+2. RAG Agent Decides to Search
+   ┌──────────────────────────────────┐
+   │  RAGAgent.java                   │
+   │  • Analyzes question             │
+   │  • Decides tool needed           │
+   │  • Calls: search_documentation   │
+   └────────────┬─────────────────────┘
+                │
+                ▼
+3. Query Embedding
+   "What is Embabel and how do I use it?"
+                │
+                ▼
+   [Ollama: nomic-embed-text]
+                │
+                ▼
+   [0.123, -0.567, 0.890, ...]
+    ↑
+    Query vector (1024 dimensions)
+                │
+                ▼
+4. Similarity Search
+   ┌──────────────────────────────────────────┐
+   │  PgVectorStore.search()                  │
+   │  SELECT *, embedding <=> $1 AS distance  │
+   │  FROM documents                          │
+   │  ORDER BY distance                       │
+   │  LIMIT 5;                                │
+   │                                           │
+   │  Cosine similarity finds closest vectors:│
+   │  • Chunk 142: 0.89 similarity            │
+   │  • Chunk 87:  0.85 similarity            │
+   │  • Chunk 201: 0.82 similarity            │
+   │  • Chunk 56:  0.79 similarity            │
+   │  • Chunk 345: 0.76 similarity            │
+   └────────────┬─────────────────────────────┘
+                │
+                ▼
+5. Context Expansion (Optional)
+   ┌──────────────────────────────────┐
+   │  For each matched chunk:         │
+   │  • Get previous chunk (N-1)      │
+   │  • Get current chunk (N)         │
+   │  • Get next chunk (N+1)          │
+   │                                  │
+   │  Ensures complete code examples  │
+   │  and maintains narrative flow    │
+   └────────────┬─────────────────────┘
+                │
+                ▼
+6. Augmented Prompt
+   ┌──────────────────────────────────────────┐
+   │  SYSTEM: You are a helpful assistant... │
+   │                                          │
+   │  CONTEXT (from vector search):           │
+   │  ---                                     │
+   │  [Chunk 142: Embabel is a framework...]  │
+   │  [Chunk 87: To create an agent, use...] │
+   │  [Chunk 201: Example code: @Agent...]    │
+   │  ---                                     │
+   │                                          │
+   │  USER: What is Embabel and how...       │
+   └────────────┬─────────────────────────────┘
+                │
+                ▼
+7. LLM Generation
+   [Ollama: incept5/Jan-v1-2509:fp16]
+                │
+                ▼
+   "Embabel is an agent framework for the JVM
+    created by Rod Johnson. Here's how to use it:
+    
+    1. Annotate your class with @Agent
+    2. Define @Action methods for atomic tasks
+    3. Define @Goal methods for high-level objectives
+    
+    Example:
+    @Agent
+    public class MyAgent {
+        @Action
+        public Data fetchData() { ... }
+        
+        @Goal
+        public Report generateReport() { ... }
+    }"
+                │
+                ▼
+8. Response to User
+   [Answer shown in terminal]
+```
+
+### What Makes This "Semantic" Search?
+
+Traditional keyword search:
+- **Query**: "How to make an agent"
+- **Matches**: Exact words "make" and "agent"
+- **Misses**: "create", "build", "construct" variations
+
+Semantic vector search:
+- **Query**: "How to make an agent"
+- **Vector**: [0.123, -0.567, 0.890, ...]
+- **Matches**: Documents with similar **meaning**:
+  - "Creating your first agent"
+  - "Agent construction guide"
+  - "Build intelligent agents with @Agent"
+- **Why**: Embeddings encode **semantic meaning**, not just words
+
+### The Math: Cosine Similarity
+
+```
+Query Vector:    [0.8, 0.3, -0.5]
+Document Vector: [0.7, 0.4, -0.4]
+
+Cosine Similarity = (A · B) / (||A|| × ||B||)
+                  = (0.8×0.7 + 0.3×0.4 + -0.5×-0.4) / (sqrt(...) × sqrt(...))
+                  = 0.89  ← High similarity (0-1 scale)
+
+0.9-1.0 = Very similar (likely relevant)
+0.7-0.9 = Similar (probably relevant)
+0.5-0.7 = Somewhat similar (maybe relevant)
+<0.5    = Different (likely not relevant)
+```
+
+### Why This Approach?
+
+**Ingested Repositories** (configured in `repos.yaml`):
+1. **Embabel Agent Framework** - Core agent patterns and @Agent/@Action/@Goal usage
+2. **Embabel Examples** - Real-world agent implementations
+3. **Embabel Java Template** - Starter project structure
+4. **Embabel Kotlin Template** - Kotlin-specific patterns
+5. **Tripper Application** - Production multi-agent system
+
+**Result**: The agent can answer questions about:
+- "How do I create an agent?" → Finds @Agent examples
+- "What's the difference between Action and Goal?" → Finds conceptual docs
+- "Show me a real example" → Finds Tripper code
+- "How does Spring AI integration work?" → Finds integration guides
+
+### Key Technical Details
+
+**Embedding Model**: `nomic-embed-text`
+- **Dimensions**: 1024 (higher = more nuanced meaning)
+- **Context Length**: 8192 tokens (handles large chunks)
+- **Speed**: ~50ms per embedding via Ollama
+- **Why this model?**: Optimized for semantic search tasks
+
+**Chunking Strategy**:
+- **Size**: ~800 tokens (balance between context and precision)
+- **Overlap**: 200 tokens (prevents splitting concepts)
+- **Why overlap?**: Ensures code examples aren't cut mid-function
+
+**Database**: PostgreSQL + pgvector
+- **Storage**: Native vector column type
+- **Indexing**: IVFFlat for fast approximate nearest neighbor search
+- **Scale**: Handles millions of vectors efficiently
+- **Why pgvector?**: Production-ready, ACID compliant, standard SQL
+
+**Similarity Threshold**: 0.7 (configurable)
+- **Higher (0.8-0.9)**: More precise, fewer results
+- **Lower (0.5-0.7)**: More results, may include tangential info
+- **Default (0.7)**: Good balance for documentation search
+
 ## Prerequisites
 
 **IMPORTANT**: You must complete these steps before running the agent:
