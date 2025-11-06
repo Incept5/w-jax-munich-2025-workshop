@@ -50,7 +50,7 @@ This is a multi-module Maven workshop project demonstrating modern Java 21+ AI a
 | 11:40-12:30 | Exercise: First Working Agent | Stage 1 | ✅ Complete |
 | 12:30-13:20 | Lunch Break | - | - |
 | 13:20-13:40 | Recap & Transition to MCP | - | ✅ Presentation |
-| 13:40-14:20 | MCP Deep Dive + Hands-On | Stage 2 | ❌ TODO |
+| 13:40-14:20 | MCP Deep Dive + Hands-On | Stage 2 | ✅ Complete |
 | 14:20-14:55 | Agentic RAG & Data Integration | Stage 3 | ❌ TODO |
 | 14:55-15:15 | Afternoon Break | - | - |
 | 15:15-15:55 | Multi-Agent Teams | Stage 4 | ❌ TODO |
@@ -78,7 +78,7 @@ graph TB
         PARENT --> SHARED[shared/<br/>Shared Libraries<br/>✅ Complete]
         PARENT --> S0[stage-0-demo/<br/>Foundation Demo<br/>✅ Complete]
         PARENT --> S1[stage-1-simple-agent/<br/>First Agent + Tools<br/>✅ Complete]
-        PARENT --> S2[stage-2-mcp-server/<br/>MCP Server<br/>❌ TODO]
+        PARENT --> S2[stage-2-mcp-server/<br/>MCP Server<br/>✅ Complete]
         PARENT --> S3[stage-3-agentic-rag/<br/>RAG Agent<br/>❌ TODO]
         PARENT --> S4[stage-4-multi-agent/<br/>Multi-Agent System<br/>❌ TODO]
         PARENT --> S5[stage-5-enterprise/<br/>Production Patterns<br/>❌ TODO]
@@ -954,5 +954,5 @@ java -jar target/stage-0-demo.jar -m "qwen2.5:7b" -p "Hello"
 
 *Last updated: 2025-11-06*  
 *Architecture Version: 2.2*  
-*Status: 3/6 stages complete (Stages 0, 1, 2 complete; Stages 3-5 TODO)*  
+*Status: 4/6 stages complete (Stages 0, 1, 2 complete; Stages 3-5 TODO)*  
 *Updates: MCP server with JSON-RPC 2.0, STDIO transport, tool discovery*
