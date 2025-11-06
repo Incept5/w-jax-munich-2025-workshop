@@ -33,8 +33,7 @@ This is a multi-module Maven workshop project demonstrating modern Java 21+ AI a
 - **Stage 1**: Tool calling, agent loops, real APIs
 - **Stage 2**: MCP (Model Context Protocol) with official Java SDK
 - **Stage 3**: RAG with PostgreSQL + pgvector
-- **Stage 4**: Multi-agent orchestration, heterogeneous models
-- **Stage 5**: Enterprise patterns (Micrometer, Resilience4j, standard security)
+- **Stage 4**: Enterprise multi-agent system (Embabel Tripper - external reference)
 
 ## Workshop Agenda & Stage Mapping
 
@@ -53,8 +52,7 @@ This is a multi-module Maven workshop project demonstrating modern Java 21+ AI a
 | 13:40-14:20 | MCP Deep Dive + Hands-On | Stage 2 | ✅ Complete |
 | 14:20-14:55 | Agentic RAG & Data Integration | Stage 3 | ✅ Complete |
 | 14:55-15:15 | Afternoon Break | - | - |
-| 15:15-15:55 | Multi-Agent Teams | Stage 4 | ❌ TODO |
-| 15:55-16:20 | Enterprise Patterns | Stage 5 | ❌ TODO |
+| 15:15-16:20 | Enterprise Multi-Agent (Tripper) | Stage 4 | ✅ Reference |
 | 16:20-16:30 | Wrap-Up & Discussion | - | ✅ Presentation |
 
 ### Workshop Stages Summary
@@ -65,8 +63,7 @@ This is a multi-module Maven workshop project demonstrating modern Java 21+ AI a
 | **1** | `stage-1-simple-agent/` | 3h 15min | Tool calling, agent loops | ✅ Complete |
 | **2** | `stage-2-mcp-server/` | 40min | MCP protocol, tool exposure | ✅ Complete |
 | **3** | `stage-3-agentic-rag/` | 35min | RAG, vector search, embeddings | ✅ Complete |
-| **4** | `stage-4-multi-agent/` | 40min | Multi-agent, orchestration | ❌ TODO |
-| **5** | `stage-5-enterprise/` | 25min | Production patterns | ❌ TODO |
+| **4** | `stage-4-embabel-tripper/` | 65min | Enterprise multi-agent reference | ✅ Reference |
 
 ## System Architecture
 
@@ -80,15 +77,12 @@ graph TB
         PARENT --> S1[stage-1-simple-agent/<br/>First Agent + Tools<br/>✅ Complete]
         PARENT --> S2[stage-2-mcp-server/<br/>MCP Server<br/>✅ Complete]
         PARENT --> S3[stage-3-agentic-rag/<br/>RAG Agent<br/>✅ Complete]
-        PARENT --> S4[stage-4-multi-agent/<br/>Multi-Agent System<br/>❌ TODO]
-        PARENT --> S5[stage-5-enterprise/<br/>Production Patterns<br/>❌ TODO]
+        PARENT -.references.-> S4[stage-4-embabel-tripper/<br/>Enterprise Multi-Agent<br/>✅ Reference<br/>External: Tripper]
         
         S0 -.depends on.-> SHARED
         S1 -.depends on.-> SHARED
         S2 -.depends on.-> SHARED
         S3 -.depends on.-> SHARED
-        S4 -.depends on.-> SHARED
-        S5 -.depends on.-> SHARED
     end
     
     subgraph "AI Backends"
@@ -105,9 +99,6 @@ graph TB
     S2 --> OLLAMA
     S3 --> OLLAMA
     S3 --> POSTGRES
-    S4 --> OLLAMA
-    S4 --> LMSTUDIO
-    S4 --> MLXVLM
 ```
 
 ## Module Structure
@@ -425,134 +416,110 @@ mvn test  # Runs integration test with real Ollama + PostgreSQL
 
 ---
 
-### Stage 4: Multi-Agent Teams (`stage-4-multi-agent/`) ❌ TODO
+### Stage 4: Enterprise Multi-Agent System (`external: tripper/`) ✅
 
-**Status**: Not yet implemented  
-**Purpose**: Orchestrate multiple specialized agents working together  
-**Workshop Time**: 15:15-15:55 (40 min - Multi-Agent Teams)
+**Status**: Reference Implementation (External Repository)  
+**Purpose**: Demonstrate production-ready multi-agent architecture with enterprise patterns  
+**Workshop Time**: 15:15-16:20 (65 min - Combined Multi-Agent + Enterprise)  
+**Repository**: https://github.com/Incept5/tripper  
+**Local Path**: `/Users/adam/dev/opensource/explore-embabel/tripper`
 
-**What Participants Build**:
-- Multi-agent orchestration system
-- Specialized agents with different models
-- Agent communication and coordination
-- Integration test with collaborative workflow
-
-**Learning Objectives**:
-- Design multi-agent communication patterns
-- Implement agent orchestration/routing
-- Use heterogeneous models (Ollama + LM Studio + MLX-VLM)
-- Coordinate agent specialization
-
-**Planned Components**:
-- `MultiAgentSystem.java` - Orchestrator with routing
-- `SpecializedAgent.java` - Base class for specialized agents
-- `agents/ResearchAgent.java` - Ollama for research tasks
-- `agents/SummaryAgent.java` - LM Studio for summaries
-- `agents/VisionAgent.java` - MLX-VLM for image analysis
-- `MultiAgentDemo.java` - Collaborative task demo
-- `MultiAgentIntegrationTest.java` - Multi-agent workflow test
-
-**Dependencies**: `shared`
-
-**Architecture Link**: *To be created*
-
----
-
-### Stage 5: Enterprise Patterns (`stage-5-enterprise/`) ❌ TODO
-
-**Status**: Not yet implemented  
-**Purpose**: Production-ready patterns using industry-standard libraries  
-**Workshop Time**: 15:55-16:20 (25 min - Enterprise Patterns)
-
-**What Participants Learn**:
-- Monitoring and observability with Micrometer
-- Resilience patterns with Resilience4j
-- Security with JWT and validation
-- Deployment considerations (Docker, K8s)
-- Production logging patterns
+**What Participants Explore**:
+- Production Spring Boot agent application built with Embabel framework
+- Multiple LLMs in single application (GPT-4.1, GPT-4.1-mini)
+- MCP integration at scale (6+ MCP servers: Brave, Wikipedia, Google Maps, Airbnb, Puppeteer, GitHub)
+- Spring Security with OAuth2 authentication
+- Docker Compose infrastructure (MCP Gateway, Zipkin tracing)
+- Modern web UI with htmx and Server-Sent Events (SSE)
+- Real-world travel planning domain model
 
 **Learning Objectives**:
-- Implement production-grade monitoring
-- Add circuit breakers and rate limiting
-- Secure API endpoints with JWT
-- Understand deployment best practices
-- Use industry-standard libraries
+- Understand production agent architecture with Embabel framework
+- Multi-LLM orchestration patterns (different models for different tasks)
+- Enterprise security patterns (OAuth2, environment-based secrets)
+- Infrastructure as code (Docker Compose, containerized services)
+- Monitoring and observability (Zipkin distributed tracing, Spring Actuator)
+- Real-world MCP integration at scale (gateway pattern, tool filtering)
+- Action-based agent design vs. loop-based agents
+- Domain model-centric agent architecture
 
-**Planned Components**:
-- `EnterpriseAgent.java` - Agent with production features
-- `monitoring/MetricsExample.java` - Micrometer integration
-- `resilience/CircuitBreakerExample.java` - Resilience4j patterns
-- `security/JWTExample.java` - JWT authentication
-- `security/ValidationExample.java` - Input validation
-- Documentation on deployment strategies
-- Pattern-focused with working examples
+**Key Technologies**:
+- **Language**: Kotlin (readable for Java developers)
+- **Framework**: Spring Boot 3.5.6
+- **Agent Framework**: Embabel (production agent framework)
+- **LLMs**: GPT-4.1 (planner), GPT-4.1-mini (researcher)
+- **Security**: Spring Security with OAuth2 (Google)
+- **Frontend**: htmx with SSE streaming
+- **Infrastructure**: Docker Compose, MCP Gateway
+- **Observability**: Zipkin, Spring Actuator, structured logging
+- **MCP Servers**: Brave Search, Wikipedia, Google Maps, Airbnb, Puppeteer, GitHub
 
-**Dependencies**: `shared`
+**Enterprise Patterns Demonstrated**:
 
-**Standard Enterprise Libraries**:
-- **Micrometer**: `io.micrometer:micrometer-core` (metrics)
-- **Micrometer Prometheus**: `io.micrometer:micrometer-registry-prometheus` (export)
-- **Resilience4j**: `io.github.resilience4j:resilience4j-all` (resilience patterns)
-- **JWT**: `io.jsonwebtoken:jjwt-api` + `jjwt-impl` + `jjwt-jackson` (authentication)
-- **Hibernate Validator**: `org.hibernate.validator:hibernate-validator` (validation)
-- **Caffeine**: `com.github.ben-manes.caffeine:caffeine` (caching)
+1. **Multi-Agent Architecture**:
+   - Planner agent (GPT-4.1 for high-quality planning)
+   - Researcher agent (GPT-4.1-mini for cost-effective research)
+   - Role-based personas with specific goals and backstories
+   - Deterministic planning with action-based design
+   - Blackboard pattern for shared state
 
-**Key Patterns Demonstrated**:
+2. **Production Framework (Embabel)**:
+   - Action-based agent design (vs. loop-based)
+   - Type-safe domain models (TravelBrief, Itinerary, etc.)
+   - Operation context for state management
+   - Tool call control and response formats
+   - Structured workflow orchestration
 
-1. **Monitoring**:
-   - Request/response metrics
-   - LLM call duration and token tracking
-   - Error rate monitoring
-   - Prometheus endpoint exposure
+3. **Spring Boot Integration**:
+   - Dependency injection for agent components
+   - Configuration management (`application.yml`)
+   - Spring Security configuration
+   - Actuator endpoints for health and metrics
+   - Auto-configuration with Embabel starters
 
-2. **Resilience**:
-   - Circuit breaker for LLM calls
-   - Retry with exponential backoff
-   - Rate limiting per user/endpoint
-   - Bulkhead pattern for resource isolation
-   - Timeout management
+4. **Security Patterns**:
+   - OAuth2 with Google authentication
+   - Environment-based secrets management (`.env` file)
+   - Toggleable security for development
+   - Custom OAuth2 user service
+   - Secure API key handling
 
-3. **Security**:
-   - JWT-based authentication
-   - Request validation (Bean Validation)
-   - Rate limiting per API key
-   - Input sanitization
+5. **Infrastructure as Code**:
+   - Docker Compose for service orchestration
+   - MCP Gateway containerization
+   - Zipkin tracing setup
+   - Docker Model Runner integration
+   - Multi-profile compose files
 
-4. **Deployment**:
-   - Docker containerization
-   - Health checks and readiness probes
-   - Structured logging (JSON format)
-   - Configuration externalization
+6. **Monitoring & Observability**:
+   - Spring Actuator endpoints (`/actuator`)
+   - Distributed tracing with Zipkin
+   - Structured logging (Spring Boot)
+   - SSE event streaming for real-time updates
+   - Platform information endpoint
 
-**Example Metrics**:
-```java
-MeterRegistry registry = new SimpleMeterRegistry();
-Counter.builder("llm.requests")
-    .tag("model", modelName)
-    .register(registry)
-    .increment();
+7. **MCP at Scale**:
+   - MCP Gateway for managing multiple servers
+   - Tool filtering for security
+   - Docker-based tool isolation
+   - Dynamic tool discovery
+   - Server-Sent Events transport
 
-Timer.builder("llm.duration")
-    .tag("status", "success")
-    .register(registry)
-    .record(duration);
-```
+**Key Files to Explore**:
+- `TripperAgent.kt` - Main agent logic with action-based design
+- `application.yml` - Configuration with model selection and personas
+- `SecurityConfig.kt` - OAuth2 and security patterns
+- `compose.yaml` - Infrastructure definition
+- `TripperApplication.kt` - Spring Boot entry point
 
-**Example Circuit Breaker**:
-```java
-CircuitBreakerConfig config = CircuitBreakerConfig.custom()
-    .failureRateThreshold(50)
-    .waitDurationInOpenState(Duration.ofSeconds(30))
-    .build();
+**API Keys Required**:
+- **OpenAI** - For GPT-4.1 models (~$0.10 per travel plan)
+- **Brave Search** - For web search (free tier: 2000 queries/month)
+- **Google Maps** - For location services (free tier sufficient)
 
-CircuitBreaker breaker = CircuitBreaker.of("llm-backend", config);
-Supplier<AIResponse> decorated = CircuitBreaker
-    .decorateSupplier(breaker, () -> backend.generate(prompt));
-```
+**Setup Instructions**: See `stage-4-embabel-tripper/README.md` for detailed setup
 
-**Note**: This stage balances practical code examples with architectural patterns, focusing on immediately applicable production practices.
-
-**Architecture Link**: *To be created*
+**Architecture Link**: *[stage-4-embabel-tripper/README.md](./stage-4-embabel-tripper/README.md)*
 
 ---
 
@@ -566,11 +533,10 @@ graph LR
     S1[stage-1-simple-agent]:::complete --> SHARED
     S2[stage-2-mcp-server]:::complete --> SHARED
     S3[stage-3-agentic-rag]:::complete --> SHARED
-    S4[stage-4-multi-agent]:::todo --> SHARED
-    S5[stage-5-enterprise]:::todo --> SHARED
+    S4[stage-4-embabel-tripper]:::reference -.external.-> SHARED
     
     classDef complete fill:#90EE90,stroke:#006400,stroke-width:2px
-    classDef todo fill:#FFB6C1,stroke:#8B0000,stroke-width:2px
+    classDef reference fill:#87CEEB,stroke:#4682B4,stroke-width:2px,stroke-dasharray: 5 5
 ```
 
 **Dependency Rules**:
@@ -730,40 +696,14 @@ w-jax-munich-2025-workshop/
 │       └── test/java/com/incept5/workshop/stage3/
 │           └── RAGAgentIntegrationTest.java
 │
-├── stage-4-multi-agent/             # ❌ TODO
-│   ├── pom.xml
-│   ├── README.md
-│   ├── run.sh
-│   └── src/
-│       ├── main/java/com/incept5/workshop/stage4/
-│       │   ├── MultiAgentSystem.java
-│       │   ├── SpecializedAgent.java
-│       │   ├── agents/
-│       │   │   ├── ResearchAgent.java
-│       │   │   ├── SummaryAgent.java
-│       │   │   └── VisionAgent.java
-│       │   └── MultiAgentDemo.java
-│       └── test/java/com/incept5/workshop/stage4/
-│           ├── README.md
-│           └── MultiAgentIntegrationTest.java
-│
-└── stage-5-enterprise/              # ❌ TODO
-    ├── pom.xml
-    ├── README.md                    # Pattern-focused documentation
-    ├── run.sh
-    └── src/
-        ├── main/java/com/incept5/workshop/stage5/
-        │   ├── EnterpriseAgent.java
-        │   ├── monitoring/
-        │   │   └── MetricsExample.java
-        │   ├── resilience/
-        │   │   └── CircuitBreakerExample.java
-        │   ├── security/
-        │   │   └── SecurityExample.java
-        │   └── EnterpriseDemo.java
-        └── test/java/com/incept5/workshop/stage5/
-            ├── README.md
-            └── EnterpriseIntegrationTest.java
+└── stage-4-embabel-tripper/         # ✅ REFERENCE (External)
+    ├── README.md                    # Setup and exploration guide
+    ├── API_KEYS.md                  # API key setup instructions
+    └── EXPLORATION.md               # Guided code exploration activities
+    
+    # Note: Actual code lives in external repository:
+    # https://github.com/Incept5/tripper
+    # Local path: /Users/adam/dev/opensource/explore-embabel/tripper
 ```
 
 ## Design Principles
@@ -915,9 +855,12 @@ mvn package -DskipTests
    - Multi-turn conversation support
    - Integration test with real documents and embeddings
 
-### ❌ TODO: Remaining Stages
-- **stage-4-multi-agent/** - Multi-agent orchestration
-- **stage-5-enterprise/** - Production patterns
+### ✅ Reference Implementation
+- **stage-4-embabel-tripper/** - Enterprise multi-agent system (external repository)
+  - Production-ready Spring Boot + Embabel application
+  - Multiple LLMs, MCP at scale, OAuth2 security
+  - Docker Compose infrastructure, Zipkin tracing
+  - Real-world travel planning domain
 
 ### Migration Notes
 

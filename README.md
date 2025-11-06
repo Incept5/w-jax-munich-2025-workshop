@@ -15,19 +15,18 @@ A comprehensive hands-on workshop building modern AI agents using Java 21+ and l
 By the end of this workshop, you'll have built:
 
 1. ✅ **Simple AI Agent** - Tool-calling agent with real API integrations
-2. 🔨 **MCP Server** - Model Context Protocol server exposing tools
-3. 🔨 **RAG Agent** - Retrieval-augmented generation with vector search
-4. 🔨 **Multi-Agent System** - Specialized agents working together
-5. 🔨 **Production Patterns** - Enterprise-ready agent deployment
+2. ✅ **MCP Server** - Model Context Protocol server exposing tools
+3. ✅ **RAG Agent** - Retrieval-augmented generation with PostgreSQL vector search
+4. 🔍 **Enterprise Multi-Agent** - Explore production Embabel Tripper system
 
 ### Key Learning Outcomes
 
 - Understand the agent reasoning loop: **Think → Act → Observe**
 - Implement tool-calling with real-world APIs
 - Build MCP servers and clients for tool interoperability
-- Add retrieval-augmented generation (RAG) to agents
-- Orchestrate multiple specialized agents
-- Apply production-ready patterns and best practices
+- Add retrieval-augmented generation (RAG) with pgvector
+- Explore production multi-agent architecture (Embabel Tripper)
+- Learn enterprise patterns: Spring Boot, OAuth2, distributed tracing
 
 ## Prerequisites
 
@@ -60,6 +59,15 @@ By the end of this workshop, you'll have built:
 - **LM Studio** for OpenAI-compatible inference
 - **MLX-VLM** for Apple Silicon vision models
 - **Alternative Models**: Qwen 2.5 7B, Mistral 7B, Gemma 2 9B
+
+### For Stage 4 (Enterprise Reference)
+
+- **Docker Desktop** with Model Runner for MCP Gateway
+- **API Keys** (for exploration, not required for stages 1-3):
+  - OpenAI API key (GPT-4.1 models)
+  - Brave Search API key (web search)
+  - Google Maps API key (location services)
+- See `stage-4-embabel-tripper/API_KEYS.md` for setup details
 
 ## Quick Start
 
@@ -140,81 +148,89 @@ cd stage-1-simple-agent
 - `tool/CountryInfoTool.java` - Real REST Countries API
 - `SimpleAgentIntegrationTest.java` - Integration tests
 
-### Stage 2: MCP Server (40 min) 🔨
+### Stage 2: MCP Server (40 min) ✅
 
 **Time**: 13:40-14:20  
 **Module**: `stage-2-mcp-server/`  
-**Status**: TODO
+**Status**: Complete
 
 Build a Model Context Protocol server that exposes tools.
 
+```bash
+cd stage-2-mcp-server
+./run.sh server  # Run as MCP server
+./run.sh agent "What's the weather in Tokyo?"  # Run as agent
+```
+
 **What You'll Build**:
-- MCP protocol server
+- MCP protocol server (JSON-RPC 2.0)
 - MCP client for tool discovery
 - Agent integration with MCP
-- JSON-RPC communication
+- Three operating modes
 
-**Learning Goals**:
-- Understand MCP protocol
-- Tool exposure via standardized protocol
-- Dynamic tool discovery
-- Cross-system tool integration
+**Key Files**:
+- `SimpleMCPServer.java` - JSON-RPC 2.0 server
+- `MCPClient.java` - Client with subprocess management
+- `MCPAgent.java` - Agent using MCP tools
 
-### Stage 3: Agentic RAG (35 min) 🔨
+### Stage 3: Agentic RAG (35 min) ✅
 
 **Time**: 14:20-14:55  
 **Module**: `stage-3-agentic-rag/`  
-**Status**: TODO
+**Status**: Complete
 
-Add retrieval-augmented generation with vector search.
+Add retrieval-augmented generation with PostgreSQL + pgvector.
+
+```bash
+cd stage-3-agentic-rag
+docker-compose up -d  # Start PostgreSQL
+./ingest.sh           # Ingest documents
+./run.sh              # Run RAG agent
+```
 
 **What You'll Build**:
-- In-memory vector store
+- PostgreSQL + pgvector database
 - Document chunking and embedding
 - RAG-enabled agent
-- Context retrieval before generation
+- Context retrieval with similarity search
+
+**Key Files**:
+- `PgVectorStore.java` - Vector database integration
+- `RAGAgent.java` - Agent with RAG capabilities
+- `RAGTool.java` - Document retrieval tool
+
+### Stage 4: Enterprise Multi-Agent (65 min) 🔍
+
+**Time**: 15:15-16:20  
+**Module**: `stage-4-embabel-tripper/` (External Reference)  
+**Repository**: https://github.com/Incept5/tripper
+**Status**: Exploration & Discussion
+
+Explore a production multi-agent travel planning system built with Spring Boot and Embabel framework.
+
+**What You'll Explore**:
+- **Production Architecture**: Spring Boot + Embabel agent framework
+- **Multiple LLMs**: GPT-4.1 (planner) + GPT-4.1-mini (researcher)
+- **MCP at Scale**: 6+ MCP servers (Brave, Google Maps)
+- **Infrastructure**: Docker Compose, MCP Gateway, Zipkin tracing
+- **Real Domain**: Travel planning with structured itineraries
 
 **Learning Goals**:
-- Implement simple vector database
-- Generate embeddings locally
-- Retrieve relevant context
-- Integrate RAG into agent loop
+- Understand production agent architecture with Embabel
+- See multi-LLM orchestration patterns
+- Understand monitoring and observability
+- See MCP gateway pattern for tool management
+- Compare action-based vs loop-based agent design
 
-### Stage 4: Multi-Agent Teams (40 min) 🔨
+**Setup Requirements**:
+- Docker Desktop with Model Runner
+- API keys: OpenAI, Brave Search, Google Maps
+- See `stage-4-embabel-tripper/README.md` for detailed setup
+- See `stage-4-embabel-tripper/API_KEYS.md` for API key instructions
 
-**Time**: 15:15-15:55  
-**Module**: `stage-4-multi-agent/`  
-**Status**: TODO
+**Exploration Guide**: See `stage-4-embabel-tripper/EXPLORATION.md`
 
-Orchestrate multiple specialized agents working together.
-
-**What You'll Build**:
-- Multi-agent orchestration system
-- Specialized agents (research, summary, vision)
-- Agent communication patterns
-- Heterogeneous model usage
-
-**Learning Goals**:
-- Multi-agent communication
-- Agent specialization
-- Task delegation
-- Using different models for different tasks
-
-### Stage 5: Enterprise Patterns (25 min) 🔨
-
-**Time**: 15:55-16:20  
-**Module**: `stage-5-enterprise/`  
-**Status**: TODO
-
-Production-ready patterns for deploying AI agents.
-
-**What You'll Learn**:
-- Monitoring and observability
-- Rate limiting and circuit breakers
-- Security and authentication
-- Deployment strategies
-
-**Focus**: Patterns and best practices rather than deep implementation.
+**Note**: This stage focuses on reading and discussing production code rather than building from scratch. The goal is to understand how the patterns from stages 1-3 scale to enterprise applications.
 
 ## Project Structure
 
@@ -235,10 +251,9 @@ w-jax-munich-2025-workshop/
 │
 ├── stage-0-demo/                # ✅ Foundation demo
 ├── stage-1-simple-agent/        # ✅ First working agent
-├── stage-2-mcp-server/          # 🔨 MCP server (TODO)
-├── stage-3-agentic-rag/         # 🔨 RAG agent (TODO)
-├── stage-4-multi-agent/         # 🔨 Multi-agent (TODO)
-└── stage-5-enterprise/          # 🔨 Production patterns (TODO)
+├── stage-2-mcp-server/          # ✅ MCP server
+├── stage-3-agentic-rag/         # ✅ RAG agent
+└── stage-4-embabel-tripper/     # 🔍 Enterprise reference (docs only)
 ```
 
 ## Technologies
@@ -494,9 +509,10 @@ while (!completed && iterations < maxIterations) {
 1. **Real Integration Tests**: Every stage includes tests with real APIs and real LLMs
 2. **Modern Java**: Showcases Java 21+ features in practical AI scenarios
 3. **Multiple Backends**: Not locked to one provider or API
-4. **Privacy-First**: Everything runs locally by default
-5. **Progressive Complexity**: Each stage builds on previous work
-6. **Production Focus**: Learn patterns for real deployment
+4. **Privacy-First**: Everything runs locally by default (stages 1-3)
+5. **Progressive Complexity**: Build from scratch (stages 1-3), then explore production code (stage 4)
+6. **Production Reference**: Learn from a real-world multi-agent system (Embabel Tripper)
+7. **Enterprise Patterns**: See Spring Boot, OAuth2, distributed tracing, and MCP at scale
 
 ## Contributing
 

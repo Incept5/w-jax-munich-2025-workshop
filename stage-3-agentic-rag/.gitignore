@@ -1,5 +1,8 @@
 # Data directory (gitingest outputs)
 data/
+# But keep the committed text files
+!data/gitingest-output/
+!data/gitingest-output/*.txt
 
 # Target directory
 target/

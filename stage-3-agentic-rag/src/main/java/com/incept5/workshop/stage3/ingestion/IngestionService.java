@@ -26,7 +26,7 @@ import java.util.Map;
  * Workflow:
  * 1. Read repos.yaml configuration
  * 2. For each repository:
- *    a. Use gitingest to extract repository content
+ *    a. Load repository content (from git or fetch fresh with gitingest)
  *    b. Chunk the extracted text
  *    c. Generate embeddings for each chunk
  *    d. Store in PostgreSQL with pgvector
@@ -35,14 +35,25 @@ import java.util.Map;
 public class IngestionService {
     private static final Logger logger = LoggerFactory.getLogger(IngestionService.class);
     
+    public enum Mode {
+        USE_LOCAL,  // Use committed files from git (default)
+        REFRESH     // Fetch fresh data with gitingest
+    }
+    
     private final PgVectorStore vectorStore;
     private final DocumentChunker chunker;
     private final String dataDir;
+    private final Mode mode;
     
     public IngestionService(PgVectorStore vectorStore, DocumentChunker chunker, String dataDir) {
+        this(vectorStore, chunker, dataDir, Mode.USE_LOCAL);
+    }
+    
+    public IngestionService(PgVectorStore vectorStore, DocumentChunker chunker, String dataDir, Mode mode) {
         this.vectorStore = vectorStore;
         this.chunker = chunker;
         this.dataDir = dataDir;
+        this.mode = mode;
     }
     
     /**
@@ -130,16 +141,25 @@ public class IngestionService {
         
         // Output file path
         String outputFile = this.dataDir + "/" + repo.name() + ".txt";
-        
-        // Check if gitingest output already exists
         File output = new File(outputFile);
-        if (output.exists()) {
-            logger.info("Using existing gitingest output: {}", outputFile);
-            return outputFile;
+        
+        // In USE_LOCAL mode, just check if file exists
+        if (mode == Mode.USE_LOCAL) {
+            if (output.exists()) {
+                logger.info("Using committed file: {}", outputFile);
+                return outputFile;
+            } else {
+                throw new IOException(
+                    "Repository file not found: " + outputFile + "\n" +
+                    "Expected file is missing from git. Either:\n" +
+                    "  1. Ensure the file is committed to git, or\n" +
+                    "  2. Run with --refresh flag to fetch fresh data"
+                );
+            }
         }
         
-        // Run gitingest command
-        logger.info("Running gitingest for {}", repo.url());
+        // In REFRESH mode, fetch fresh data with gitingest
+        logger.info("Running gitingest for {} (refresh mode)", repo.url());
         
         ProcessBuilder pb = new ProcessBuilder(
             "gitingest",
@@ -179,11 +199,22 @@ public class IngestionService {
      */
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
-            System.err.println("Usage: java -jar stage-3-agentic-rag.jar <repos.yaml>");
+            System.err.println("Usage: java -jar stage-3-agentic-rag.jar <repos.yaml> [--refresh]");
+            System.err.println("  --refresh: Fetch fresh data with gitingest (requires gitingest installed)");
             System.exit(1);
         }
         
         String configFile = args[0];
+        Mode mode = Mode.USE_LOCAL;
+        
+        // Check for --refresh flag
+        if (args.length > 1 && "--refresh".equals(args[1])) {
+            mode = Mode.REFRESH;
+            logger.info("Refresh mode enabled - will fetch fresh repository data");
+        } else {
+            logger.info("Using committed repository files from git");
+        }
+        
         logger.info("Reading configuration from: {}", configFile);
         
         // 1. Load configuration
@@ -247,7 +278,8 @@ public class IngestionService {
         IngestionService service = new IngestionService(
             vectorStore,
             chunker,
-            "data/gitingest-output"
+            "data/gitingest-output",
+            mode
         );
         
         service.ingest(config);
