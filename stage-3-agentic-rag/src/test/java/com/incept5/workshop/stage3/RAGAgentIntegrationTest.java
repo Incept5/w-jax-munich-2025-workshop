@@ -1,3 +1,4 @@
+
 package com.incept5.workshop.stage3;
 
 import com.incept5.ollama.backend.AIBackend;
@@ -6,329 +7,429 @@ import com.incept5.ollama.backend.BackendType;
 import com.incept5.workshop.stage3.agent.ConversationMemory;
 import com.incept5.workshop.stage3.agent.RAGAgent;
 import com.incept5.workshop.stage3.db.DatabaseConfig;
-import com.incept5.workshop.stage3.db.Document;
 import com.incept5.workshop.stage3.db.PgVectorStore;
 import com.incept5.workshop.stage3.ingestion.EmbeddingService;
 import com.incept5.workshop.stage3.tool.RAGTool;
 import com.incept5.workshop.stage3.tool.ToolRegistry;
 import org.junit.jupiter.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Integration test for Stage 3: RAG Agent
+ * Complete RAG Agent integration test.
+ * 
+ * Tests the full agent workflow:
+ * 1. Agent receives user query
+ * 2. Agent decides to search documentation
+ * 3. Vector search retrieves relevant docs
+ * 4. Agent synthesizes answer from retrieved context
+ * 5. Agent maintains conversation memory
  * 
  * Prerequisites:
- * - Ollama running on localhost:11434
- * - Model available: incept5/Jan-v1-2509:fp16
- * - Embedding model available: nomic-embed-text
- * - PostgreSQL + pgvector running (via docker-compose)
- * - Documents ingested (via ingest.sh)
- * 
- * This test verifies:
- * - Vector search functionality
- * - Conversation memory
- * - Multi-turn conversations
- * - Tool calling with context expansion
- * - Agent reasoning loop
+ * - PostgreSQL with pgvector running (docker-compose up -d)
+ * - Ollama running with models: qwen3:4b, nomic-embed-text
+ * - Documents ingested (./ingest.sh)
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class RAGAgentIntegrationTest {
+public class RAGAgentIntegrationTest {
+    private static final Logger logger = LoggerFactory.getLogger(RAGAgentIntegrationTest.class);
     
+    // Configuration
     private static final String OLLAMA_BASE_URL = "http://localhost:11434";
-    private static final String LLM_MODEL = "incept5/Jan-v1-2509:fp16";
+    private static final String LLM_MODEL = "qwen3:4b";
     private static final String EMBEDDING_MODEL = "nomic-embed-text";
-    
     private static final String DB_URL = "jdbc:postgresql://localhost:5432/workshop_rag";
     private static final String DB_USER = "workshop";
     private static final String DB_PASSWORD = "workshop123";
     
+    // Test components
     private static AIBackend backend;
-    private static PgVectorStore vectorStore;
+    private static DataSource dataSource;
     private static EmbeddingService embeddingService;
+    private static PgVectorStore vectorStore;
     private static ToolRegistry toolRegistry;
+    private static RAGAgent agent;
     
     @BeforeAll
-    static void setUp() throws Exception {
-        System.out.println("\n=== Setting up Stage 3 Integration Test ===\n");
+    static void setup() throws Exception {
+        logger.info("=== Setting up RAG Agent Integration Test ===");
         
-        // Setup backend
-        System.out.println("1. Connecting to Ollama...");
+        // 1. Create backend
+        logger.info("Creating Ollama backend...");
         backend = BackendFactory.createBackend(
             BackendType.OLLAMA,
             OLLAMA_BASE_URL,
             LLM_MODEL,
             Duration.ofSeconds(300)
         );
-        System.out.println("   ✓ Backend ready");
+        logger.info("✓ Backend created (model: {})", LLM_MODEL);
         
-        // Setup database
-        System.out.println("2. Connecting to PostgreSQL...");
-        DataSource dataSource = DatabaseConfig.createDataSource(DB_URL, DB_USER, DB_PASSWORD);
-        System.out.println("   ✓ Database ready");
+        // 2. Create database connection
+        logger.info("Creating database connection...");
+        dataSource = DatabaseConfig.createDataSource(DB_URL, DB_USER, DB_PASSWORD);
+        logger.info("✓ Database connection created");
         
-        // Setup embedding service
-        System.out.println("3. Initializing embedding service...");
+        // 3. Create embedding service
+        logger.info("Creating embedding service...");
         embeddingService = new EmbeddingService(OLLAMA_BASE_URL, EMBEDDING_MODEL);
-        System.out.println("   ✓ Embedding service ready");
+        logger.info("✓ Embedding service created (model: {})", EMBEDDING_MODEL);
         
-        // Setup vector store
-        System.out.println("4. Initializing vector store...");
+        // 4. Create vector store
+        logger.info("Creating vector store...");
         vectorStore = new PgVectorStore(dataSource, embeddingService);
         
         int docCount = vectorStore.getTotalDocuments();
-        System.out.println("   ✓ Vector store ready (" + docCount + " documents)");
+        logger.info("✓ Vector store created ({} documents)", docCount);
         
         if (docCount == 0) {
-            System.err.println("\n⚠️  WARNING: No documents in database!");
-            System.err.println("   Please run './ingest.sh' before running tests.");
+            fail("No documents found in vector store. Run ./ingest.sh first!");
         }
         
-        // Setup tools
-        System.out.println("5. Registering tools...");
+        // 5. Create tool registry
+        logger.info("Creating tool registry...");
         toolRegistry = new ToolRegistry();
         toolRegistry.register(new RAGTool(vectorStore));
-        System.out.println("   ✓ Tools ready: " + String.join(", ", toolRegistry.getToolNames()));
+        logger.info("✓ Tool registry created with tools: {}", toolRegistry.getToolNames());
         
-        System.out.println("\n=== Setup Complete ===\n");
+        // 6. Create agent
+        logger.info("Creating RAG agent...");
+        agent = RAGAgent.builder()
+            .backend(backend)
+            .toolRegistry(toolRegistry)
+            .maxConversationHistory(10)
+            .maxIterations(10)
+            .verbose(true)  // Enable verbose for debugging
+            .build();
+        logger.info("✓ RAG agent created");
+        
+        logger.info("=== Setup complete ===\n");
     }
     
     @AfterAll
-    static void tearDown() throws Exception {
+    static void teardown() throws Exception {
         if (vectorStore != null) {
             vectorStore.close();
         }
         if (backend != null) {
             backend.close();
         }
+        logger.info("=== Teardown complete ===");
     }
     
     @Test
     @Order(1)
-    @DisplayName("1. Vector Search - Find Embabel Documentation")
-    void testVectorSearch() throws Exception {
-        System.out.println("\n=== Test 1: Vector Search ===");
+    @DisplayName("1. Test simple question: What is Embabel?")
+    void testSimpleQuestion() throws Exception {
+        logger.info("\n=== Test 1: Simple Question ===");
         
-        // Search for Embabel-related content
-        List<Document> results = vectorStore.search("What is Embabel framework?", 5, 0.7);
+        String question = "What is Embabel?";
+        logger.info("User question: '{}'", question);
         
-        System.out.println("Found " + results.size() + " results");
-        assertFalse(results.isEmpty(), "Should find documents about Embabel");
+        long startTime = System.currentTimeMillis();
+        String response = agent.chat(question);
+        long duration = System.currentTimeMillis() - startTime;
         
-        // Check that at least one result mentions Embabel or related concepts
-        boolean foundRelevant = results.stream()
-            .anyMatch(doc -> doc.content().toLowerCase().contains("embabel") ||
-                           doc.content().toLowerCase().contains("agent") ||
-                           doc.content().toLowerCase().contains("goap"));
+        logger.info("\n--- Agent Response ({} ms) ---", duration);
+        logger.info(response);
+        logger.info("--- End Response ---\n");
         
-        assertTrue(foundRelevant, "Results should contain Embabel-related content");
+        // Verify response quality
+        assertNotNull(response, "Response should not be null");
+        assertFalse(response.trim().isEmpty(), "Response should not be empty");
         
-        // Display first result
-        if (!results.isEmpty()) {
-            Document first = results.get(0);
-            System.out.println("\nTop result:");
-            System.out.println("  Source: " + first.source());
-            System.out.println("  Similarity: " + String.format("%.2f", first.similarity()));
-            System.out.println("  Content preview: " + 
-                first.content().substring(0, Math.min(200, first.content().length())) + "...");
-        }
+        // Check for key terms in response
+        String responseLower = response.toLowerCase();
+        boolean hasRelevantContent = 
+            responseLower.contains("embabel") || 
+            responseLower.contains("agent") || 
+            responseLower.contains("framework") ||
+            responseLower.contains("goap") ||
+            responseLower.contains("rod johnson");
+        
+        assertTrue(hasRelevantContent, 
+            "Response should contain relevant information about Embabel");
+        
+        // Verify conversation memory
+        ConversationMemory.Message[] history = agent.getConversationHistory();
+        assertTrue(history.length >= 2, "Should have at least user message and assistant response");
+        
+        logger.info("✓ Simple question test passed");
     }
     
     @Test
     @Order(2)
-    @DisplayName("2. Neighboring Chunks - Context Expansion")
-    void testNeighboringChunks() throws Exception {
-        System.out.println("\n=== Test 2: Neighboring Chunks ===");
+    @DisplayName("2. Test follow-up question using context")
+    void testFollowUpQuestion() throws Exception {
+        logger.info("\n=== Test 2: Follow-up Question ===");
         
-        // Get a document
-        List<Document> results = vectorStore.search("Embabel agent example", 1, 0.7);
-        assertFalse(results.isEmpty(), "Should find at least one document");
+        String followUp = "Can you give me an example?";
+        logger.info("Follow-up question: '{}'", followUp);
         
-        Document doc = results.get(0);
-        System.out.println("Original chunk: " + doc.chunkIndex());
+        long startTime = System.currentTimeMillis();
+        String response = agent.chat(followUp);
+        long duration = System.currentTimeMillis() - startTime;
         
-        // Get neighboring chunks
-        List<Document> neighbors = vectorStore.getNeighboringChunks(doc, 1);
+        logger.info("\n--- Agent Response ({} ms) ---", duration);
+        logger.info(response);
+        logger.info("--- End Response ---\n");
         
-        System.out.println("Found " + neighbors.size() + " neighboring chunks");
-        assertFalse(neighbors.isEmpty(), "Should find neighboring chunks");
+        // Verify response
+        assertNotNull(response, "Response should not be null");
+        assertFalse(response.trim().isEmpty(), "Response should not be empty");
         
-        // Verify chunks are in order
-        for (int i = 0; i < neighbors.size() - 1; i++) {
-            assertTrue(neighbors.get(i).chunkIndex() <= neighbors.get(i + 1).chunkIndex(),
-                "Chunks should be in order");
-        }
+        // The agent should understand "example" refers to Embabel from previous context
+        String responseLower = response.toLowerCase();
+        boolean hasExample = 
+            responseLower.contains("example") || 
+            responseLower.contains("@agent") ||
+            responseLower.contains("@action") ||
+            responseLower.contains("code") ||
+            responseLower.contains("class");
         
-        System.out.println("Chunk indices: " + 
-            neighbors.stream().map(d -> String.valueOf(d.chunkIndex())).toList());
+        assertTrue(hasExample, 
+            "Response should contain an example or reference to code");
+        
+        // Verify conversation memory has grown
+        ConversationMemory.Message[] history = agent.getConversationHistory();
+        assertTrue(history.length >= 4, 
+            "Should have at least 2 user messages and 2 assistant responses");
+        
+        logger.info("✓ Follow-up question test passed");
     }
     
     @Test
     @Order(3)
-    @DisplayName("3. RAG Tool - Search Documentation")
-    void testRAGTool() throws Exception {
-        System.out.println("\n=== Test 3: RAG Tool ===");
+    @DisplayName("3. Test specific technical question")
+    void testTechnicalQuestion() throws Exception {
+        logger.info("\n=== Test 3: Technical Question ===");
         
-        RAGTool tool = new RAGTool(vectorStore);
+        // Clear history for fresh start
+        agent.clearHistory();
+        logger.info("Conversation history cleared");
         
-        // Test basic search
-        Map<String, Object> params = new HashMap<>();
-        params.put("query", "How to create an agent?");
-        params.put("topK", 3);
+        String question = "How does Embabel use Goal-Oriented Action Planning?";
+        logger.info("Technical question: '{}'", question);
         
-        String result = tool.execute(params);
+        long startTime = System.currentTimeMillis();
+        String response = agent.chat(question);
+        long duration = System.currentTimeMillis() - startTime;
         
-        System.out.println("Tool result length: " + result.length() + " characters");
-        assertNotNull(result, "Tool should return a result");
-        assertTrue(result.contains("Document"), "Result should contain formatted documents");
+        logger.info("\n--- Agent Response ({} ms) ---", duration);
+        logger.info(response);
+        logger.info("--- End Response ---\n");
         
-        // Test with context expansion
-        params.put("expandContext", true);
-        String expandedResult = tool.execute(params);
+        // Verify response
+        assertNotNull(response, "Response should not be null");
+        assertFalse(response.trim().isEmpty(), "Response should not be empty");
         
-        System.out.println("Expanded result length: " + expandedResult.length() + " characters");
-        assertTrue(expandedResult.length() >= result.length(), 
-            "Expanded result should be at least as long as basic search");
+        // Check for technical terms
+        String responseLower = response.toLowerCase();
+        boolean hasTechnicalContent = 
+            responseLower.contains("goap") || 
+            responseLower.contains("goal") ||
+            responseLower.contains("action") ||
+            responseLower.contains("planning") ||
+            responseLower.contains("condition");
+        
+        assertTrue(hasTechnicalContent, 
+            "Response should contain technical information about GOAP");
+        
+        logger.info("✓ Technical question test passed");
     }
     
     @Test
     @Order(4)
-    @DisplayName("4. Conversation Memory - Multi-turn Context")
-    void testConversationMemory() {
-        System.out.println("\n=== Test 4: Conversation Memory ===");
+    @DisplayName("4. Test Spring AI related question")
+    void testSpringAIQuestion() throws Exception {
+        logger.info("\n=== Test 4: Spring AI Question ===");
         
-        ConversationMemory memory = new ConversationMemory(5);
+        // Clear history for fresh start
+        agent.clearHistory();
+        logger.info("Conversation history cleared");
         
-        // Add messages
-        memory.addUserMessage("What is Embabel?");
-        memory.addAssistantMessage("Embabel is an agent framework...");
-        memory.addUserMessage("Show me an example");
+        String question = "What is Spring AI ChatClient?";
+        logger.info("Spring AI question: '{}'", question);
         
-        System.out.println("History size: " + memory.size());
-        assertEquals(3, memory.size(), "Should have 3 messages");
+        long startTime = System.currentTimeMillis();
+        String response = agent.chat(question);
+        long duration = System.currentTimeMillis() - startTime;
         
-        // Check formatting
-        String formatted = memory.formatHistory();
-        System.out.println("Formatted history length: " + formatted.length());
+        logger.info("\n--- Agent Response ({} ms) ---", duration);
+        logger.info(response);
+        logger.info("--- End Response ---\n");
         
-        assertTrue(formatted.contains("user:"), "Should contain user messages");
-        assertTrue(formatted.contains("assistant:"), "Should contain assistant messages");
+        // Verify response
+        assertNotNull(response, "Response should not be null");
+        assertFalse(response.trim().isEmpty(), "Response should not be empty");
         
-        // Test trimming
-        for (int i = 0; i < 10; i++) {
-            memory.addUserMessage("Message " + i);
-        }
+        // Check for Spring AI terms
+        String responseLower = response.toLowerCase();
+        boolean hasSpringAIContent = 
+            responseLower.contains("spring ai") || 
+            responseLower.contains("chatclient") ||
+            responseLower.contains("llm") ||
+            responseLower.contains("ai model");
         
-        System.out.println("After adding 10 more messages: " + memory.size());
-        assertTrue(memory.size() <= 5, "Should trim to max size");
+        assertTrue(hasSpringAIContent, 
+            "Response should contain information about Spring AI");
+        
+        logger.info("✓ Spring AI question test passed");
     }
     
     @Test
     @Order(5)
-    @DisplayName("5. RAG Agent - Single Turn Conversation")
-    void testSingleTurnConversation() throws Exception {
-        System.out.println("\n=== Test 5: Single Turn Conversation ===");
+    @DisplayName("5. Test multi-turn conversation flow")
+    void testMultiTurnConversation() throws Exception {
+        logger.info("\n=== Test 5: Multi-turn Conversation ===");
         
-        RAGAgent agent = RAGAgent.builder()
-            .backend(backend)
-            .toolRegistry(toolRegistry)
-            .maxConversationHistory(10)
-            .maxIterations(10)
-            .verbose(false)
-            .build();
+        // Clear history for fresh conversation
+        agent.clearHistory();
+        logger.info("Conversation history cleared");
         
-        System.out.println("User: What is Embabel?");
-        String response = agent.chat("What is Embabel?");
+        // Turn 1: Ask about Embabel
+        String q1 = "What is Embabel?";
+        logger.info("\nTurn 1 - User: '{}'", q1);
+        String r1 = agent.chat(q1);
+        logger.info("Turn 1 - Assistant: {}", r1.substring(0, Math.min(200, r1.length())) + "...");
+        assertNotNull(r1);
         
-        System.out.println("\nAgent response length: " + response.length() + " characters");
-        System.out.println("First 200 chars: " + 
-            response.substring(0, Math.min(200, response.length())));
+        // Turn 2: Ask who created it (requires context from turn 1)
+        String q2 = "Who created it?";
+        logger.info("\nTurn 2 - User: '{}'", q2);
+        String r2 = agent.chat(q2);
+        logger.info("Turn 2 - Assistant: {}", r2.substring(0, Math.min(200, r2.length())) + "...");
+        assertNotNull(r2);
         
-        assertNotNull(response, "Agent should provide a response");
-        assertFalse(response.isEmpty(), "Response should not be empty");
-        assertTrue(response.length() > 50, "Response should be substantial");
+        // Should mention Rod Johnson
+        assertTrue(r2.toLowerCase().contains("rod johnson"), 
+            "Should identify Rod Johnson as creator based on context");
         
-        // Check conversation history
-        assertEquals(2, agent.getHistorySize(), "Should have user + assistant messages");
+        // Turn 3: Ask for more details (requires context from turns 1 and 2)
+        String q3 = "What other frameworks has he created?";
+        logger.info("\nTurn 3 - User: '{}'", q3);
+        String r3 = agent.chat(q3);
+        logger.info("Turn 3 - Assistant: {}", r3.substring(0, Math.min(200, r3.length())) + "...");
+        assertNotNull(r3);
+        
+        // Should mention Spring Framework
+        assertTrue(r3.toLowerCase().contains("spring"), 
+            "Should identify Spring Framework based on Rod Johnson context");
+        
+        // Verify conversation history
+        ConversationMemory.Message[] history = agent.getConversationHistory();
+        assertTrue(history.length >= 6, 
+            "Should have 3 user messages and 3 assistant responses");
+        
+        logger.info("\n✓ Multi-turn conversation test passed");
+        logger.info("  Final conversation length: {} messages", history.length);
     }
     
     @Test
     @Order(6)
-    @DisplayName("6. RAG Agent - Multi-turn Conversation")
-    void testMultiTurnConversation() throws Exception {
-        System.out.println("\n=== Test 6: Multi-turn Conversation ===");
+    @DisplayName("6. Test conversation memory limit")
+    void testConversationMemoryLimit() throws Exception {
+        logger.info("\n=== Test 6: Conversation Memory Limit ===");
         
-        RAGAgent agent = RAGAgent.builder()
-            .backend(backend)
-            .toolRegistry(toolRegistry)
-            .maxConversationHistory(10)
-            .maxIterations(10)
-            .verbose(false)
-            .build();
+        // Clear history
+        agent.clearHistory();
         
-        // First turn
-        System.out.println("\nTurn 1:");
-        System.out.println("User: Tell me about Embabel");
-        String response1 = agent.chat("Tell me about Embabel");
-        System.out.println("Agent: " + response1.substring(0, Math.min(150, response1.length())) + "...");
+        // Send messages to exceed memory limit (maxConversationHistory = 10)
+        for (int i = 1; i <= 12; i++) {
+            String question = "Question number " + i;
+            logger.info("Sending message {}: '{}'", i, question);
+            agent.chat(question);
+        }
         
-        assertNotNull(response1);
-        assertTrue(agent.getHistorySize() >= 2);
+        // Check that history doesn't exceed limit
+        ConversationMemory.Message[] history = agent.getConversationHistory();
+        logger.info("Final history size: {} messages", history.length);
         
-        // Second turn (requires context from first)
-        System.out.println("\nTurn 2:");
-        System.out.println("User: Can you give me an example?");
-        String response2 = agent.chat("Can you give me an example?");
-        System.out.println("Agent: " + response2.substring(0, Math.min(150, response2.length())) + "...");
+        assertTrue(history.length <= 20, // 10 pairs (user + assistant) = 20 messages max
+            "History should not exceed maximum conversation history setting");
         
-        assertNotNull(response2);
-        assertTrue(agent.getHistorySize() >= 4, "Should have multiple messages in history");
-        
-        // Third turn
-        System.out.println("\nTurn 3:");
-        System.out.println("User: What about Spring AI?");
-        String response3 = agent.chat("What about Spring AI?");
-        System.out.println("Agent: " + response3.substring(0, Math.min(150, response3.length())) + "...");
-        
-        assertNotNull(response3);
-        
-        System.out.println("\nFinal history size: " + agent.getHistorySize());
+        logger.info("✓ Memory limit test passed");
     }
     
     @Test
     @Order(7)
-    @DisplayName("7. Full Integration - Complex Query with Context")
-    void testComplexQueryWithContext() throws Exception {
-        System.out.println("\n=== Test 7: Complex Query ===");
+    @DisplayName("7. Test tool invocation tracking")
+    void testToolInvocationTracking() throws Exception {
+        logger.info("\n=== Test 7: Tool Invocation Tracking ===");
         
-        RAGAgent agent = RAGAgent.builder()
-            .backend(backend)
-            .toolRegistry(toolRegistry)
-            .maxConversationHistory(10)
-            .maxIterations(10)
-            .verbose(true)  // Enable verbose for this test
-            .build();
+        // Clear history
+        agent.clearHistory();
         
-        System.out.println("\nComplex query: How do I create an agent with Embabel? Show me code.");
+        String question = "Tell me about Embabel's architecture";
+        logger.info("Question designed to trigger tool use: '{}'", question);
         
-        String response = agent.chat(
-            "How do I create an agent with Embabel? Show me a code example."
-        );
+        String response = agent.chat(question);
         
-        System.out.println("\n=== Agent Response ===");
-        System.out.println(response);
-        System.out.println("======================");
-        
+        // Verify response
         assertNotNull(response);
-        assertTrue(response.length() > 100, "Response should be detailed");
+        assertFalse(response.trim().isEmpty());
         
-        // The agent should have searched documentation and provided an answer
-        assertTrue(agent.getHistorySize() >= 2, "Should have conversation history");
+        // Check conversation history for tool results (system messages)
+        ConversationMemory.Message[] history = agent.getConversationHistory();
+        logger.info("Conversation history has {} messages", history.length);
+        
+        boolean hasSystemMessage = false;
+        for (ConversationMemory.Message msg : history) {
+            if ("system".equals(msg.role())) {
+                hasSystemMessage = true;
+                logger.info("Found system message (tool result): {}", 
+                    msg.content().substring(0, Math.min(100, msg.content().length())) + "...");
+                break;
+            }
+        }
+        
+        assertTrue(hasSystemMessage, 
+            "Should have at least one system message (tool result) in history");
+        
+        logger.info("✓ Tool invocation tracking test passed");
+    }
+    
+    @Test
+    @Order(8)
+    @DisplayName("8. Test response quality metrics")
+    void testResponseQualityMetrics() throws Exception {
+        logger.info("\n=== Test 8: Response Quality Metrics ===");
+        
+        // Clear history
+        agent.clearHistory();
+        
+        String question = "What is Embabel and how does it differ from other agent frameworks?";
+        logger.info("Question: '{}'", question);
+        
+        long startTime = System.currentTimeMillis();
+        String response = agent.chat(question);
+        long duration = System.currentTimeMillis() - startTime;
+        
+        // Metrics
+        int responseLength = response.length();
+        int wordCount = response.split("\\s+").length;
+        boolean hasStructure = response.contains("\n") || response.contains(".");
+        
+        logger.info("\nResponse Metrics:");
+        logger.info("  Duration: {} ms", duration);
+        logger.info("  Length: {} characters", responseLength);
+        logger.info("  Word count: {} words", wordCount);
+        logger.info("  Has structure: {}", hasStructure);
+        
+        // Quality assertions
+        assertTrue(responseLength > 100, 
+            "Response should be reasonably detailed (>100 chars)");
+        assertTrue(wordCount > 20, 
+            "Response should have substantial content (>20 words)");
+        assertTrue(hasStructure, 
+            "Response should be well-structured with sentences/paragraphs");
+        assertTrue(duration < 60000, 
+            "Response should complete within reasonable time (<60s)");
+        
+        logger.info("✓ Response quality test passed");
     }
 }
