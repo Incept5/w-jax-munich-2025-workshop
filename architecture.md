@@ -51,7 +51,7 @@ This is a multi-module Maven workshop project demonstrating modern Java 21+ AI a
 | 12:30-13:20 | Lunch Break | - | - |
 | 13:20-13:40 | Recap & Transition to MCP | - | ✅ Presentation |
 | 13:40-14:20 | MCP Deep Dive + Hands-On | Stage 2 | ✅ Complete |
-| 14:20-14:55 | Agentic RAG & Data Integration | Stage 3 | ❌ TODO |
+| 14:20-14:55 | Agentic RAG & Data Integration | Stage 3 | ✅ Complete |
 | 14:55-15:15 | Afternoon Break | - | - |
 | 15:15-15:55 | Multi-Agent Teams | Stage 4 | ❌ TODO |
 | 15:55-16:20 | Enterprise Patterns | Stage 5 | ❌ TODO |
@@ -64,7 +64,7 @@ This is a multi-module Maven workshop project demonstrating modern Java 21+ AI a
 | **0** | `stage-0-demo/` | Setup (35min) | Backend abstraction, multi-modal | ✅ Complete |
 | **1** | `stage-1-simple-agent/` | 3h 15min | Tool calling, agent loops | ✅ Complete |
 | **2** | `stage-2-mcp-server/` | 40min | MCP protocol, tool exposure | ✅ Complete |
-| **3** | `stage-3-agentic-rag/` | 35min | RAG, vector search, embeddings | ❌ TODO |
+| **3** | `stage-3-agentic-rag/` | 35min | RAG, vector search, embeddings | ✅ Complete |
 | **4** | `stage-4-multi-agent/` | 40min | Multi-agent, orchestration | ❌ TODO |
 | **5** | `stage-5-enterprise/` | 25min | Production patterns | ❌ TODO |
 
@@ -79,7 +79,7 @@ graph TB
         PARENT --> S0[stage-0-demo/<br/>Foundation Demo<br/>✅ Complete]
         PARENT --> S1[stage-1-simple-agent/<br/>First Agent + Tools<br/>✅ Complete]
         PARENT --> S2[stage-2-mcp-server/<br/>MCP Server<br/>✅ Complete]
-        PARENT --> S3[stage-3-agentic-rag/<br/>RAG Agent<br/>❌ TODO]
+        PARENT --> S3[stage-3-agentic-rag/<br/>RAG Agent<br/>✅ Complete]
         PARENT --> S4[stage-4-multi-agent/<br/>Multi-Agent System<br/>❌ TODO]
         PARENT --> S5[stage-5-enterprise/<br/>Production Patterns<br/>❌ TODO]
         
@@ -329,9 +329,9 @@ npx @modelcontextprotocol/inspector java -jar target/stage-2-mcp-server.jar serv
 
 ---
 
-### Stage 3: Agentic RAG (`stage-3-agentic-rag/`) 🔄 IN PROGRESS
+### Stage 3: Agentic RAG (`stage-3-agentic-rag/`) ✅
 
-**Status**: Phase 1 (Ingestion Pipeline) Complete ✅  
+**Status**: Complete  
 **Purpose**: Add retrieval-augmented generation with PostgreSQL + pgvector  
 **Workshop Time**: 14:20-14:55 (35 min - Agentic RAG)
 
@@ -349,20 +349,21 @@ npx @modelcontextprotocol/inspector java -jar target/stage-2-mcp-server.jar serv
 - Integrate RAG into agent reasoning loop
 - Work with Docker for local infrastructure
 
-**Phase 1 Components (Complete)**:
+**Key Components**:
 - ✅ `PgVectorStore.java` - PostgreSQL + pgvector integration
 - ✅ `DocumentChunker.java` - Chunking with overlap
 - ✅ `EmbeddingService.java` - Ollama embedding generation
 - ✅ `IngestionService.java` - Main ingestion orchestration
+- ✅ `RAGAgent.java` - Agent with RAG capabilities
+- ✅ `RAGTool.java` - RAG tool for document retrieval
+- ✅ `ToolRegistry.java` - Tool management
+- ✅ `ConversationMemory.java` - Multi-turn conversation support
+- ✅ `RAGAgentDemo.java` - Interactive demo
 - ✅ `docker-compose.yml` - PostgreSQL + pgvector setup
 - ✅ `ingest.sh` - One-command setup script
 - ✅ `repos.yaml` - Repository configuration
 - ✅ Flyway migrations - Database schema
-
-**Phase 2 Components (TODO)**:
-- ❌ `RAGAgent.java` - Agent with RAG capabilities
-- ❌ `RAGDemo.java` - Interactive demo
-- ❌ `RAGIntegrationTest.java` - End-to-end test
+- ✅ `RAGAgentIntegrationTest.java` - End-to-end test
 
 **Dependencies**: `shared`
 
@@ -398,7 +399,29 @@ volumes:
 - Scalable to millions of vectors
 - Standard SQL interface
 
-**Architecture Link**: *To be created*
+**Running**:
+```bash
+cd stage-3-agentic-rag
+
+# Start PostgreSQL + pgvector
+docker-compose up -d
+
+# Ingest documents (one-time setup)
+./ingest.sh
+
+# Run RAG agent (interactive mode)
+./run.sh
+
+# Run RAG agent (single query)
+./run.sh "What are the key features of Spring AI?"
+```
+
+**Testing**:
+```bash
+mvn test  # Runs integration test with real Ollama + PostgreSQL
+```
+
+**Architecture Link**: *[stage-3-agentic-rag/README.md](./stage-3-agentic-rag/README.md)*
 
 ---
 
@@ -542,7 +565,7 @@ graph LR
     S0[stage-0-demo]:::complete --> SHARED
     S1[stage-1-simple-agent]:::complete --> SHARED
     S2[stage-2-mcp-server]:::complete --> SHARED
-    S3[stage-3-agentic-rag]:::todo --> SHARED
+    S3[stage-3-agentic-rag]:::complete --> SHARED
     S4[stage-4-multi-agent]:::todo --> SHARED
     S5[stage-5-enterprise]:::todo --> SHARED
     
@@ -675,21 +698,37 @@ w-jax-munich-2025-workshop/
 │               ├── WeatherTool.java
 │               └── CountryInfoTool.java
 │
-├── stage-3-agentic-rag/             # ❌ TODO
+├── stage-3-agentic-rag/             # ✅ COMPLETE
 │   ├── pom.xml
 │   ├── README.md
 │   ├── run.sh
+│   ├── ingest.sh
+│   ├── repos.yaml
 │   ├── docker-compose.yml           # PostgreSQL + pgvector setup
 │   └── src/
 │       ├── main/java/com/incept5/workshop/stage3/
-│       │   ├── RAGAgent.java
-│       │   ├── PgVectorStore.java
-│       │   ├── DocumentProcessor.java
-│       │   ├── EmbeddingService.java
-│       │   └── RAGDemo.java
+│       │   ├── agent/
+│       │   │   ├── RAGAgent.java
+│       │   │   ├── RAGAgentDemo.java
+│       │   │   └── ConversationMemory.java
+│       │   ├── db/
+│       │   │   ├── PgVectorStore.java
+│       │   │   ├── DatabaseConfig.java
+│       │   │   └── Document.java
+│       │   ├── ingestion/
+│       │   │   ├── IngestionService.java
+│       │   │   ├── DocumentChunker.java
+│       │   │   ├── EmbeddingService.java
+│       │   │   ├── IngestionConfig.java
+│       │   │   └── RepoConfig.java
+│       │   ├── tool/
+│       │   │   ├── Tool.java
+│       │   │   ├── ToolRegistry.java
+│       │   │   └── RAGTool.java
+│       │   └── util/
+│       │       └── JsonToolCallParser.java
 │       └── test/java/com/incept5/workshop/stage3/
-│           ├── README.md
-│           └── RAGIntegrationTest.java
+│           └── RAGAgentIntegrationTest.java
 │
 ├── stage-4-multi-agent/             # ❌ TODO
 │   ├── pom.xml
@@ -868,8 +907,15 @@ mvn package -DskipTests
    - JSON Schema parameter validation
    - Compatible with MCP Inspector and Claude Desktop
 
+5. **stage-3-agentic-rag/** - RAG agent implementation
+   - PostgreSQL + pgvector integration
+   - Document chunking and embedding pipeline
+   - Similarity search with cosine distance
+   - RAG tool for document retrieval
+   - Multi-turn conversation support
+   - Integration test with real documents and embeddings
+
 ### ❌ TODO: Remaining Stages
-- **stage-3-agentic-rag/** - RAG with vector search
 - **stage-4-multi-agent/** - Multi-agent orchestration
 - **stage-5-enterprise/** - Production patterns
 
