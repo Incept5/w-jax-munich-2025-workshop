@@ -84,6 +84,7 @@
                                     </excludes>
                                 </filter>
                             </filters>
+                            <finalName>${project.artifactId}</finalName>
                         </configuration>
                     </execution>
                 </executions>

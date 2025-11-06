@@ -880,8 +880,12 @@ Potential additions for future workshops:
 ### Build & Run
 
 ```bash
-# Build everything
+# Build everything from root (creates JARs in each module's target/)
 mvn clean package
+# Creates:
+#   shared/target/shared-1.0-SNAPSHOT.jar (library)
+#   stage-0-demo/target/stage-0-demo.jar (executable)
+#   stage-1-simple-agent/target/stage-1-simple-agent.jar (executable)
 
 # Run Stage 0 (Foundation)
 cd stage-0-demo
@@ -899,6 +903,9 @@ docker-compose up -d  # Start PostgreSQL + pgvector
 
 # Run tests
 mvn test
+
+# Build specific module with dependencies
+mvn -pl stage-1-simple-agent -am clean package
 ```
 
 ### Switching Models
