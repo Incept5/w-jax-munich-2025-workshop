@@ -378,6 +378,29 @@ MCP over STDIO uses **Newline Delimited JSON (NDJSON)**:
 
 This is why we use `new Gson()` instead of `new GsonBuilder().setPrettyPrinting().create()`.
 
+### JSON-RPC 2.0 ID Handling
+
+JSON-RPC 2.0 requires that the `id` field be present in all responses (both success and error), matching the `id` from the request:
+
+- **Request ID present**: Response includes the same `id` (string or number)
+- **Request ID is null**: Response includes `"id": null`
+- **Request has no ID (notification)**: No response is sent
+
+Our implementation handles all three cases correctly:
+
+```java
+// ID must always be present in response, matching request ID
+if (id == null) {
+    response.add("id", gson.toJsonTree(null));  // Explicit null
+} else if (id instanceof Number) {
+    response.add("id", gson.toJsonTree(id));     // Preserve number type
+} else {
+    response.addProperty("id", id.toString());    // String ID
+}
+```
+
+This ensures compatibility with strict JSON-RPC clients like the MCP Inspector.
+
 ## Troubleshooting
 
 ### Server won't start
@@ -389,6 +412,7 @@ This is why we use `new Gson()` instead of `new GsonBuilder().setPrettyPrinting(
 - **"Unexpected token '}'"** - Pretty-printing is enabled (should use compact JSON)
 - **"Unexpected non-whitespace character"** - Logging is going to stdout (should go to stderr)
 - **"Unexpected end of JSON"** - Incomplete JSON message (check for truncation)
+- **"ZodError: Invalid input" with missing 'id' field** - Fixed in v1.0.1: JSON-RPC responses now always include the `id` field, even when null, to comply with the JSON-RPC 2.0 specification
 
 ### Tools not appearing in Claude
 - Verify the config file path

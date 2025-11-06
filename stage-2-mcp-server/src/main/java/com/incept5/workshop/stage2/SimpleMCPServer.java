@@ -91,24 +91,38 @@ public class SimpleMCPServer {
      * Handles a single JSON-RPC request.
      */
     private void handleRequest(String requestJson) {
+        Object requestId = null;
         try {
             JsonObject request = gson.fromJson(requestJson, JsonObject.class);
             
             String jsonrpc = request.get("jsonrpc").getAsString();
             String method = request.get("method").getAsString();
-            Object id = request.has("id") ? request.get("id").getAsString() : null;
             
-            logger.debug("Received request: method={}, id={}", method, id);
+            // Extract ID - can be string, number, or null
+            if (request.has("id")) {
+                if (request.get("id").isJsonPrimitive()) {
+                    var idElement = request.get("id").getAsJsonPrimitive();
+                    if (idElement.isString()) {
+                        requestId = idElement.getAsString();
+                    } else if (idElement.isNumber()) {
+                        requestId = idElement.getAsNumber();
+                    }
+                } else if (request.get("id").isJsonNull()) {
+                    requestId = null;
+                }
+            }
+            
+            logger.debug("Received request: method={}, id={}", method, requestId);
             
             JsonObject params = request.has("params") ? 
                     request.getAsJsonObject("params") : new JsonObject();
             
             // Handle the request based on method
             JsonObject response = switch (method) {
-                case "initialize" -> handleInitialize(id, params);
-                case "tools/list" -> handleToolsList(id);
-                case "tools/call" -> handleToolCall(id, params);
-                default -> createErrorResponse(id, -32601, "Method not found: " + method);
+                case "initialize" -> handleInitialize(requestId, params);
+                case "tools/list" -> handleToolsList(requestId);
+                case "tools/call" -> handleToolCall(requestId, params);
+                default -> createErrorResponse(requestId, -32601, "Method not found: " + method);
             };
             
             // Send response
@@ -118,8 +132,8 @@ public class SimpleMCPServer {
             
         } catch (Exception e) {
             logger.error("Error handling request", e);
-            JsonObject error = createErrorResponse(null, -32603, 
-                    "Internal error: " + e.getMessage());
+            JsonObject error = createErrorResponse(requestId, -32700, 
+                    "Parse error: " + e.getMessage());
             writer.println(gson.toJson(error));
             writer.flush();
         }
@@ -237,9 +251,16 @@ public class SimpleMCPServer {
     private JsonObject createSuccessResponse(Object id, JsonObject result) {
         JsonObject response = new JsonObject();
         response.addProperty("jsonrpc", "2.0");
-        if (id != null) {
+        
+        // ID must always be present in response, matching request ID
+        if (id == null) {
+            response.add("id", gson.toJsonTree(null));
+        } else if (id instanceof Number) {
+            response.add("id", gson.toJsonTree(id));
+        } else {
             response.addProperty("id", id.toString());
         }
+        
         response.add("result", result);
         return response;
     }
@@ -250,7 +271,13 @@ public class SimpleMCPServer {
     private JsonObject createErrorResponse(Object id, int code, String message) {
         JsonObject response = new JsonObject();
         response.addProperty("jsonrpc", "2.0");
-        if (id != null) {
+        
+        // ID must always be present in response, matching request ID
+        if (id == null) {
+            response.add("id", gson.toJsonTree(null));
+        } else if (id instanceof Number) {
+            response.add("id", gson.toJsonTree(id));
+        } else {
             response.addProperty("id", id.toString());
         }
         
