@@ -115,7 +115,7 @@ public class CountryInfoTool implements Tool {
             JsonObject country = countries.get(0).getAsJsonObject();
             
             String name = country.getAsJsonObject("name")
-                    .getAsJsonObject("common")
+                    .get("common")
                     .getAsString();
             
             // Extract capital (might be an array)
