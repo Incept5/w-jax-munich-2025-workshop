@@ -75,12 +75,12 @@ Sets a system prompt that guides the model's behavior and persona.
 
 ```bash
 # Make the model more concise
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   --system "You are a helpful assistant. Be concise." \
   -p "What is Java?"
 
 # Set a specific role
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   --sys "You are a helpful coding assistant" \
   -p "How do I reverse a string in Java?"
 ```
@@ -94,11 +94,11 @@ Controls randomness in the output (0.0-2.0):
 
 ```bash
 # Focused, deterministic output
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   --temp 0.1 -p "What is 2+2?"
 
 # Creative output
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   --temp 0.8 -p "Write a poem about coding"
 ```
 
@@ -108,11 +108,11 @@ Sets the context window size in tokens. A larger context allows the model to han
 
 ```bash
 # Increase context for longer conversations
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   --ctx 8192 -p "Explain quantum computing in detail"
 
 # Standard context
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -- -jar target/ollama-java-demo.jar \
   --ctx 4096 -p "Explain Java records"
 ```
 
@@ -122,19 +122,19 @@ You can combine multiple parameters for fine-grained control:
 
 ```bash
 # All three parameters together
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   --system "You are a helpful coding assistant" \
   --temp 0.3 \
   --ctx 4096 \
   -p "How do I reverse a string in Java?"
 
 # Parameters work in raw mode too
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   -r --temp 0.5 --system "Answer in one sentence" \
   -p "What is AI?"
 
 # Parameters work with streaming
-java --enable-preview -jar target/ollama-java-demo.jar \
+java -jar target/ollama-java-demo.jar \
   -s --temp 0.7 --ctx 8192 \
   -p "Write a short story"
 ```
@@ -185,7 +185,7 @@ mvn exec:java -Dexec.args="-p 'Hello' -s"
 ## Project Structure
 
 ```
-src/main/java/com/example/ollama/
+src/main/java/com/incept5/ollama/
 ├── OllamaDemo.java           # Main application with CLI
 ├── client/
 │   └── OllamaClient.java     # HTTP client (virtual threads)
@@ -257,14 +257,14 @@ Use `-r` or `--raw` flag for clean output (perfect for scripting and piping):
 
 ```bash
 # Get just the response text
-java --enable-preview -jar target/ollama-java-demo.jar -r -p "What is 2+2?"
+java -jar target/ollama-java-demo.jar -r -p "What is 2+2?"
 # Output: 2 + 2 = 4
 
 # Pipe to other commands
-java --enable-preview -jar target/ollama-java-demo.jar -r -p "List 3 colors" | grep blue
+java -jar target/ollama-java-demo.jar -r -p "List 3 colors" | grep blue
 
 # Save to file without headers
-java --enable-preview -jar target/ollama-java-demo.jar -r -p "Write a poem" > poem.txt
+java -jar target/ollama-java-demo.jar -r -p "Write a poem" > poem.txt
 ```
 
 **Raw mode features:**
