@@ -1,0 +1,20 @@
+{
+  "filePath": "src/main/java/com/incept5/ollama/config/OllamaConfig.java",
+  "mtime": 1762426412328,
+  "size": 2847,
+  "definitions": [
+    "public static OllamaConfig defaultConfig() {",
+    "public static OllamaConfig withModel(String model) {",
+    "public static Builder builder() {",
+    "public static class Builder {",
+    "public Builder baseUrl(String baseUrl) {",
+    "public Builder model(String model) {",
+    "public Builder connectTimeout(Duration timeout) {",
+    "public Builder requestTimeout(Duration timeout) {",
+    "public OllamaConfig build() {",
+    "public String getApiUrl() {",
+    "public String getModelInfoUrl() {"
+  ],
+  "cachedAt": 1762428058513,
+  "language": "java"
+}

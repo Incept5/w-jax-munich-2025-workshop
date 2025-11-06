@@ -1,0 +1,11 @@
+{
+  "filePath": "src/main/java/com/incept5/ollama/SimpleExample.java",
+  "mtime": 1762426412326,
+  "size": 1346,
+  "definitions": [
+    "public class SimpleExample {",
+    "public static void main(String[] args) {"
+  ],
+  "cachedAt": 1762428058501,
+  "language": "java"
+}

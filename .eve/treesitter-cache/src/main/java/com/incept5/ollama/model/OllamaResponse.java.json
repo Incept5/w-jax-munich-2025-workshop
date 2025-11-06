@@ -1,0 +1,12 @@
+{
+  "filePath": "src/main/java/com/incept5/ollama/model/OllamaResponse.java",
+  "mtime": 1762426412329,
+  "size": 3768,
+  "definitions": [
+    "public boolean hasError() {",
+    "public String getTimingInfo() {",
+    "private String formatDuration(String label, long nanos) {"
+  ],
+  "cachedAt": 1762428058521,
+  "language": "java"
+}

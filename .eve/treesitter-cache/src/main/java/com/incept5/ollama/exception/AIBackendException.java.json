@@ -1,0 +1,15 @@
+{
+  "filePath": "src/main/java/com/incept5/ollama/exception/AIBackendException.java",
+  "mtime": 1762426412328,
+  "size": 1899,
+  "definitions": [
+    "public sealed class AIBackendException extends Exception",
+    "public static final class ConnectionException extends AIBackendException {",
+    "public static final class ModelNotFoundException extends AIBackendException {",
+    "public String getModelName() {",
+    "public static final class InvalidResponseException extends AIBackendException {",
+    "public int getStatusCode() {"
+  ],
+  "cachedAt": 1762428058514,
+  "language": "java"
+}

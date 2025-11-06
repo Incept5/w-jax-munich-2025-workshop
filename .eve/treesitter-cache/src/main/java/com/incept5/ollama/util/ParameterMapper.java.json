@@ -1,0 +1,21 @@
+{
+  "filePath": "src/main/java/com/incept5/ollama/util/ParameterMapper.java",
+  "mtime": 1762426412330,
+  "size": 5708,
+  "definitions": [
+    "public class ParameterMapper {",
+    "public static Integer getMaxTokens(Map<String, Object> options) {",
+    "public static Double getTemperature(Map<String, Object> options) {",
+    "public static Double getTopP(Map<String, Object> options) {",
+    "public static Integer getSeed(Map<String, Object> options) {",
+    "public static List<String> getImages(Map<String, Object> options) {",
+    "public static Map<String, Object> createOptions(",
+    "public static boolean isValidTemperature(Double temperature) {",
+    "public static boolean isValidTopP(Double topP) {",
+    "public static boolean isValidMaxTokens(Integer maxTokens) {",
+    "private static Integer toInteger(Object value) {",
+    "private static Double toDouble(Object value) {"
+  ],
+  "cachedAt": 1762428058523,
+  "language": "java"
+}

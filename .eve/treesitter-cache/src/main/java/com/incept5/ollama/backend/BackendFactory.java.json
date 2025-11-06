@@ -1,0 +1,13 @@
+{
+  "filePath": "src/main/java/com/incept5/ollama/backend/BackendFactory.java",
+  "mtime": 1762426412327,
+  "size": 1887,
+  "definitions": [
+    "public class BackendFactory {",
+    "public static AIBackend createBackend(",
+    "public static AIBackend createBackend(BackendType backendType, String baseUrl, String model) {",
+    "public static AIBackend createBackend(BackendType backendType, String model) {"
+  ],
+  "cachedAt": 1762428058504,
+  "language": "java"
+}

@@ -1,0 +1,26 @@
+{
+  "filePath": "src/main/java/com/incept5/ollama/OllamaDemo.java",
+  "mtime": 1762426412326,
+  "size": 18937,
+  "definitions": [
+    "public class OllamaDemo {",
+    "public static void main(String[] args) {",
+    "private static void runDemo(AIBackend backend, String[] args) throws AIBackendException {",
+    "private static void runRawMode(AIBackend backend, String prompt, boolean streaming, ModelParameters modelParams) throws AIBackendException {",
+    "private static void displayModelInfo(AIBackend backend) {",
+    "private static void runStandardDemo(AIBackend backend, String prompt, ModelParameters modelParams) throws AIBackendException {",
+    "private static void runStreamingDemo(AIBackend backend, String prompt, ModelParameters modelParams) throws AIBackendException {",
+    "private static BackendConfig parseArguments(String[] args) {",
+    "private static java.util.Optional<String> getArgumentValue(List<String> args, String longForm, String shortForm) {",
+    "private static java.util.Optional<String> extractPrompt(String[] args) {",
+    "private static ModelParameters extractModelParameters(String[] args) {",
+    "private static List<String> extractImages(String[] args) {",
+    "public java.util.Map<String, Object> options() {",
+    "public boolean hasParameters() {",
+    "public String getSummary() {",
+    "private static void suppressAllLogging() {",
+    "private static void printHelp() {"
+  ],
+  "cachedAt": 1762428058500,
+  "language": "java"
+}
