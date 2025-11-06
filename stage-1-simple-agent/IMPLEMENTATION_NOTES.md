@@ -30,19 +30,22 @@ A complete, working AI agent that demonstrates the fundamental agent architectur
 
 ## Key Design Decisions
 
-### 1. Simple XML Format for Tool Calls
-```xml
-<tool_use>
-<tool_name>weather</tool_name>
-<city>Paris</city>
-</tool_use>
+### 1. JSON Format for Tool Calls
+```json
+{
+  "tool": "weather",
+  "parameters": {
+    "city": "Paris"
+  }
+}
 ```
 
 **Why?**
-- Easy for LLMs to learn
-- Simple to parse with regex
-- No need for JSON parsing complexity
-- Clear structure for parameters
+- Standard, widely-understood format
+- Native JSON parsing support in Java (Gson)
+- Type-safe and structured
+- Easy for LLMs to generate correctly
+- Flexible for nested parameters
 
 ### 2. Real APIs vs Mock Data
 **Chose Real APIs** because:
@@ -78,12 +81,12 @@ A complete, working AI agent that demonstrates the fundamental agent architectur
 ```
 Iteration 1:
   THINK: "I need to find France's capital"
-  ACT: country_info(country="France")
+  ACT: {"tool": "country_info", "parameters": {"country": "France"}}
   OBSERVE: "France - Capital: Paris, Population: 67,391,582..."
 
 Iteration 2:
   THINK: "Now I know it's Paris, get weather"
-  ACT: weather(city="Paris")
+  ACT: {"tool": "weather", "parameters": {"city": "Paris"}}
   OBSERVE: "Paris: 15°C (feels like 13°C), Light rain..."
 
 Iteration 3:
@@ -155,7 +158,7 @@ This stage serves as the foundation for:
 2. **No Memory**: Each run starts fresh
 3. **No Cost Tracking**: Doesn't track token usage
 4. **No Parallelization**: Tools execute sequentially
-5. **Simple Parsing**: Regex-based, not robust XML parsing
+5. **Simple Parsing**: Basic JSON extraction from code blocks
 
 ## Files Created
 

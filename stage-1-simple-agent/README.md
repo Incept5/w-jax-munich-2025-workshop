@@ -123,19 +123,23 @@ See each step of the agent loop:
 
 The agent teaches the LLM to use tools with a simple XML-like format:
 
-```xml
-<tool_use>
-<tool_name>weather</tool_name>
-<city>Paris</city>
-</tool_use>
+```json
+{
+        "tool": "country_info",
+        "parameters": {
+        "country": "France"
+        }
+}
 ```
 
 For country info:
-```xml
-<tool_use>
-<tool_name>country_info</tool_name>
-<country>France</country>
-</tool_use>
+```json
+{
+        "tool": "country_info",
+        "parameters": {
+        "country": "France"
+        }
+}
 ```
 
 ## Project Structure

@@ -1,6 +1,10 @@
 
 package com.incept5.workshop.stage1.util;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,32 +16,34 @@ import java.util.regex.Pattern;
 /**
  * Parses tool calls from LLM responses.
  * 
- * The LLM is taught to format tool calls using simple XML-like tags:
+ * The LLM is taught to format tool calls using JSON within code blocks:
  * 
- * <tool_use>
- * <tool_name>weather</tool_name>
- * <city>Paris</city>
- * </tool_use>
+ * ```json
+ * {
+ *   "tool": "weather",
+ *   "parameters": {
+ *     "city": "Paris"
+ *   }
+ * }
+ * ```
  * 
  * This parser extracts the tool name and parameters from such formatted responses.
  */
 public class ToolCallParser {
     private static final Logger logger = LoggerFactory.getLogger(ToolCallParser.class);
+    private static final Gson gson = new Gson();
     
-    // Pattern to match entire tool_use block
-    private static final Pattern TOOL_USE_PATTERN = Pattern.compile(
-            "<tool_use>(.*?)</tool_use>",
+    // Pattern to match JSON code blocks (with or without language specifier)
+    private static final Pattern JSON_BLOCK_PATTERN = Pattern.compile(
+            "```(?:json)?\\s*\\n(.*?)\\n```",
             Pattern.DOTALL
     );
     
-    // Pattern to match tool_name
-    private static final Pattern TOOL_NAME_PATTERN = Pattern.compile(
-            "<tool_name>(.*?)</tool_name>"
-    );
-    
-    // Pattern to match any parameter tag
-    private static final Pattern PARAMETER_PATTERN = Pattern.compile(
-            "<(\\w+)>(.*?)</\\1>"
+    // Pattern to match raw JSON objects (fallback if no code block)
+    // This pattern handles nested braces for the parameters object
+    private static final Pattern RAW_JSON_PATTERN = Pattern.compile(
+            "\\{[^{}]*\"tool\"[^{}]*\\{[^}]*\\}[^}]*\\}",
+            Pattern.DOTALL
     );
     
     /**
@@ -51,43 +57,66 @@ public class ToolCallParser {
             return null;
         }
         
-        // Look for <tool_use> block
-        Matcher toolUseMatcher = TOOL_USE_PATTERN.matcher(llmResponse);
+        // First, try to find JSON in a code block
+        Matcher codeBlockMatcher = JSON_BLOCK_PATTERN.matcher(llmResponse);
+        String jsonContent = null;
         
-        if (!toolUseMatcher.find()) {
-            logger.debug("No tool use found in response");
-            return null;
-        }
-        
-        String toolUseContent = toolUseMatcher.group(1);
-        logger.debug("Found tool_use block: {}", toolUseContent);
-        
-        // Extract tool name
-        Matcher toolNameMatcher = TOOL_NAME_PATTERN.matcher(toolUseContent);
-        if (!toolNameMatcher.find()) {
-            logger.warn("Tool use block found but no tool_name");
-            return null;
-        }
-        
-        String toolName = toolNameMatcher.group(1).trim();
-        logger.debug("Tool name: {}", toolName);
-        
-        // Extract all parameters (excluding tool_name)
-        Map<String, String> parameters = new HashMap<>();
-        Matcher paramMatcher = PARAMETER_PATTERN.matcher(toolUseContent);
-        
-        while (paramMatcher.find()) {
-            String paramName = paramMatcher.group(1);
-            String paramValue = paramMatcher.group(2).trim();
-            
-            // Skip tool_name as we already extracted it
-            if (!"tool_name".equals(paramName)) {
-                parameters.put(paramName, paramValue);
-                logger.debug("Parameter: {} = {}", paramName, paramValue);
+        if (codeBlockMatcher.find()) {
+            jsonContent = codeBlockMatcher.group(1).trim();
+            logger.debug("Found JSON in code block: {}", jsonContent);
+        } else {
+            // Fallback: try to find raw JSON object
+            Matcher rawJsonMatcher = RAW_JSON_PATTERN.matcher(llmResponse);
+            if (rawJsonMatcher.find()) {
+                jsonContent = rawJsonMatcher.group(0).trim();
+                logger.debug("Found raw JSON object: {}", jsonContent);
             }
         }
         
-        return new ToolCall(toolName, parameters);
+        if (jsonContent == null) {
+            logger.debug("No tool use JSON found in response");
+            return null;
+        }
+        
+        // Parse the JSON
+        try {
+            JsonObject jsonObject = JsonParser.parseString(jsonContent).getAsJsonObject();
+            
+            // Extract tool name
+            if (!jsonObject.has("tool")) {
+                logger.warn("JSON found but missing 'tool' field");
+                return null;
+            }
+            
+            String toolName = jsonObject.get("tool").getAsString();
+            logger.debug("Tool name: {}", toolName);
+            
+            // Extract parameters
+            Map<String, String> parameters = new HashMap<>();
+            
+            if (jsonObject.has("parameters") && jsonObject.get("parameters").isJsonObject()) {
+                JsonObject paramsObj = jsonObject.getAsJsonObject("parameters");
+                
+                // Convert all parameter values to strings
+                paramsObj.entrySet().forEach(entry -> {
+                    String key = entry.getKey();
+                    String value = entry.getValue().isJsonPrimitive() 
+                            ? entry.getValue().getAsString() 
+                            : entry.getValue().toString();
+                    parameters.put(key, value);
+                    logger.debug("Parameter: {} = {}", key, value);
+                });
+            }
+            
+            return new ToolCall(toolName, parameters);
+            
+        } catch (JsonSyntaxException e) {
+            logger.warn("Failed to parse JSON tool call: {}", e.getMessage());
+            return null;
+        } catch (Exception e) {
+            logger.error("Unexpected error parsing tool call: {}", e.getMessage(), e);
+            return null;
+        }
     }
     
     /**

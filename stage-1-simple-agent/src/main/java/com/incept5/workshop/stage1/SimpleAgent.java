@@ -170,18 +170,22 @@ public class SimpleAgent {
                 
                 """ + toolRegistry.getToolDescriptions() + """
                 
-                To use a tool, output XML like this:
-                <tool_use>
-                <tool_name>weather</tool_name>
-                <city>Paris</city>
-                </tool_use>
+                To use a tool, output JSON in a code block like this:
+                ```json
+                {
+                  "tool": "weather",
+                  "parameters": {
+                    "city": "Paris"
+                  }
+                }
+                ```
                 
                 You can use multiple tools in sequence if needed. For example, to find weather 
                 in a country's capital, first use country_info to find the capital, then use 
                 weather for that city.
                 
                 When you have enough information to answer the question, respond normally 
-                without any tool tags. Be concise and helpful.
+                without any JSON code blocks. Be concise and helpful.
                 
                 IMPORTANT: Only include ONE tool call per response. After each tool use, 
                 you'll receive the result and can decide what to do next.
