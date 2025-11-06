@@ -1,4 +1,4 @@
-package com.incept5.workshop.stage3.ingestion;
+    package com.incept5.workshop.stage3.ingestion;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -49,7 +49,7 @@ public class EmbeddingService {
                 "model", model,
                 "prompt", text
             );
-            
+
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + "/api/embeddings"))
                 .header("Content-Type", "application/json")
