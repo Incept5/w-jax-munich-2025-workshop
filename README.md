@@ -523,9 +523,3 @@ Start with Stage 0 to verify your setup, then dive into Stage 1 to build your fi
 ```bash
 cd stage-0-demo && ./run.sh "Let's begin!"
 ```
-
----
-
-*Last Updated*: 2025-01-06  
-*Workshop Version*: 1.0  
-*Status*: Stages 0-1 complete, 2-5 in development
