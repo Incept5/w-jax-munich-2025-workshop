@@ -184,8 +184,14 @@ public class SimpleAgent {
                 in a country's capital, first use country_info to find the capital, then use 
                 weather for that city.
                 
-                When you have enough information to answer the question, respond normally 
-                without any JSON code blocks. Be concise and helpful.
+                When you have the information needed to answer the user's question:
+                1. DO NOT output any more JSON tool calls
+                2. Provide the answer directly using the information you gathered
+                3. Be specific - include the actual data (temperatures, facts, etc.)
+                4. Be concise but complete
+                
+                Example: If asked "What's the weather in Tokyo?" and you get the result 
+                "Tokyo: 18°C, Clear", respond with: "The weather in Tokyo is 18°C and clear."
                 
                 IMPORTANT: Only include ONE tool call per response. After each tool use, 
                 you'll receive the result and can decide what to do next.
