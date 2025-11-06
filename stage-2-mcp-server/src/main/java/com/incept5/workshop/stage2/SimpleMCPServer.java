@@ -48,7 +48,7 @@ public class SimpleMCPServer {
      */
     public SimpleMCPServer() {
         this.tools = new HashMap<>();
-        this.gson = new GsonBuilder().setPrettyPrinting().create();
+        this.gson = new Gson();
         this.reader = new BufferedReader(new InputStreamReader(System.in));
         this.writer = new PrintWriter(System.out, true);
         
