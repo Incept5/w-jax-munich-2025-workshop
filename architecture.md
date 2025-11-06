@@ -268,27 +268,30 @@ mvn test  # Runs integration test with real Ollama
 
 ---
 
-### Stage 2: MCP Server (`stage-2-mcp-server/`) ✅
+### Stage 2: MCP Server & Agent (`stage-2-mcp-server/`) ✅
 
 **Status**: Complete  
-**Purpose**: Build Model Context Protocol server using official Java SDK  
+**Purpose**: Build Model Context Protocol server AND agent that uses MCP tools  
 **Workshop Time**: 13:40-14:20 (40 min - MCP Deep Dive)
 
 **What Participants Build**:
 - MCP server that exposes tools via JSON-RPC 2.0
-- STDIO-based communication for process isolation
-- Tool discovery via standard MCP protocol
-- JSON Schema for parameter validation
+- MCP client that connects to server via STDIO
+- AI agent that uses MCP tools for reasoning
+- Three operating modes: server, agent, and interactive
 
 **Learning Objectives**:
 - Understand MCP protocol fundamentals
-- Use official MCP Java SDK for server/client
-- Expose tools through MCP protocol
-- Connect agent to MCP server
+- Build both MCP server and client
+- Expose and consume tools through MCP
+- Create agent that leverages MCP architecture
+- Manage subprocess communication
 
 **Key Components**:
 - `SimpleMCPServer.java` - MCP server with JSON-RPC 2.0
-- `MCPDemo.java` - Demo application with usage examples
+- `MCPClient.java` - MCP client with subprocess management
+- `MCPAgent.java` - AI agent using MCP tools
+- `MCPDemo.java` - Multi-mode demo (server/agent/interactive)
 - `tool/Tool.java` - Tool interface with JSON Schema support
 - `tool/WeatherTool.java` - Weather tool with MCP compatibility
 - `tool/CountryInfoTool.java` - Country info tool with MCP compatibility
@@ -301,16 +304,25 @@ mvn test  # Runs integration test with real Ollama
 - Tool discovery via `tools/list`
 - Tool execution via `tools/call`
 - JSON Schema parameter validation
+- Subprocess management for server
 
 **Running**:
 ```bash
 cd stage-2-mcp-server
-./run.sh
+
+# Server mode (for MCP Inspector/Claude)
+./run.sh server
+
+# Agent mode (single task)
+./run.sh agent "What's the weather in Tokyo?"
+
+# Interactive mode (chat)
+./run.sh interactive
 ```
 
 **Testing with MCP Inspector**:
 ```bash
-npx @modelcontextprotocol/inspector java -jar target/stage-2-mcp-server.jar
+npx @modelcontextprotocol/inspector java -jar target/stage-2-mcp-server.jar server
 ```
 
 **Architecture Link**: *[stage-2-mcp-server/README.md](./stage-2-mcp-server/README.md)*
