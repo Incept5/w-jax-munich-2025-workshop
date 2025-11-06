@@ -42,7 +42,7 @@ This agent demonstrates:
 
 1. **Java 21+** installed
 2. **Maven 3.9.0+** installed
-3. **Ollama** running with a model (e.g., `ollama pull qwen2.5:3b`)
+3. **Ollama** running with a model (e.g., `ollama pull qwen3:4b`)
 
 ### Run with Default Task
 

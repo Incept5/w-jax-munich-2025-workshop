@@ -58,7 +58,7 @@ class SimpleAgentIntegrationTest {
             BackendConfig config = BackendConfig.builder()
                     .backendType(BackendType.OLLAMA)
                     .baseUrl("http://localhost:11434")
-                    .model("qwen2.5:3b")
+                    .model("qwen3:4b")
                     .requestTimeout(Duration.ofSeconds(60))
                     .build();
             
