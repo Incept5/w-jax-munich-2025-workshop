@@ -203,8 +203,7 @@ docker-compose up -d  # Start PostgreSQL
 
 **Time**: 15:15-16:20  
 **Module**: `stage-4-embabel-tripper/` (External Reference)  
-**Repository**: https://github.com/Incept5/tripper  
-**Local Path**: `/Users/adam/dev/opensource/explore-embabel/tripper`  
+**Repository**: https://github.com/Incept5/tripper
 **Status**: Exploration & Discussion
 
 Explore a production multi-agent travel planning system built with Spring Boot and Embabel framework.
@@ -212,16 +211,13 @@ Explore a production multi-agent travel planning system built with Spring Boot a
 **What You'll Explore**:
 - **Production Architecture**: Spring Boot + Embabel agent framework
 - **Multiple LLMs**: GPT-4.1 (planner) + GPT-4.1-mini (researcher)
-- **MCP at Scale**: 6+ MCP servers (Brave, Wikipedia, Google Maps, Airbnb, Puppeteer, GitHub)
-- **Enterprise Security**: Spring Security with OAuth2 (Google)
+- **MCP at Scale**: 6+ MCP servers (Brave, Google Maps)
 - **Infrastructure**: Docker Compose, MCP Gateway, Zipkin tracing
 - **Real Domain**: Travel planning with structured itineraries
 
 **Learning Goals**:
 - Understand production agent architecture with Embabel
 - See multi-LLM orchestration patterns
-- Learn enterprise security (OAuth2, API key management)
-- Explore infrastructure as code
 - Understand monitoring and observability
 - See MCP gateway pattern for tool management
 - Compare action-based vs loop-based agent design
