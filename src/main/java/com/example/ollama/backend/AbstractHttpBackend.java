@@ -65,14 +65,15 @@ public abstract class AbstractHttpBackend implements AIBackend {
      */
     protected void handleHttpError(int statusCode, String responseBody, String modelName)
             throws AIBackendException {
-        switch (statusCode) {
-            case 404 -> throw new AIBackendException.ModelNotFoundException(modelName);
-            case int code when code >= 500 ->
-                throw new AIBackendException.ConnectionException(
-                    "Server error: " + responseBody,
-                    null
-                );
-            default -> throw new AIBackendException.InvalidResponseException(
+        if (statusCode == 404) {
+            throw new AIBackendException.ModelNotFoundException(modelName);
+        } else if (statusCode >= 500) {
+            throw new AIBackendException.ConnectionException(
+                "Server error: " + responseBody,
+                null
+            );
+        } else {
+            throw new AIBackendException.InvalidResponseException(
                 "Unexpected response: " + responseBody,
                 statusCode
             );

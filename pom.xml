@@ -6,24 +6,24 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.example</groupId>
-    <artifactId>ollama-java-demo</artifactId>
+    <artifactId>w-jax-munich-2025-workshop</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>Ollama Java Demo</name>
-    <description>Modern Java 25 application demonstrating interaction with Ollama AI models</description>
-    <url>https://github.com/example/ollama-java-demo</url>
+    <name>WJAX Munich 2025 Workshop</name>
+    <description>Modern Java application demonstrating interaction with Ollama AI models (requires Java 21+)</description>
+    <url>https://github.com/Incept5/w-jax-munich-2025-workshop.git</url>
 
     <developers>
         <developer>
-            <name>Demo Project</name>
-            <organization>Example</organization>
+            <name>WJAX Munich 2025 Workshop</name>
+            <organization>Incept5</organization>
         </developer>
     </developers>
 
     <properties>
         <!-- Java version -->
-        <java.version>25</java.version>
+        <java.version>21</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <maven.compiler.release>${java.version}</maven.compiler.release>
@@ -97,7 +97,7 @@
                                     <version>[3.9.0,)</version>
                                 </requireMavenVersion>
                                 <requireJavaVersion>
-                                    <version>[25,)</version>
+                                    <version>[21,)</version>
                                 </requireJavaVersion>
                             </rules>
                         </configuration>
@@ -105,16 +105,13 @@
                 </executions>
             </plugin>
 
-            <!-- Compiler plugin with Java 25 -->
+            <!-- Compiler plugin with Java 21+ -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
                     <release>${java.version}</release>
-                    <compilerArgs>
-                        <arg>--enable-preview</arg>
-                    </compilerArgs>
                 </configuration>
             </plugin>
 
@@ -172,9 +169,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire-plugin.version}</version>
-                <configuration>
-                    <argLine>--enable-preview</argLine>
-                </configuration>
             </plugin>
 
             <!-- Exec plugin for running via Maven -->
@@ -184,9 +178,6 @@
                 <version>${exec-maven-plugin.version}</version>
                 <configuration>
                     <mainClass>com.example.ollama.OllamaDemo</mainClass>
-                    <arguments>
-                        <argument>--enable-preview</argument>
-                    </arguments>
                 </configuration>
             </plugin>
         </plugins>

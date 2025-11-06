@@ -154,20 +154,23 @@ public class OllamaClient implements AutoCloseable {
 
             logger.debug("Received response with status code: {}", response.statusCode());
 
-            // Pattern matching with switch expression (Java 21+)
-            return switch (response.statusCode()) {
-                case 200 -> parseResponse(response.body());
-                case 404 -> throw new AIBackendException.ModelNotFoundException(config.model());
-                case int code when code >= 500 ->
-                    throw new AIBackendException.ConnectionException(
-                        "Server error: " + response.body(),
-                        null
-                    );
-                default -> throw new AIBackendException.InvalidResponseException(
-                    "Unexpected response: " + response.body(),
-                    response.statusCode()
+            // Handle response status code
+            int statusCode = response.statusCode();
+            if (statusCode == 200) {
+                return parseResponse(response.body());
+            } else if (statusCode == 404) {
+                throw new AIBackendException.ModelNotFoundException(config.model());
+            } else if (statusCode >= 500) {
+                throw new AIBackendException.ConnectionException(
+                    "Server error: " + response.body(),
+                    null
                 );
-            };
+            } else {
+                throw new AIBackendException.InvalidResponseException(
+                    "Unexpected response: " + response.body(),
+                    statusCode
+                );
+            }
 
         } catch (Exception e) {
             // AIBackendException should propagate as-is, don't wrap it
