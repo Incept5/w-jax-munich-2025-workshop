@@ -861,15 +861,6 @@ mvn package -DskipTests
    - Integration test with real Ollama
    - Verbose mode for debugging
 
-<<<<<<< HEAD
-### 🔄 In Progress
-
-- **stage-3-agentic-rag/** - Phase 1 (Ingestion) Complete ✅, Phase 2 (Agent) TODO
-
-### ❌ TODO: Remaining Stages
-
-- **stage-2-mcp-server/** - MCP protocol implementation
-=======
 4. **stage-2-mcp-server/** - MCP server implementation
    - JSON-RPC 2.0 protocol over STDIO
    - Tool discovery and execution
@@ -879,7 +870,6 @@ mvn package -DskipTests
 
 ### ❌ TODO: Remaining Stages
 - **stage-3-agentic-rag/** - RAG with vector search
->>>>>>> e005ba993c1bba552a7ec2bcb18794ad2ab5ca2d
 - **stage-4-multi-agent/** - Multi-agent orchestration
 - **stage-5-enterprise/** - Production patterns
 
