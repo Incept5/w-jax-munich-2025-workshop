@@ -343,12 +343,52 @@ In Stage 3, we'll add:
 - [JSON-RPC 2.0 Specification](https://www.jsonrpc.org/specification)
 - [JSON Schema](https://json-schema.org/)
 
+## Important: STDIO and Logging
+
+### Critical Configuration
+
+When using MCP over STDIO transport, **all logging MUST go to stderr, not stdout**. This is because:
+
+1. **STDOUT is reserved for JSON-RPC messages** - The MCP protocol expects clean JSON on stdout
+2. **Any non-JSON output breaks the protocol** - Log messages on stdout cause parse errors
+3. **STDERR is for diagnostics** - All logging, errors, and debug output goes here
+
+Our `logback.xml` configuration ensures this:
+
+```xml
+<appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
+    <target>System.err</target>  <!-- ALL logs go to STDERR -->
+    <encoder>
+        <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+</appender>
+```
+
+**Common Error**: If you see errors like "Unexpected non-whitespace character after JSON", it means something is writing to stdout. Check:
+- System.out.println() calls (remove or redirect to stderr)
+- Logger configuration (must target stderr)
+- Third-party libraries that may log to stdout
+
+### NDJSON Format
+
+MCP over STDIO uses **Newline Delimited JSON (NDJSON)**:
+- Each JSON-RPC message must be on a single line
+- Messages are separated by newlines
+- No pretty-printing or multi-line formatting
+
+This is why we use `new Gson()` instead of `new GsonBuilder().setPrettyPrinting().create()`.
+
 ## Troubleshooting
 
 ### Server won't start
 - Check Java version (requires Java 21+)
 - Verify the JAR was built: `mvn clean package`
 - Check for port conflicts if using HTTP transport
+
+### JSON parse errors in MCP Inspector
+- **"Unexpected token '}'"** - Pretty-printing is enabled (should use compact JSON)
+- **"Unexpected non-whitespace character"** - Logging is going to stdout (should go to stderr)
+- **"Unexpected end of JSON"** - Incomplete JSON message (check for truncation)
 
 ### Tools not appearing in Claude
 - Verify the config file path
@@ -359,12 +399,13 @@ In Stage 3, we'll add:
 ### Tool execution fails
 - Verify parameter names match the schema
 - Check for network issues (weather/country APIs)
-- Look at server logs for detailed errors
+- Look at server logs (on stderr!) for detailed errors
 
 ### MCP Inspector issues
 - Ensure Node.js is installed
 - Try clearing npm cache: `npm cache clean --force`
 - Check that the server JAR path is correct
+- Look for error messages in the browser console
 
 ## Further Reading
 

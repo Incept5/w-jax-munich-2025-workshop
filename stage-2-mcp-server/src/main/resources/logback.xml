@@ -1,0 +1,24 @@
+
+<configuration>
+    <!-- 
+        CRITICAL: For MCP servers using STDIO transport, ALL logging must go to STDERR.
+        STDOUT is reserved exclusively for JSON-RPC messages.
+        Any output to STDOUT will corrupt the JSON-RPC stream and cause parse errors.
+    -->
+    
+    <!-- Console appender that writes to STDERR -->
+    <appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.err</target>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Root logger writes everything to STDERR -->
+    <root level="INFO">
+        <appender-ref ref="STDERR" />
+    </root>
+    
+    <!-- You can adjust log levels for specific packages if needed -->
+    <!-- <logger name="com.incept5.workshop.stage2" level="DEBUG" /> -->
+</configuration>
