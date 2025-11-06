@@ -29,25 +29,25 @@ java -jar target/ollama-java-demo.jar --help
 
 ```bash
 # Custom prompt (includes model info by default)
-java --enable-preview -jar target/ollama-java-demo.jar -p "Explain quantum computing"
+java -jar target/ollama-java-demo.jar -p "Explain quantum computing"
 
 # Streaming mode (real-time token output)
-java --enable-preview -jar target/ollama-java-demo.jar -s
+java -jar target/ollama-java-demo.jar -s
 
 # Raw mode - output ONLY the response (no headers, no timing, no logging)
-java --enable-preview -jar target/ollama-java-demo.jar -r -p "Hello"
+java -jar target/ollama-java-demo.jar -r -p "Hello"
 
 # Raw mode with streaming (perfect for piping)
-java --enable-preview -jar target/ollama-java-demo.jar -r -s -p "Generate code"
+java -jar target/ollama-java-demo.jar -r -s -p "Generate code"
 
 # Different model
-java --enable-preview -jar target/ollama-java-demo.jar -m llama2
+java -jar target/ollama-java-demo.jar -m llama2
 
 # Custom Ollama server
-java --enable-preview -jar target/ollama-java-demo.jar -u http://remote-server:11434
+java -jar target/ollama-java-demo.jar -u http://remote-server:11434
 
 # Combine options
-java --enable-preview -jar target/ollama-java-demo.jar -m gemma3 -p "Write a haiku" -s
+java -jar target/ollama-java-demo.jar -m gemma3 -p "Write a haiku" -s
 ```
 
 ## Options
