@@ -7,7 +7,8 @@
 This stage showcases a production-ready RAG (Retrieval-Augmented Generation) system that combines:
 
 ### 1. **Document Ingestion Pipeline** (Shell Script)
-- Automated repository ingestion using `gitingest`
+- Uses pre-committed repository text files (no external dependencies by default)
+- Optional fresh data fetching with `gitingest` (--refresh flag)
 - Smart document chunking with overlap for context preservation
 - Embedding generation via Ollama's `nomic-embed-text` model
 - Vector storage in PostgreSQL with pgvector extension
@@ -39,13 +40,14 @@ RAG solves this by giving the LLM **relevant context** from your documentation a
 │ PHASE 1: INGESTION (One-Time Setup via ./ingest.sh)        │
 └─────────────────────────────────────────────────────────────┘
 
-1. Repository Download (via gitingest)
+1. Repository Content (committed text files)
    ┌──────────────────────────────────┐
    │  Embabel Agent Repository        │
    │  • Java source files             │
    │  • Documentation (*.md)          │
    │  • Configuration files           │
    │  • Example code                  │
+   │  (Pre-processed via gitingest)   │
    └────────────┬─────────────────────┘
                 │
                 ▼
@@ -292,41 +294,77 @@ cd stage-3-agentic-rag
 ```
 
 **What `ingest.sh` does**:
-- ✓ Checks/installs `gitingest` tool (via pipx)
 - ✓ Starts PostgreSQL with pgvector extension (Docker)
 - ✓ Runs database migrations (Flyway)
-- ✓ Downloads documentation from configured repositories
+- ✓ Loads repository text files (committed to git)
 - ✓ Chunks documents into searchable segments
 - ✓ Generates embeddings for each chunk
 - ✓ Stores everything in PostgreSQL
+
+**Optional refresh mode** (`./ingest.sh --refresh`):
+- ✓ Checks for `gitingest` installation (required for refresh)
+- ✓ Downloads fresh documentation from configured repositories
+- ✓ Processes as above with updated content
 
 **Expected output**:
 ```
 🚀 Stage 3: RAG Ingestion Pipeline
 
-✓ gitingest already installed
+📄 Using committed repository files from git
+   (Use --refresh to fetch fresh data with gitingest)
 🐘 Starting PostgreSQL with pgvector...
 ✓ PostgreSQL is ready
 🔧 Running database migrations...
 ✓ Migrations complete
 📚 Starting ingestion pipeline...
 
-Processing spring-ai...
-  → Chunks created: 142
-  → Embeddings generated: 142/142
-  → Stored: 142 documents
-
 Processing embabel-agent...
+  → Using committed file: data/gitingest-output/embabel-agent.txt
   → Chunks created: 98
   → Embeddings generated: 98/98
   → Stored: 98 documents
+
+Processing embabel-examples...
+  → Using committed file: data/gitingest-output/embabel-examples.txt
+  → Chunks created: 67
+  → Embeddings generated: 67/67
+  → Stored: 67 documents
 ...
 
 ✅ Ingestion pipeline complete!
 Total documents: 487
 ```
 
-**First-time setup takes**: 5-10 minutes (downloading repos + generating embeddings)
+**First-time setup takes**: 2-3 minutes (generating embeddings from committed files)
+
+**Note**: The repository text files are already committed to git, so no external downloads are needed. To fetch fresh content, use `./ingest.sh --refresh` (requires `gitingest` installation).
+
+## Repository Data Source
+
+**Default Mode** (No External Dependencies):
+- Repository text files are **committed to git** in `data/gitingest-output/`
+- No need to install `gitingest` or download repositories
+- Faster setup (2-3 minutes vs 5-10 minutes)
+- Deterministic content (everyone gets identical files)
+
+**Refresh Mode** (Optional):
+```bash
+./ingest.sh --refresh
+```
+- Fetches fresh repository content from GitHub
+- Requires `gitingest` to be installed
+- Useful for updating documentation or adding new repositories
+- Takes 5-10 minutes (downloads + processes repositories)
+
+**When to use refresh mode:**
+- ✅ You want the latest documentation updates
+- ✅ You've modified `repos.yaml` to add new repositories
+- ✅ You're developing/testing the ingestion pipeline itself
+
+**When to use default mode:**
+- ✅ First-time workshop setup (faster, no dependencies)
+- ✅ You just want to try the RAG agent
+- ✅ Offline environment or slow network
 
 ## Quick Start
 
@@ -736,20 +774,25 @@ ollama pull qwen2.5:7b
 # Update LLM_MODEL in RAGAgentDemo.java
 ```
 
-### "gitingest not found" error
+### "Repository file not found" error
 
-**Solution**: Install pipx and gitingest
+**Cause**: Text files missing from `data/gitingest-output/`
+
+**Solution 1**: Ensure files are checked out from git
 ```bash
-# macOS
-brew install pipx
-pipx ensurepath
+git status
+git checkout data/gitingest-output/*.txt
+```
 
-# Ubuntu/Debian
-sudo apt install pipx
-pipx ensurepath
+**Solution 2**: Fetch fresh content with gitingest
+```bash
+# Install gitingest if not available
+brew install pipx && pipx install gitingest  # macOS
+# or
+pipx install gitingest  # if pipx already installed
 
-# Install gitingest
-pipx install gitingest
+# Run ingestion in refresh mode
+./ingest.sh --refresh
 ```
 
 ### Clean Slate (Reset Everything)
