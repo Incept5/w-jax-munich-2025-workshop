@@ -31,10 +31,10 @@ This is a multi-module Maven workshop project demonstrating modern Java 21+ AI a
 ### Key Technologies by Stage
 - **Stage 0**: Backend abstraction, multi-modal support
 - **Stage 1**: Tool calling, agent loops, real APIs
-- **Stage 2**: MCP (Model Context Protocol) server/client
-- **Stage 3**: RAG with in-memory vector store
+- **Stage 2**: MCP (Model Context Protocol) with official Java SDK
+- **Stage 3**: RAG with PostgreSQL + pgvector
 - **Stage 4**: Multi-agent orchestration, heterogeneous models
-- **Stage 5**: Production patterns, monitoring, security
+- **Stage 5**: Enterprise patterns (Micrometer, Resilience4j, standard security)
 
 ## Workshop Agenda & Stage Mapping
 
@@ -97,9 +97,14 @@ graph TB
         MLXVLM[MLX-VLM<br/>:8000]
     end
     
+    subgraph "Infrastructure"
+        POSTGRES[PostgreSQL<br/>pgvector:pg17<br/>:5432]
+    end
+    
     S1 --> OLLAMA
     S2 --> OLLAMA
     S3 --> OLLAMA
+    S3 --> POSTGRES
     S4 --> OLLAMA
     S4 --> LMSTUDIO
     S4 --> MLXVLM
@@ -266,24 +271,24 @@ mvn test  # Runs integration test with real Ollama
 ### Stage 2: MCP Server (`stage-2-mcp-server/`) ❌ TODO
 
 **Status**: Not yet implemented  
-**Purpose**: Build Model Context Protocol server that exposes tools  
+**Purpose**: Build Model Context Protocol server using official Java SDK  
 **Workshop Time**: 13:40-14:20 (40 min - MCP Deep Dive)
 
 **What Participants Build**:
-- MCP server that exposes tools via protocol
-- MCP client for tool discovery
+- MCP server that exposes tools via official SDK
+- MCP client for tool discovery using SDK
 - Agent integration with MCP (combining Stage 1 + 2)
 - Integration test with MCP communication
 
 **Learning Objectives**:
 - Understand MCP protocol fundamentals
-- Implement JSON-RPC style tool exposure
-- Build MCP client for tool discovery
+- Use official MCP Java SDK for server/client
+- Expose tools through MCP protocol
 - Connect agent to MCP server
 
 **Planned Components**:
-- `SimpleMCPServer.java` - MCP protocol server
-- `MCPClient.java` - MCP protocol client
+- `SimpleMCPServer.java` - MCP server using SDK
+- `MCPClientWrapper.java` - MCP client wrapper using SDK
 - `tool/MCPToolAdapter.java` - Adapt Tool interface to MCP
 - `MCPAgent.java` - Agent using MCP client
 - `MCPAgentIntegrationTest.java` - Test with real MCP flow
@@ -291,8 +296,14 @@ mvn test  # Runs integration test with real Ollama
 **Dependencies**: `shared`
 
 **New Libraries**:
-- JSON-RPC library or hand-rolled JSON protocol
-- HTTP server (Java built-in HttpServer)
+- **MCP Java SDK**: `io.modelcontextprotocol:sdk` (official SDK)
+- Java built-in HTTP server for transport
+
+**Key SDK Features**:
+- Official protocol implementation
+- Built-in JSON-RPC 2.0 support
+- Type-safe tool definitions
+- Standard resource and prompt support
 
 **Architecture Link**: *To be created*
 
@@ -301,34 +312,65 @@ mvn test  # Runs integration test with real Ollama
 ### Stage 3: Agentic RAG (`stage-3-agentic-rag/`) ❌ TODO
 
 **Status**: Not yet implemented  
-**Purpose**: Add retrieval-augmented generation with vector search  
+**Purpose**: Add retrieval-augmented generation with PostgreSQL + pgvector  
 **Workshop Time**: 14:20-14:55 (35 min - Agentic RAG)
 
 **What Participants Build**:
-- In-memory vector store with cosine similarity
+- PostgreSQL database with pgvector extension
 - Document chunking and embedding pipeline
-- RAG agent that retrieves before generating
+- RAG agent that retrieves from vector store
 - Integration test with real documents and embeddings
+- Docker-based PostgreSQL setup
 
 **Learning Objectives**:
-- Implement simple vector database
-- Generate and store embeddings locally
-- Retrieve relevant context from documents
+- Use production-ready vector database (pgvector)
+- Generate and store embeddings via Ollama
+- Retrieve relevant context using similarity search
 - Integrate RAG into agent reasoning loop
+- Work with Docker for local infrastructure
 
 **Planned Components**:
 - `RAGAgent.java` - Agent with RAG capabilities
-- `SimpleVectorStore.java` - In-memory vector DB with cosine similarity
+- `PgVectorStore.java` - PostgreSQL + pgvector integration
 - `DocumentProcessor.java` - Chunking and embedding
-- `EmbeddingService.java` - Local embedding generation
+- `EmbeddingService.java` - Ollama embedding generation
 - `RAGDemo.java` - Demo with sample document corpus
 - `RAGIntegrationTest.java` - Test with real embeddings
+- `docker-compose.yml` - PostgreSQL + pgvector setup
 
 **Dependencies**: `shared`
 
 **New Libraries**:
-- Local embedding model (e.g., all-MiniLM-L6-v2 via Ollama)
-- Vector math utilities (or hand-rolled)
+- **PostgreSQL JDBC**: `org.postgresql:postgresql` (latest)
+- **pgvector Java**: `com.pgvector:pgvector` (for vector operations)
+- **HikariCP**: `com.zaxxer:HikariCP` (connection pooling)
+- Embedding model via Ollama (e.g., `nomic-embed-text`)
+
+**Docker Setup**:
+```yaml
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: pgvector-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: workshop_rag
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
+```
+
+**Key Features**:
+- Production-ready vector storage
+- Efficient similarity search (cosine, L2, inner product)
+- ACID transactions for data integrity
+- Scalable to millions of vectors
+- Standard SQL interface
 
 **Architecture Link**: *To be created*
 
@@ -370,37 +412,96 @@ mvn test  # Runs integration test with real Ollama
 ### Stage 5: Enterprise Patterns (`stage-5-enterprise/`) ❌ TODO
 
 **Status**: Not yet implemented  
-**Purpose**: Production-ready patterns for deploying AI agents  
+**Purpose**: Production-ready patterns using industry-standard libraries  
 **Workshop Time**: 15:55-16:20 (25 min - Enterprise Patterns)
 
 **What Participants Learn**:
-- Monitoring and observability patterns
-- Rate limiting and circuit breakers
-- Security and authentication approaches
+- Monitoring and observability with Micrometer
+- Resilience patterns with Resilience4j
+- Security with JWT and validation
 - Deployment considerations (Docker, K8s)
+- Production logging patterns
 
 **Learning Objectives**:
-- Understand production readiness requirements
-- Implement monitoring and metrics
-- Add resilience patterns
-- Consider security implications
+- Implement production-grade monitoring
+- Add circuit breakers and rate limiting
+- Secure API endpoints with JWT
+- Understand deployment best practices
+- Use industry-standard libraries
 
 **Planned Components**:
 - `EnterpriseAgent.java` - Agent with production features
-- `monitoring/MetricsExample.java` - Metrics collection patterns
-- `resilience/CircuitBreakerExample.java` - Resilience patterns
-- `security/SecurityExample.java` - Auth/validation patterns
+- `monitoring/MetricsExample.java` - Micrometer integration
+- `resilience/CircuitBreakerExample.java` - Resilience4j patterns
+- `security/JWTExample.java` - JWT authentication
+- `security/ValidationExample.java` - Input validation
 - Documentation on deployment strategies
-- Less code, more patterns and best practices
+- Pattern-focused with working examples
 
 **Dependencies**: `shared`
 
-**New Libraries** (optional/examples):
-- Micrometer for metrics (optional)
-- Resilience4j for circuit breakers (optional)
-- JWT library for security (optional)
+**Standard Enterprise Libraries**:
+- **Micrometer**: `io.micrometer:micrometer-core` (metrics)
+- **Micrometer Prometheus**: `io.micrometer:micrometer-registry-prometheus` (export)
+- **Resilience4j**: `io.github.resilience4j:resilience4j-all` (resilience patterns)
+- **JWT**: `io.jsonwebtoken:jjwt-api` + `jjwt-impl` + `jjwt-jackson` (authentication)
+- **Hibernate Validator**: `org.hibernate.validator:hibernate-validator` (validation)
+- **Caffeine**: `com.github.ben-manes.caffeine:caffeine` (caching)
 
-**Note**: This stage is more documentation and pattern-focused than code-heavy, given the 25-minute time constraint.
+**Key Patterns Demonstrated**:
+
+1. **Monitoring**:
+   - Request/response metrics
+   - LLM call duration and token tracking
+   - Error rate monitoring
+   - Prometheus endpoint exposure
+
+2. **Resilience**:
+   - Circuit breaker for LLM calls
+   - Retry with exponential backoff
+   - Rate limiting per user/endpoint
+   - Bulkhead pattern for resource isolation
+   - Timeout management
+
+3. **Security**:
+   - JWT-based authentication
+   - Request validation (Bean Validation)
+   - Rate limiting per API key
+   - Input sanitization
+
+4. **Deployment**:
+   - Docker containerization
+   - Health checks and readiness probes
+   - Structured logging (JSON format)
+   - Configuration externalization
+
+**Example Metrics**:
+```java
+MeterRegistry registry = new SimpleMeterRegistry();
+Counter.builder("llm.requests")
+    .tag("model", modelName)
+    .register(registry)
+    .increment();
+
+Timer.builder("llm.duration")
+    .tag("status", "success")
+    .register(registry)
+    .record(duration);
+```
+
+**Example Circuit Breaker**:
+```java
+CircuitBreakerConfig config = CircuitBreakerConfig.custom()
+    .failureRateThreshold(50)
+    .waitDurationInOpenState(Duration.ofSeconds(30))
+    .build();
+
+CircuitBreaker breaker = CircuitBreaker.of("llm-backend", config);
+Supplier<AIResponse> decorated = CircuitBreaker
+    .decorateSupplier(breaker, () -> backend.generate(prompt));
+```
+
+**Note**: This stage balances practical code examples with architectural patterns, focusing on immediately applicable production practices.
 
 **Architecture Link**: *To be created*
 
@@ -555,10 +656,11 @@ w-jax-munich-2025-workshop/
 │   ├── pom.xml
 │   ├── README.md
 │   ├── run.sh
+│   ├── docker-compose.yml           # PostgreSQL + pgvector setup
 │   └── src/
 │       ├── main/java/com/incept5/workshop/stage3/
 │       │   ├── RAGAgent.java
-│       │   ├── SimpleVectorStore.java
+│       │   ├── PgVectorStore.java
 │       │   ├── DocumentProcessor.java
 │       │   ├── EmbeddingService.java
 │       │   └── RAGDemo.java
@@ -767,10 +869,12 @@ Potential additions for future workshops:
 
 1. **Java 21+** installed
 2. **Maven 3.9.0+** installed
-3. **Ollama** running with model:
+3. **Docker** and **Docker Compose** (for Stage 3+)
+4. **Ollama** running with models:
    ```bash
    ollama serve
    ollama pull incept5/Jan-v1-2509:fp16
+   ollama pull nomic-embed-text  # For Stage 3 embeddings
    ```
 
 ### Build & Run
@@ -787,6 +891,11 @@ cd stage-0-demo
 cd stage-1-simple-agent
 ./run.sh "What's the weather in Munich?"
 ./run.sh --verbose "Tell me about Germany"
+
+# Run Stage 3 (RAG - requires Docker)
+cd stage-3-agentic-rag
+docker-compose up -d  # Start PostgreSQL + pgvector
+./run.sh "What does the documentation say about..."
 
 # Run tests
 mvn test
@@ -827,5 +936,6 @@ java -jar target/stage-0-demo.jar -m "qwen2.5:7b" -p "Hello"
 ---
 
 *Last updated: 2025-01-06*  
-*Architecture Version: 2.0*  
-*Status: 3/6 stages complete (Stages 0, 1 complete; Stages 2-5 TODO)*
+*Architecture Version: 2.1*  
+*Status: 3/6 stages complete (Stages 0, 1 complete; Stages 2-5 TODO)*  
+*Updates: Official MCP Java SDK, PostgreSQL + pgvector, standard enterprise libraries*
