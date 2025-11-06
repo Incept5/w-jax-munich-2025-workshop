@@ -1,6 +1,6 @@
 # Command-Line Options Reference
 
-Complete list of all available options for the Ollama Java 25 Demo application.
+Complete list of all available options for the Ollama Java Demo application.
 
 ## All Options
 
@@ -138,6 +138,5 @@ java --enable-preview -jar ollama-java-demo.jar \
 - All options are optional (have defaults or are flags)
 - Options can be combined in any order
 - Short and long forms are equivalent
-- `--enable-preview` flag is required for Java 25 preview features
 - Model information is displayed by default (except in raw mode)
 - Logging level is WARN by default for clean output

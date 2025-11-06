@@ -123,7 +123,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.example.ollama.OllamaDemo</mainClass>
+                            <mainClass>com.incept5.ollama.OllamaDemo</mainClass>
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                             <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                         </manifest>
@@ -145,7 +145,7 @@
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.example.ollama.OllamaDemo</mainClass>
+                                    <mainClass>com.incept5.ollama.OllamaDemo</mainClass>
                                 </transformer>
                             </transformers>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
@@ -177,7 +177,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>${exec-maven-plugin.version}</version>
                 <configuration>
-                    <mainClass>com.example.ollama.OllamaDemo</mainClass>
+                    <mainClass>com.incept5.ollama.OllamaDemo</mainClass>
                 </configuration>
             </plugin>
         </plugins>

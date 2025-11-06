@@ -18,36 +18,36 @@ This creates an executable JAR at `target/ollama-java-demo.jar` (1.3MB with all 
 ### Basic Usage
 
 ```bash
-# Default run (requires --enable-preview for Java 25 features)
-java --enable-preview -jar target/ollama-java-demo.jar
+# Default run 
+java -jar target/ollama-java-demo.jar
 
 # Show help
-java --enable-preview -jar target/ollama-java-demo.jar --help
+java -jar target/ollama-java-demo.jar --help
 ```
 
 ## Common Commands
 
 ```bash
 # Custom prompt (includes model info by default)
-java --enable-preview -jar target/ollama-java-demo.jar -p "Explain quantum computing"
+java -jar target/ollama-java-demo.jar -p "Explain quantum computing"
 
 # Streaming mode (real-time token output)
-java --enable-preview -jar target/ollama-java-demo.jar -s
+java -jar target/ollama-java-demo.jar -s
 
 # Raw mode - output ONLY the response (no headers, no timing, no logging)
-java --enable-preview -jar target/ollama-java-demo.jar -r -p "Hello"
+java -jar target/ollama-java-demo.jar -r -p "Hello"
 
 # Raw mode with streaming (perfect for piping)
-java --enable-preview -jar target/ollama-java-demo.jar -r -s -p "Generate code"
+java -jar target/ollama-java-demo.jar -r -s -p "Generate code"
 
 # Different model
-java --enable-preview -jar target/ollama-java-demo.jar -m llama2
+java -jar target/ollama-java-demo.jar -m llama2
 
 # Custom Ollama server
-java --enable-preview -jar target/ollama-java-demo.jar -u http://remote-server:11434
+java -jar target/ollama-java-demo.jar -u http://remote-server:11434
 
 # Combine options
-java --enable-preview -jar target/ollama-java-demo.jar -m gemma3 -p "Write a haiku" -s
+java -jar target/ollama-java-demo.jar -m gemma3 -p "Write a haiku" -s
 ```
 
 ## Options
@@ -163,7 +163,7 @@ mvn exec:java
 mvn exec:java -Dexec.args="-p 'Hello' -s"
 ```
 
-## Java 25 Features Used
+## Java 21+ Features Used
 
 ✨ **Records** - Immutable data models with automatic methods
 ✨ **Virtual Threads** - Efficient concurrency with Project Loom
@@ -181,9 +181,6 @@ mvn exec:java -Dexec.args="-p 'Hello' -s"
 
 **Problem**: `Model not found`
 **Solution**: Pull the model first with `ollama pull gemma3`
-
-**Problem**: Preview features warning
-**Solution**: Always use `--enable-preview` flag with Java 25
 
 ## Project Structure
 
