@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * 
  * These tests can be skipped by setting SKIP_INTEGRATION_TESTS=true
  */
-@EnabledIfEnvironmentVariable(named = "SKIP_INTEGRATION_TESTS", matches = "false|^$", disabledReason = "Integration tests disabled")
 class SimpleAgentIntegrationTest {
     
     private AIBackend backend;

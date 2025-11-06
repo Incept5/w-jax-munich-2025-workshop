@@ -2,7 +2,12 @@
 
 ## Overview
 
-This is a multi-module Maven workshop project demonstrating modern Java 21+ AI agent development patterns. The workshop progresses through 6 distinct stages, each building upon shared foundational libraries.
+This is a multi-module Maven workshop project demonstrating modern Java 21+ AI agent development patterns. The workshop progresses through 5 distinct stages (plus a foundation stage 0), each building upon shared foundational libraries.
+
+**Workshop Duration**: 7 hours (09:00-16:30)  
+**Format**: Hands-on coding with progressive complexity  
+**Approach**: Build → Connect → Collaborate  
+**Philosophy**: Privacy-first, open-source, no vendor lock-in
 
 ## Technologies
 
@@ -18,24 +23,50 @@ This is a multi-module Maven workshop project demonstrating modern Java 21+ AI a
 - **LM Studio**: OpenAI-compatible local inference
 - **MLX-VLM**: Apple Silicon optimized vision models
 
-### Planned Additions (by Stage)
-- **Stage 2**: MCP (Model Context Protocol) server implementation
-- **Stage 4**: Vector database integration (in-memory/embedded)
-- **Stage 6**: Monitoring (Prometheus), Tracing, Security patterns
+### Default Model
+- **Primary**: `incept5/Jan-v1-2509:fp16`
+- **Alternatives**: Qwen 2.5 7B, Mistral 7B, Gemma 2 9B
+- **Switchable**: Easy model configuration via CLI or config
 
-## Workshop Stages
+### Key Technologies by Stage
+- **Stage 0**: Backend abstraction, multi-modal support
+- **Stage 1**: Tool calling, agent loops, real APIs
+- **Stage 2**: MCP (Model Context Protocol) server/client
+- **Stage 3**: RAG with in-memory vector store
+- **Stage 4**: Multi-agent orchestration, heterogeneous models
+- **Stage 5**: Production patterns, monitoring, security
 
-The workshop is organized into 6 progressive stages over 7 hours:
+## Workshop Agenda & Stage Mapping
 
-| Stage | Time | Topic | Module |
-|-------|------|-------|--------|
-| 0 | Foundation | Shared Libraries | `shared/` |
-| 1 | 09:15-12:30 | First Agent & Tool Calling | `stage-1-simple-agent/` |
-| 2 | 13:40-14:20 | MCP Server Implementation | `stage-2-mcp-server/` |
-| 3 | 14:20-15:00 | Agent with MCP Integration | `stage-3-agent-with-mcp/` |
-| 4 | 14:20-15:00 | Agentic RAG & Data Integration | `stage-4-agentic-rag/` |
-| 5 | 15:30-15:55 | Multi-Agent Teams | `stage-5-multi-agent/` |
-| 6 | 15:55-16:20 | Enterprise Patterns | `stage-6-enterprise/` |
+### Full Day Schedule
+
+| Time | Activity | Stage | Status |
+|------|----------|-------|--------|
+| 09:00-09:15 | Welcome & Overview | - | ✅ Presentation |
+| 09:15-09:50 | Environment Setup & Verification | Stage 0 | ✅ Complete |
+| 09:50-10:30 | How Agents Work (Teaching) | - | ✅ Presentation |
+| 10:30-10:50 | Morning Break | - | - |
+| 10:50-11:40 | Tool-Calling in Practice | Stage 1 | ✅ Complete |
+| 11:40-12:30 | Exercise: First Working Agent | Stage 1 | ✅ Complete |
+| 12:30-13:20 | Lunch Break | - | - |
+| 13:20-13:40 | Recap & Transition to MCP | - | ✅ Presentation |
+| 13:40-14:20 | MCP Deep Dive + Hands-On | Stage 2 | ❌ TODO |
+| 14:20-14:55 | Agentic RAG & Data Integration | Stage 3 | ❌ TODO |
+| 14:55-15:15 | Afternoon Break | - | - |
+| 15:15-15:55 | Multi-Agent Teams | Stage 4 | ❌ TODO |
+| 15:55-16:20 | Enterprise Patterns | Stage 5 | ❌ TODO |
+| 16:20-16:30 | Wrap-Up & Discussion | - | ✅ Presentation |
+
+### Workshop Stages Summary
+
+| Stage | Module | Duration | Focus | Status |
+|-------|--------|----------|-------|--------|
+| **0** | `stage-0-demo/` | Setup (35min) | Backend abstraction, multi-modal | ✅ Complete |
+| **1** | `stage-1-simple-agent/` | 3h 15min | Tool calling, agent loops | ✅ Complete |
+| **2** | `stage-2-mcp-server/` | 40min | MCP protocol, tool exposure | ❌ TODO |
+| **3** | `stage-3-agentic-rag/` | 35min | RAG, vector search, embeddings | ❌ TODO |
+| **4** | `stage-4-multi-agent/` | 40min | Multi-agent, orchestration | ❌ TODO |
+| **5** | `stage-5-enterprise/` | 25min | Production patterns | ❌ TODO |
 
 ## System Architecture
 
@@ -44,35 +75,34 @@ graph TB
     subgraph "Workshop Project Structure"
         PARENT[Parent POM<br/>w-jax-munich-2025-workshop]
         
-        PARENT --> SHARED[shared/<br/>Shared Libraries]
-        PARENT --> S1[stage-1-simple-agent/<br/>First Agent + Tools]
-        PARENT --> S2[stage-2-mcp-server/<br/>MCP Server]
-        PARENT --> S3[stage-3-agent-with-mcp/<br/>MCP Integration]
-        PARENT --> S4[stage-4-agentic-rag/<br/>RAG Agent]
-        PARENT --> S5[stage-5-multi-agent/<br/>Multi-Agent System]
-        PARENT --> S6[stage-6-enterprise/<br/>Production Patterns]
+        PARENT --> SHARED[shared/<br/>Shared Libraries<br/>✅ Complete]
+        PARENT --> S0[stage-0-demo/<br/>Foundation Demo<br/>✅ Complete]
+        PARENT --> S1[stage-1-simple-agent/<br/>First Agent + Tools<br/>✅ Complete]
+        PARENT --> S2[stage-2-mcp-server/<br/>MCP Server<br/>❌ TODO]
+        PARENT --> S3[stage-3-agentic-rag/<br/>RAG Agent<br/>❌ TODO]
+        PARENT --> S4[stage-4-multi-agent/<br/>Multi-Agent System<br/>❌ TODO]
+        PARENT --> S5[stage-5-enterprise/<br/>Production Patterns<br/>❌ TODO]
         
+        S0 -.depends on.-> SHARED
         S1 -.depends on.-> SHARED
         S2 -.depends on.-> SHARED
         S3 -.depends on.-> SHARED
-        S3 -.uses.-> S2
         S4 -.depends on.-> SHARED
         S5 -.depends on.-> SHARED
-        S6 -.depends on.-> SHARED
     end
     
     subgraph "AI Backends"
-        OLLAMA[Ollama<br/>:11434]
+        OLLAMA[Ollama<br/>:11434<br/>incept5/Jan-v1-2509:fp16]
         LMSTUDIO[LM Studio<br/>:1234/v1]
         MLXVLM[MLX-VLM<br/>:8000]
     end
     
     S1 --> OLLAMA
+    S2 --> OLLAMA
     S3 --> OLLAMA
     S4 --> OLLAMA
-    S5 --> OLLAMA
-    S5 --> LMSTUDIO
-    S5 --> MLXVLM
+    S4 --> LMSTUDIO
+    S4 --> MLXVLM
 ```
 
 ## Module Structure
@@ -160,148 +190,219 @@ classDiagram
 
 ---
 
-### Stage 1: Simple Agent (`stage-1-simple-agent/`)
+### Stage 0: Foundation Demo (`stage-0-demo/`) ✅
 
-**Purpose**: Introduction to AI agents with simple tool-calling capabilities
+**Status**: Complete  
+**Purpose**: Demonstrate backend abstraction and basic Ollama integration  
+**Workshop Time**: 09:15-09:50 (35 min - Environment Setup)
 
-**Learning Objectives**:
-- Understand agent architecture (loop: think → act → observe)
-- Implement basic tool interface
-- Parse and execute tool calls from LLM responses
-- Handle tool results and continue conversation
+**What Participants Learn**:
+- Verify local Ollama installation
+- Test model inference (streaming and non-streaming)
+- Understand multi-backend architecture
+- See image support across backends
 
 **Key Components**:
-- `SimpleAgent.java` - Basic agent loop implementation
-- `tools/CalculatorTool.java` - Arithmetic operations
-- `tools/WeatherTool.java` - Mock external API calls
-- `SimpleAgentDemo.java` - CLI runner with examples
+- `OllamaDemo.java` - CLI application with full backend support
+- `SimpleExample.java` - Minimal usage example
+- Multiple backend implementations (Ollama, LM Studio, MLX-VLM)
+
+**Running**:
+```bash
+cd stage-0-demo
+./run.sh "Hello from the workshop!"
+```
 
 **Dependencies**: `shared`
 
-**Architecture Link**: *[stage-1-simple-agent/architecture.md](./stage-1-simple-agent/architecture.md)* (to be created)
+---
+
+### Stage 1: Simple Agent (`stage-1-simple-agent/`) ✅
+
+**Status**: Complete  
+**Purpose**: Build a working AI agent with tool-calling capabilities  
+**Workshop Time**: 10:50-12:30 (1h 50min - Tool Calling + First Agent)
+
+**What Participants Build**:
+- Complete agent loop (think → act → observe)
+- Tool abstraction with real API integrations
+- Multi-step reasoning with tool chaining
+- Integration test with real Ollama backend
+
+**Learning Objectives**:
+- Understand agent reasoning loops
+- Implement tool interface and registry
+- Parse XML-style tool calls from LLM
+- Handle real API calls (weather, country info)
+- Write integration tests with real services
+
+**Key Components**:
+- `SimpleAgent.java` - ~200 lines, complete agent loop
+- `tool/Tool.java` - Tool interface
+- `tool/ToolRegistry.java` - Tool management
+- `tool/WeatherTool.java` - Real wttr.in API integration
+- `tool/CountryInfoTool.java` - Real REST Countries API
+- `util/ToolCallParser.java` - Parse XML tool calls
+- `SimpleAgentIntegrationTest.java` - Real API + Ollama tests
+
+**Running**:
+```bash
+cd stage-1-simple-agent
+./run.sh "What's the weather in the capital of Japan?"
+./run.sh --verbose "Tell me about Brazil"
+```
+
+**Testing**:
+```bash
+mvn test  # Runs integration test with real Ollama
+```
+
+**Dependencies**: `shared`
+
+**Architecture Link**: *[stage-1-simple-agent/README.md](./stage-1-simple-agent/README.md)*
 
 ---
 
-### Stage 2: MCP Server (`stage-2-mcp-server/`)
+### Stage 2: MCP Server (`stage-2-mcp-server/`) ❌ TODO
 
-**Purpose**: Build a Model Context Protocol server that exposes tools
+**Status**: Not yet implemented  
+**Purpose**: Build Model Context Protocol server that exposes tools  
+**Workshop Time**: 13:40-14:20 (40 min - MCP Deep Dive)
+
+**What Participants Build**:
+- MCP server that exposes tools via protocol
+- MCP client for tool discovery
+- Agent integration with MCP (combining Stage 1 + 2)
+- Integration test with MCP communication
 
 **Learning Objectives**:
-- Understand MCP protocol basics
-- Implement MCP server with tool registration
-- Handle JSON-RPC requests/responses
-- Expose file system and database tools
+- Understand MCP protocol fundamentals
+- Implement JSON-RPC style tool exposure
+- Build MCP client for tool discovery
+- Connect agent to MCP server
 
-**Key Components**:
-- `SimpleMCPServer.java` - MCP protocol implementation
-- `tools/FileSystemTool.java` - Read/write file operations
-- `tools/DatabaseTool.java` - Simple DB queries (in-memory)
-- `MCPServerDemo.java` - Standalone server runner
+**Planned Components**:
+- `SimpleMCPServer.java` - MCP protocol server
+- `MCPClient.java` - MCP protocol client
+- `tool/MCPToolAdapter.java` - Adapt Tool interface to MCP
+- `MCPAgent.java` - Agent using MCP client
+- `MCPAgentIntegrationTest.java` - Test with real MCP flow
 
 **Dependencies**: `shared`
 
 **New Libraries**:
-- JSON-RPC library (TBD)
-- SQLite or H2 for database examples
+- JSON-RPC library or hand-rolled JSON protocol
+- HTTP server (Java built-in HttpServer)
 
-**Architecture Link**: *[stage-2-mcp-server/architecture.md](./stage-2-mcp-server/architecture.md)* (to be created)
-
----
-
-### Stage 3: Agent with MCP (`stage-3-agent-with-mcp/`)
-
-**Purpose**: Integrate Stage 1 agent with Stage 2 MCP server
-
-**Learning Objectives**:
-- Connect agent to external MCP server
-- Discover available tools dynamically
-- Route tool calls through MCP protocol
-- Handle async tool execution
-
-**Key Components**:
-- `MCPAgent.java` - Agent with MCP client integration
-- `MCPClient.java` - MCP protocol client
-- `MCPAgentDemo.java` - Demo connecting to Stage 2 server
-
-**Dependencies**: `shared`, communicates with `stage-2-mcp-server`
-
-**Architecture Link**: *[stage-3-agent-with-mcp/architecture.md](./stage-3-agent-with-mcp/architecture.md)* (to be created)
+**Architecture Link**: *To be created*
 
 ---
 
-### Stage 4: Agentic RAG (`stage-4-agentic-rag/`)
+### Stage 3: Agentic RAG (`stage-3-agentic-rag/`) ❌ TODO
 
-**Purpose**: Add retrieval-augmented generation with vector search
+**Status**: Not yet implemented  
+**Purpose**: Add retrieval-augmented generation with vector search  
+**Workshop Time**: 14:20-14:55 (35 min - Agentic RAG)
+
+**What Participants Build**:
+- In-memory vector store with cosine similarity
+- Document chunking and embedding pipeline
+- RAG agent that retrieves before generating
+- Integration test with real documents and embeddings
 
 **Learning Objectives**:
 - Implement simple vector database
-- Generate embeddings for documents
-- Retrieve relevant context before generation
-- Combine retrieval with agent reasoning
+- Generate and store embeddings locally
+- Retrieve relevant context from documents
+- Integrate RAG into agent reasoning loop
 
-**Key Components**:
+**Planned Components**:
 - `RAGAgent.java` - Agent with RAG capabilities
-- `VectorStore.java` - In-memory vector database
+- `SimpleVectorStore.java` - In-memory vector DB with cosine similarity
 - `DocumentProcessor.java` - Chunking and embedding
-- `RAGDemo.java` - Demo with document corpus
+- `EmbeddingService.java` - Local embedding generation
+- `RAGDemo.java` - Demo with sample document corpus
+- `RAGIntegrationTest.java` - Test with real embeddings
 
 **Dependencies**: `shared`
 
 **New Libraries**:
-- Embedding model (local or API)
-- Vector similarity library
+- Local embedding model (e.g., all-MiniLM-L6-v2 via Ollama)
+- Vector math utilities (or hand-rolled)
 
-**Architecture Link**: *[stage-4-agentic-rag/architecture.md](./stage-4-agentic-rag/architecture.md)* (to be created)
+**Architecture Link**: *To be created*
 
 ---
 
-### Stage 5: Multi-Agent Teams (`stage-5-multi-agent/`)
+### Stage 4: Multi-Agent Teams (`stage-4-multi-agent/`) ❌ TODO
 
-**Purpose**: Orchestrate multiple specialized agents working together
+**Status**: Not yet implemented  
+**Purpose**: Orchestrate multiple specialized agents working together  
+**Workshop Time**: 15:15-15:55 (40 min - Multi-Agent Teams)
+
+**What Participants Build**:
+- Multi-agent orchestration system
+- Specialized agents with different models
+- Agent communication and coordination
+- Integration test with collaborative workflow
 
 **Learning Objectives**:
 - Design multi-agent communication patterns
 - Implement agent orchestration/routing
 - Use heterogeneous models (Ollama + LM Studio + MLX-VLM)
-- Handle agent specialization and delegation
+- Coordinate agent specialization
 
-**Key Components**:
-- `MultiAgentSystem.java` - Orchestrator
-- `agents/ResearchAgent.java` - Uses Ollama for research
-- `agents/SummaryAgent.java` - Uses LM Studio for summaries
-- `agents/CriticAgent.java` - Uses MLX-VLM for image analysis
+**Planned Components**:
+- `MultiAgentSystem.java` - Orchestrator with routing
+- `SpecializedAgent.java` - Base class for specialized agents
+- `agents/ResearchAgent.java` - Ollama for research tasks
+- `agents/SummaryAgent.java` - LM Studio for summaries
+- `agents/VisionAgent.java` - MLX-VLM for image analysis
 - `MultiAgentDemo.java` - Collaborative task demo
+- `MultiAgentIntegrationTest.java` - Multi-agent workflow test
 
 **Dependencies**: `shared`
 
-**Architecture Link**: *[stage-5-multi-agent/architecture.md](./stage-5-multi-agent/architecture.md)* (to be created)
+**Architecture Link**: *To be created*
 
 ---
 
-### Stage 6: Enterprise Patterns (`stage-6-enterprise/`)
+### Stage 5: Enterprise Patterns (`stage-5-enterprise/`) ❌ TODO
 
-**Purpose**: Production-ready patterns for deploying AI agents
+**Status**: Not yet implemented  
+**Purpose**: Production-ready patterns for deploying AI agents  
+**Workshop Time**: 15:55-16:20 (25 min - Enterprise Patterns)
+
+**What Participants Learn**:
+- Monitoring and observability patterns
+- Rate limiting and circuit breakers
+- Security and authentication approaches
+- Deployment considerations (Docker, K8s)
 
 **Learning Objectives**:
-- Add monitoring and observability
-- Implement rate limiting and circuit breakers
-- Handle security and authentication
-- Containerization and deployment strategies
+- Understand production readiness requirements
+- Implement monitoring and metrics
+- Add resilience patterns
+- Consider security implications
 
-**Key Components**:
-- `ProductionAgent.java` - Hardened agent implementation
-- `monitoring/MetricsCollector.java` - Prometheus metrics
-- `security/AuthenticationFilter.java` - JWT/API key auth
-- `deployment/` - Docker, K8s examples
+**Planned Components**:
+- `EnterpriseAgent.java` - Agent with production features
+- `monitoring/MetricsExample.java` - Metrics collection patterns
+- `resilience/CircuitBreakerExample.java` - Resilience patterns
+- `security/SecurityExample.java` - Auth/validation patterns
+- Documentation on deployment strategies
+- Less code, more patterns and best practices
 
 **Dependencies**: `shared`
 
-**New Libraries**:
-- Micrometer for metrics
-- Resilience4j for circuit breakers
-- JWT library for security
+**New Libraries** (optional/examples):
+- Micrometer for metrics (optional)
+- Resilience4j for circuit breakers (optional)
+- JWT library for security (optional)
 
-**Architecture Link**: *[stage-6-enterprise/architecture.md](./stage-6-enterprise/architecture.md)* (to be created)
+**Note**: This stage is more documentation and pattern-focused than code-heavy, given the 25-minute time constraint.
+
+**Architecture Link**: *To be created*
 
 ---
 
@@ -309,23 +410,25 @@ classDiagram
 
 ```mermaid
 graph LR
-    SHARED[shared]
+    SHARED[shared]:::complete
     
-    S1[stage-1-simple-agent] --> SHARED
-    S2[stage-2-mcp-server] --> SHARED
-    S3[stage-3-agent-with-mcp] --> SHARED
-    S4[stage-4-agentic-rag] --> SHARED
-    S5[stage-5-multi-agent] --> SHARED
-    S6[stage-6-enterprise] --> SHARED
+    S0[stage-0-demo]:::complete --> SHARED
+    S1[stage-1-simple-agent]:::complete --> SHARED
+    S2[stage-2-mcp-server]:::todo --> SHARED
+    S3[stage-3-agentic-rag]:::todo --> SHARED
+    S4[stage-4-multi-agent]:::todo --> SHARED
+    S5[stage-5-enterprise]:::todo --> SHARED
     
-    S3 -.MCP Protocol.-> S2
+    classDef complete fill:#90EE90,stroke:#006400,stroke-width:2px
+    classDef todo fill:#FFB6C1,stroke:#8B0000,stroke-width:2px
 ```
 
 **Dependency Rules**:
 - All stages depend on `shared` module
-- Stages are independent from each other (except S2→S3)
+- Stages are independent from each other
 - No circular dependencies
 - Each stage can be built/run independently
+- Stage 2 includes both MCP server AND client integration
 
 ## Project Build Structure
 
@@ -388,87 +491,115 @@ java -jar stage-1-simple-agent/target/stage-1-simple-agent.jar
 ```
 w-jax-munich-2025-workshop/
 ├── pom.xml                          # Parent POM
-├── README.md                        # Workshop overview
+├── README.md                        # Workshop overview (updated)
+├── AGENDA.md                        # Full day schedule
 ├── SETUP.md                         # Environment setup guide
 ├── architecture.md                  # This file
-├── run-stage.sh                     # Convenience script to run any stage
 │
-├── shared/
+├── shared/                          # ✅ COMPLETE
 │   ├── pom.xml
 │   ├── README.md
-│   ├── architecture.md              # Shared module architecture
-│   └── src/main/java/com/incept5/workshop/shared/
-│       ├── backend/
-│       ├── model/
-│       ├── exception/
-│       ├── config/
-│       ├── client/
-│       └── util/
+│   └── src/main/java/com/incept5/ollama/
+│       ├── backend/                 # AIBackend interface + implementations
+│       ├── client/                  # OllamaClient HTTP client
+│       ├── config/                  # Configuration records
+│       ├── model/                   # Request/Response records
+│       ├── exception/               # Sealed exception hierarchy
+│       └── util/                    # ImageEncoder, SSEStreamProcessor, etc.
 │
-├── stage-1-simple-agent/
+├── stage-0-demo/                    # ✅ COMPLETE
 │   ├── pom.xml
-│   ├── README.md                    # Stage learning objectives
-│   ├── architecture.md              # Stage architecture details
+│   ├── run.sh
+│   └── src/main/java/com/incept5/ollama/
+│       ├── OllamaDemo.java          # Full-featured CLI demo
+│       └── SimpleExample.java       # Minimal usage example
+│
+├── stage-1-simple-agent/            # ✅ COMPLETE
+│   ├── pom.xml
+│   ├── README.md                    # Comprehensive stage guide
+│   ├── IMPLEMENTATION_NOTES.md      # Implementation details
 │   ├── run.sh                       # Quick run script
-│   └── src/main/java/com/incept5/workshop/stage1/
-│       ├── SimpleAgent.java
-│       ├── tools/
-│       └── SimpleAgentDemo.java
+│   └── src/
+│       ├── main/java/com/incept5/workshop/stage1/
+│       │   ├── SimpleAgent.java
+│       │   ├── SimpleAgentDemo.java
+│       │   ├── tool/
+│       │   │   ├── Tool.java
+│       │   │   ├── ToolRegistry.java
+│       │   │   ├── WeatherTool.java
+│       │   │   └── CountryInfoTool.java
+│       │   └── util/
+│       │       ├── ToolCallParser.java
+│       │       └── HttpHelper.java
+│       └── test/java/com/incept5/workshop/stage1/
+│           ├── README.md            # Test documentation
+│           └── SimpleAgentIntegrationTest.java
 │
-├── stage-2-mcp-server/
+├── stage-2-mcp-server/              # ❌ TODO
 │   ├── pom.xml
 │   ├── README.md
-│   ├── architecture.md
-│   ├── run-server.sh
-│   └── src/main/java/com/incept5/workshop/stage2/
-│       ├── SimpleMCPServer.java
-│       ├── tools/
-│       └── MCPServerDemo.java
-│
-├── stage-3-agent-with-mcp/
-│   ├── pom.xml
-│   ├── README.md
-│   ├── architecture.md
 │   ├── run.sh
-│   └── src/main/java/com/incept5/workshop/stage3/
-│       ├── MCPAgent.java
-│       ├── MCPClient.java
-│       └── MCPAgentDemo.java
+│   └── src/
+│       ├── main/java/com/incept5/workshop/stage2/
+│       │   ├── SimpleMCPServer.java
+│       │   ├── MCPClient.java
+│       │   ├── MCPAgent.java
+│       │   ├── tool/
+│       │   │   └── MCPToolAdapter.java
+│       │   └── MCPDemo.java
+│       └── test/java/com/incept5/workshop/stage2/
+│           ├── README.md
+│           └── MCPIntegrationTest.java
 │
-├── stage-4-agentic-rag/
+├── stage-3-agentic-rag/             # ❌ TODO
 │   ├── pom.xml
 │   ├── README.md
-│   ├── architecture.md
 │   ├── run.sh
-│   └── src/main/java/com/incept5/workshop/stage4/
-│       ├── RAGAgent.java
-│       ├── VectorStore.java
-│       ├── DocumentProcessor.java
-│       └── RAGDemo.java
+│   └── src/
+│       ├── main/java/com/incept5/workshop/stage3/
+│       │   ├── RAGAgent.java
+│       │   ├── SimpleVectorStore.java
+│       │   ├── DocumentProcessor.java
+│       │   ├── EmbeddingService.java
+│       │   └── RAGDemo.java
+│       └── test/java/com/incept5/workshop/stage3/
+│           ├── README.md
+│           └── RAGIntegrationTest.java
 │
-├── stage-5-multi-agent/
+├── stage-4-multi-agent/             # ❌ TODO
 │   ├── pom.xml
 │   ├── README.md
-│   ├── architecture.md
 │   ├── run.sh
-│   └── src/main/java/com/incept5/workshop/stage5/
-│       ├── MultiAgentSystem.java
-│       ├── agents/
-│       │   ├── ResearchAgent.java
-│       │   ├── SummaryAgent.java
-│       │   └── CriticAgent.java
-│       └── MultiAgentDemo.java
+│   └── src/
+│       ├── main/java/com/incept5/workshop/stage4/
+│       │   ├── MultiAgentSystem.java
+│       │   ├── SpecializedAgent.java
+│       │   ├── agents/
+│       │   │   ├── ResearchAgent.java
+│       │   │   ├── SummaryAgent.java
+│       │   │   └── VisionAgent.java
+│       │   └── MultiAgentDemo.java
+│       └── test/java/com/incept5/workshop/stage4/
+│           ├── README.md
+│           └── MultiAgentIntegrationTest.java
 │
-└── stage-6-enterprise/
+└── stage-5-enterprise/              # ❌ TODO
     ├── pom.xml
-    ├── README.md
-    ├── architecture.md
+    ├── README.md                    # Pattern-focused documentation
     ├── run.sh
-    └── src/main/java/com/incept5/workshop/stage6/
-        ├── ProductionAgent.java
-        ├── monitoring/
-        ├── security/
-        └── deployment/
+    └── src/
+        ├── main/java/com/incept5/workshop/stage5/
+        │   ├── EnterpriseAgent.java
+        │   ├── monitoring/
+        │   │   └── MetricsExample.java
+        │   ├── resilience/
+        │   │   └── CircuitBreakerExample.java
+        │   ├── security/
+        │   │   └── SecurityExample.java
+        │   └── EnterpriseDemo.java
+        └── test/java/com/incept5/workshop/stage5/
+            ├── README.md
+            └── EnterpriseIntegrationTest.java
 ```
 
 ## Design Principles
@@ -504,17 +635,66 @@ All modules leverage Java 21+ features:
 
 ## Testing Strategy
 
-Each module includes:
-- **Unit Tests**: Test individual components in isolation
-- **Integration Tests**: Test backend connectivity and MCP protocol
-- **Example Tests**: Executable documentation of features
+### Test Requirements (Per User Specifications)
 
-Test organization mirrors source structure:
+Each stage must include:
+1. ✅ **Single Happy Path Integration Test**
+   - One comprehensive test covering the main workflow
+   - Real API/service calls (not mocks)
+   - Real Ollama backend with configured model
+   - Clear, documented test scenarios
+
+2. ✅ **Real Service Integration**
+   - Tests use actual Ollama instance (localhost:11434)
+   - Tests call real external APIs (weather, country info, etc.)
+   - Tests verify end-to-end functionality
+   - No mocking of external services
+
+3. ✅ **Model Configuration**
+   - Default model: `incept5/Jan-v1-2509:fp16`
+   - Easily switchable via BackendConfig
+   - Clear documentation on model requirements
+
+### Test Organization
+
 ```
 src/
 ├── main/java/com/incept5/workshop/stageN/
+│   ├── StageNAgent.java
+│   └── ...
 └── test/java/com/incept5/workshop/stageN/
+    ├── StageNIntegrationTest.java  ← Single comprehensive test
+    └── README.md                     ← Test documentation
 ```
+
+### Example (Stage 1)
+
+See `stage-1-simple-agent/src/test/java/.../SimpleAgentIntegrationTest.java`:
+- ✅ Tests complete agent loop with real Ollama
+- ✅ Tests tool calling with real wttr.in and REST Countries APIs
+- ✅ Tests multi-step reasoning (country lookup → weather lookup)
+- ✅ Validates response quality and iteration counts
+- ✅ Includes verbose output for debugging
+
+### Running Tests
+
+```bash
+# Run all tests
+mvn test
+
+# Run specific stage test
+mvn -pl stage-1-simple-agent test
+
+# Skip tests (if Ollama not available)
+mvn package -DskipTests
+```
+
+### Test Prerequisites
+
+1. **Ollama Running**: `ollama serve`
+2. **Model Available**: `ollama pull incept5/Jan-v1-2509:fp16`
+3. **Network Access**: For external API calls
+4. **Java 21+**: Required for virtual threads and modern features
 
 ## Documentation Structure
 
@@ -533,38 +713,109 @@ src/
 - Module architectures link back to root
 - Clear navigation between stages
 
-## Migration from Current Code
+## Current Implementation Status
 
-The existing monolithic structure will be refactored:
+### ✅ Completed Modules
 
-**Current** → **New Location**:
-- `com.incept5.ollama.backend.*` → `shared/backend/`
-- `com.incept5.ollama.client.*` → `shared/client/`
-- `com.incept5.ollama.config.*` → `shared/config/`
-- `com.incept5.ollama.model.*` → `shared/model/`
-- `com.incept5.ollama.exception.*` → `shared/exception/`
-- `com.incept5.ollama.util.*` → `shared/util/`
-- `com.incept5.ollama.OllamaDemo` → Basis for `stage-1-simple-agent`
-- `com.incept5.ollama.SimpleExample` → Stage 1 starting point
+1. **shared/** - Fully functional backend abstraction
+   - Multi-backend support (Ollama, LM Studio, MLX-VLM)
+   - Image encoding and multi-modal capabilities
+   - Sealed exception hierarchy
+   - Streaming and async support
 
-## Future Enhancements
+2. **stage-0-demo/** - Working foundation
+   - CLI application with all backend options
+   - Raw output mode for scripting
+   - Model parameter control
+   - Image support across all backends
+
+3. **stage-1-simple-agent/** - Complete agent implementation
+   - Full agent loop (think → act → observe)
+   - Real API tools (weather, country info)
+   - Multi-step reasoning
+   - Integration test with real Ollama
+   - Verbose mode for debugging
+
+### ❌ TODO: Remaining Stages
+
+- **stage-2-mcp-server/** - MCP protocol implementation
+- **stage-3-agentic-rag/** - RAG with vector search
+- **stage-4-multi-agent/** - Multi-agent orchestration
+- **stage-5-enterprise/** - Production patterns
+
+### Migration Notes
+
+The existing code has been organized into:
+- `shared/` - All reusable backend/client code
+- `stage-0-demo/` - Foundation demonstration
+- `stage-1-simple-agent/` - First real agent with tools
+
+No further migration needed for completed modules.
+
+## Future Workshop Enhancements
 
 Potential additions for future workshops:
-- **Stage 7**: Streaming agent with WebSocket UI
-- **Stage 8**: Agent with long-term memory (vector + graph DB)
-- **Stage 9**: Function calling with external APIs (weather, stocks)
-- **Stage 10**: Agent evaluation and benchmarking framework
+- **Advanced Stage**: Streaming UI with WebSocket
+- **Advanced Stage**: Long-term memory (vector + graph DB)
+- **Advanced Stage**: External API integrations (stocks, news, etc.)
+- **Advanced Stage**: Agent evaluation and benchmarking
+- **Advanced Stage**: Fine-tuning and prompt optimization
+
+## Quick Start Guide
+
+### Prerequisites
+
+1. **Java 21+** installed
+2. **Maven 3.9.0+** installed
+3. **Ollama** running with model:
+   ```bash
+   ollama serve
+   ollama pull incept5/Jan-v1-2509:fp16
+   ```
+
+### Build & Run
+
+```bash
+# Build everything
+mvn clean package
+
+# Run Stage 0 (Foundation)
+cd stage-0-demo
+./run.sh "Hello from W-JAX!"
+
+# Run Stage 1 (Simple Agent)
+cd stage-1-simple-agent
+./run.sh "What's the weather in Munich?"
+./run.sh --verbose "Tell me about Germany"
+
+# Run tests
+mvn test
+```
+
+### Switching Models
+
+Edit the default model in `SimpleAgentDemo.java`:
+```java
+BackendConfig config = BackendConfig.builder()
+    .backendType(BackendType.OLLAMA)
+    .baseUrl("http://localhost:11434")
+    .model("incept5/Jan-v1-2509:fp16")  // ← Change here
+    .requestTimeout(Duration.ofSeconds(300))
+    .build();
+```
+
+Or use CLI (Stage 0):
+```bash
+java -jar target/stage-0-demo.jar -m "qwen2.5:7b" -p "Hello"
+```
 
 ## Resources
 
 ### Internal Documentation
-- [Shared Module Architecture](./shared/architecture.md)
-- [Stage 1 Architecture](./stage-1-simple-agent/architecture.md)
-- [Stage 2 Architecture](./stage-2-mcp-server/architecture.md)
-- [Stage 3 Architecture](./stage-3-agent-with-mcp/architecture.md)
-- [Stage 4 Architecture](./stage-4-agentic-rag/architecture.md)
-- [Stage 5 Architecture](./stage-5-multi-agent/architecture.md)
-- [Stage 6 Architecture](./stage-6-enterprise/architecture.md)
+- [Workshop Agenda](./AGENDA.md) - Full day schedule
+- [Stage 1 README](./stage-1-simple-agent/README.md) - Complete with examples
+- [Stage 1 Implementation Notes](./stage-1-simple-agent/IMPLEMENTATION_NOTES.md)
+- Per-stage architecture docs (to be created for stages 2-5)
 
 ### External Resources
 - [Java 21 Documentation](https://openjdk.org/projects/jdk/21/)
@@ -575,5 +826,6 @@ Potential additions for future workshops:
 
 ---
 
-*Last updated: 2025-01-06*
-*Architecture Version: 1.0*
+*Last updated: 2025-01-06*  
+*Architecture Version: 2.0*  
+*Status: 3/6 stages complete (Stages 0, 1 complete; Stages 2-5 TODO)*
