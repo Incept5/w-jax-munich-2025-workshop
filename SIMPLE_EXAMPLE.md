@@ -9,23 +9,23 @@ The complete working example is in `SimpleExample.java`:
 ```java
 package com.example.ollama;
 
-import com.example.ollama.client.OllamaClient;
-import com.example.ollama.config.OllamaConfig;
+import client.com.incept5.ollama.OllamaClient;
+import config.com.incept5.ollama.OllamaConfig;
 
 public class SimpleExample {
-    public static void main(String[] args) {
-        // Create config - uses qwen3:4b model
-        var config = OllamaConfig.withModel("qwen3:4b");
+   public static void main(String[] args) {
+      // Create config - uses qwen3:4b model
+      var config = OllamaConfig.withModel("qwen3:4b");
 
-        // Try-with-resources ensures client is closed properly
-        try (var client = new OllamaClient(config)) {
-            // Generate response and print it
-            var response = client.generate("Hello");
-            System.out.println(response.response());
-        } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage());
-        }
-    }
+      // Try-with-resources ensures client is closed properly
+      try (var client = new OllamaClient(config)) {
+         // Generate response and print it
+         var response = client.generate("Hello");
+         System.out.println(response.response());
+      } catch (Exception e) {
+         System.err.println("Error: " + e.getMessage());
+      }
+   }
 }
 ```
 
@@ -56,7 +56,7 @@ This minimal example shows:
 
 2. **Run the example**:
    ```bash
-   java --enable-preview -cp target/ollama-java-demo.jar com.example.ollama.SimpleExample
+   java --enable-preview -cp target/ollama-java-demo.jar com.incept5.ollama.SimpleExample
    ```
 
 ### Expected Output

@@ -81,8 +81,8 @@ mvn exec:java
 The simplest way to use the OllamaClient in your own Java application:
 
 ```java
-import com.example.ollama.client.OllamaClient;
-import com.example.ollama.config.OllamaConfig;
+import client.com.incept5.ollama.OllamaClient;
+import config.com.incept5.ollama.OllamaConfig;
 
 public class SimpleExample {
     public static void main(String[] args) {
@@ -103,7 +103,7 @@ public class SimpleExample {
 
 **Run it**:
 ```bash
-java -cp target/ollama-java-demo.jar com.example.ollama.SimpleExample
+java -cp target/ollama-java-demo.jar com.incept5.ollama.SimpleExample
 ```
 
 This minimal example demonstrates:
