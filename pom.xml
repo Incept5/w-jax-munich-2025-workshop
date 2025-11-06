@@ -7,7 +7,7 @@
 
     <groupId>com.incept5</groupId>
     <artifactId>w-jax-munich-2025-workshop</artifactId>
-    <version>1.0.0</version>
+    <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>W-JAX Munich 2025 Workshop - Parent</name>
@@ -24,6 +24,7 @@
     <modules>
         <module>shared</module>
         <module>stage-0-demo</module>
+        <module>stage-1-simple-agent</module>
     </modules>
 
     <properties>

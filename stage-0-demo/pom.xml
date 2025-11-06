@@ -9,7 +9,7 @@
     <parent>
         <groupId>com.incept5</groupId>
         <artifactId>w-jax-munich-2025-workshop</artifactId>
-        <version>1.0.0</version>
+        <version>1.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>stage-0-demo</artifactId>
