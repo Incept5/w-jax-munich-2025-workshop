@@ -30,8 +30,8 @@ repositories:
     description: "Embabel advanced example - travel planner"
 
 settings:
-  chunk_size: 800
-  chunk_overlap: 200
+  chunk_size: 512          # tokens per chunk (optimized for code)
+  chunk_overlap: 100       # overlap for context (20%)
   similarity_threshold: 0.7
   embedding_model: nomic-embed-text
   ollama_base_url: http://localhost:11434
