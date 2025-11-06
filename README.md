@@ -49,9 +49,10 @@ By the end of this workshop, you'll have built:
    ollama serve
    ```
 
-4. **Default Model** downloaded
+4. **Default Models** downloaded
    ```bash
    ollama pull incept5/Jan-v1-2509:fp16
+   ollama pull qwen3:4b
    ```
 
 ### Optional (for advanced stages)
