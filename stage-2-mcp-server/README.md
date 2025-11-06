@@ -2,7 +2,10 @@
 
 ## Overview
 
-This stage introduces the **Model Context Protocol (MCP)**, a standardized protocol for connecting AI applications with external tools and data sources. You'll learn how to expose tools through MCP, making them accessible to any MCP-compatible client.
+This stage introduces the **Model Context Protocol (MCP)**, a standardized protocol for connecting AI applications with external tools and data sources. You'll learn how to:
+1. Expose tools through MCP as a server
+2. Build an agent that uses MCP tools as a client
+3. Connect the two to create a complete AI system
 
 **Workshop Time**: 40 minutes (13:40-14:20)
 
@@ -20,14 +23,22 @@ This stage introduces the **Model Context Protocol (MCP)**, a standardized proto
    - Handling JSON-RPC requests
    - Returning structured responses
 
-3. **Tool Integration**
-   - Converting existing tools to MCP format
-   - JSON schema for parameter validation
-   - Error handling in MCP context
+3. **Building an MCP Client**
+   - Starting MCP server as subprocess
+   - Communicating via STDIO
+   - Discovering available tools
+   - Calling tools via JSON-RPC
 
-4. **Testing with MCP Clients**
+4. **Creating an MCP Agent**
+   - Using AI backend for reasoning
+   - Integrating MCP client for tool access
+   - Implementing agent loop with MCP tools
+   - Handling multi-step reasoning
+
+5. **Testing with MCP Clients**
    - Using the MCP Inspector
    - Integrating with Claude Desktop
+   - Running the agent interactively
    - Understanding client-server communication
 
 ## Key Concepts
@@ -43,10 +54,35 @@ MCP is an open protocol that standardizes how applications provide context to La
 
 ### Architecture
 
+**Server Mode** (for MCP Inspector, Claude Desktop, etc.):
 ```
 ┌─────────────────┐         JSON-RPC 2.0          ┌──────────────────┐
 │   MCP Client    │◄──────── over STDIO ─────────►│   MCP Server     │
 │  (Claude, etc)  │                                │  (Our Server)    │
+└─────────────────┘                                └──────────────────┘
+                                                            │
+                                                            │ exposes
+                                                            │
+                                                            ▼
+                                                   ┌──────────────────┐
+                                                   │      Tools       │
+                                                   │  - Weather       │
+                                                   │  - Country Info  │
+                                                   └──────────────────┘
+```
+
+**Agent Mode** (complete AI system):
+```
+┌─────────────────┐
+│   MCP Agent     │
+│  (AI Backend)   │
+└────────┬────────┘
+         │ uses
+         │
+         ▼
+┌─────────────────┐         JSON-RPC 2.0          ┌──────────────────┐
+│   MCP Client    │◄──────── over STDIO ─────────►│   MCP Server     │
+│  (Our Client)   │                                │  (subprocess)    │
 └─────────────────┘                                └──────────────────┘
                                                             │
                                                             │ exposes
@@ -109,16 +145,19 @@ MCP is an open protocol that standardizes how applications provide context to La
 stage-2-mcp-server/
 ├── src/main/java/com/incept5/workshop/stage2/
 │   ├── SimpleMCPServer.java     # MCP server implementation
-│   ├── MCPDemo.java              # Demo application
+│   ├── MCPClient.java            # MCP client for connecting to server
+│   ├── MCPAgent.java             # AI agent that uses MCP tools
+│   ├── MCPDemo.java              # Demo application (server/agent/interactive)
 │   └── tool/
 │       ├── Tool.java             # Tool interface with JSON schema
 │       ├── WeatherTool.java      # Weather tool implementation
 │       └── CountryInfoTool.java  # Country info tool
 ├── pom.xml                       # Maven configuration
+├── run.sh                        # Convenient runner script
 └── README.md                     # This file
 ```
 
-## Running the Server
+## Running the Project
 
 ### Quick Start
 
@@ -127,8 +166,19 @@ stage-2-mcp-server/
 cd stage-2-mcp-server
 mvn clean package
 
-# Run the server
-java -jar target/stage-2-mcp-server.jar
+# Run in different modes:
+
+# 1. Server mode (for MCP Inspector/Claude Desktop)
+./run.sh server
+# or: java -jar target/stage-2-mcp-server.jar server
+
+# 2. Agent mode (single task)
+./run.sh agent "What's the weather in Tokyo?"
+# or: java -jar target/stage-2-mcp-server.jar agent "What's the weather in Tokyo?"
+
+# 3. Interactive mode (chat with the agent)
+./run.sh interactive
+# or: java -jar target/stage-2-mcp-server.jar interactive
 ```
 
 ### Testing with MCP Inspector
@@ -137,13 +187,45 @@ The MCP Inspector is a tool for testing MCP servers:
 
 ```bash
 # Install and run the inspector (requires Node.js)
-npx @modelcontextprotocol/inspector java -jar target/stage-2-mcp-server.jar
+npx @modelcontextprotocol/inspector java -jar target/stage-2-mcp-server.jar server
 ```
 
 This will:
 1. Start your MCP server
 2. Open a web interface for testing
 3. Allow you to call tools interactively
+
+### Running the Agent
+
+The agent mode lets you use AI to reason about and use the MCP tools:
+
+```bash
+# Simple query
+./run.sh agent "What's the weather in Paris?"
+
+# Complex multi-step query
+./run.sh agent "What's the weather in the capital of France?"
+
+# With verbose output to see the reasoning
+./run.sh agent "Tell me about Japan" --verbose
+```
+
+### Interactive Mode
+
+Chat with the agent in an interactive session:
+
+```bash
+./run.sh interactive
+
+# Then type your questions:
+You: What's the weather in Munich?
+Agent: The weather in Munich is...
+
+You: Tell me about Germany
+Agent: Germany is a country in...
+
+You: exit
+```
 
 ### Integrating with Claude Desktop
 
@@ -159,7 +241,8 @@ Add your server to Claude Desktop's configuration:
       "command": "java",
       "args": [
         "-jar",
-        "/absolute/path/to/stage-2-mcp-server.jar"
+        "/absolute/path/to/stage-2-mcp-server.jar",
+        "server"
       ]
     }
   }
@@ -198,6 +281,50 @@ public class SimpleMCPServer {
 }
 ```
 
+### MCPClient
+
+The client connects to an MCP server and provides a Java API:
+
+```java
+public class MCPClient implements AutoCloseable {
+    // Start server as subprocess and connect via STDIO
+    public MCPClient(String serverCommand, String... serverArgs) 
+            throws IOException;
+    
+    // Discover available tools
+    public List<MCPTool> getAvailableTools();
+    
+    // Call a tool
+    public String callTool(String toolName, Map<String, String> arguments) 
+            throws IOException;
+    
+    // Get formatted tool descriptions for LLM
+    public String getToolDescriptions();
+}
+```
+
+### MCPAgent
+
+The agent uses AI to reason about when and how to use tools:
+
+```java
+public class MCPAgent implements AutoCloseable {
+    private final AIBackend backend;
+    private final MCPClient mcpClient;
+    
+    // Run agent on a task
+    public AgentResult run(String task, boolean verbose) 
+            throws AIBackendException, IOException {
+        // THINK: Ask LLM what to do
+        // ACT: Execute tool via MCP if requested
+        // OBSERVE: Add result to context
+        // Repeat until complete
+    }
+}
+```
+
+The agent implements the classic agent loop, but with tools accessed via MCP instead of directly.
+
 ### Tool Interface
 
 Tools now include a JSON schema for parameter validation:
@@ -230,12 +357,42 @@ Example schema:
 
 ### Exercise 1: Test the Server (5 minutes)
 
-1. Build and run the server
-2. Use the MCP Inspector to test it
-3. Call the weather tool for different cities
-4. Call the country_info tool
+1. Build and run the server:
+   ```bash
+   ./run.sh server
+   ```
 
-### Exercise 2: Add a New Tool (15 minutes)
+2. In another terminal, use the MCP Inspector:
+   ```bash
+   npx @modelcontextprotocol/inspector java -jar target/stage-2-mcp-server.jar server
+   ```
+
+3. Test the tools through the web interface
+
+### Exercise 2: Test the Agent (10 minutes)
+
+1. Run the agent with a simple query:
+   ```bash
+   ./run.sh agent "What's the weather in Paris?"
+   ```
+
+2. Try a multi-step query:
+   ```bash
+   ./run.sh agent "What's the weather in the capital of France?" --verbose
+   ```
+
+3. Try interactive mode:
+   ```bash
+   ./run.sh interactive
+   ```
+
+Observe how the agent:
+- Discovers it needs to find the capital first
+- Uses country_info tool to get the capital
+- Then uses weather tool for that city
+- Provides a final answer
+
+### Exercise 3: Add a New Tool (15 minutes)
 
 Create a calculator tool that performs basic math operations:
 
@@ -290,34 +447,39 @@ public class CalculatorTool implements Tool {
 1. Implement the calculator tool
 2. Register it in SimpleMCPServer
 3. Test it with the MCP Inspector
+4. Test it with the agent:
+   ```bash
+   ./run.sh agent "What is 15 times 23?"
+   ```
 
-### Exercise 3: Integrate with Claude Desktop (10 minutes)
+### Exercise 4: Integrate with Claude Desktop (5 minutes)
 
 1. Configure Claude Desktop with your server
 2. Restart Claude
 3. Ask Claude to:
    - Get weather for your city
    - Get information about your country
-   - Use your calculator tool
+   - Use your calculator tool (if added)
 
-### Exercise 4: Understanding the Protocol (10 minutes)
+### Exercise 5: Understanding the Architecture (5 minutes)
 
-Read through SimpleMCPServer.java and answer:
+Read through the code and answer:
 
-1. How does the server parse incoming JSON-RPC requests?
-2. What's the structure of a tool list response?
-3. How are tool results formatted?
-4. How does error handling work?
+1. **SimpleMCPServer.java**: How does the server handle JSON-RPC requests?
+2. **MCPClient.java**: How does the client start the server and communicate with it?
+3. **MCPAgent.java**: How does the agent decide when to use tools?
+4. How does the agent loop work in MCP context?
 
 ## Comparison with Stage 1
 
-| Aspect | Stage 1 | Stage 2 |
-|--------|---------|---------|
-| **Protocol** | Custom XML-like format | Standard JSON-RPC 2.0 |
-| **Transport** | Direct method calls | STDIO (stdin/stdout) |
-| **Discovery** | Hardcoded in prompt | Dynamic via tools/list |
-| **Interop** | Agent-specific | Any MCP client |
-| **Validation** | Manual parsing | JSON Schema |
+| Aspect | Stage 1 | Stage 2 (Server) | Stage 2 (Agent) |
+|--------|---------|------------------|-----------------|
+| **Protocol** | Custom JSON format | Standard JSON-RPC 2.0 | Uses MCP client |
+| **Transport** | Direct method calls | STDIO (stdin/stdout) | STDIO to subprocess |
+| **Discovery** | Hardcoded in prompt | Dynamic via tools/list | Dynamic from MCP |
+| **Interop** | Agent-specific | Any MCP client | Uses MCP protocol |
+| **Validation** | Manual parsing | JSON Schema | JSON Schema |
+| **Process** | Single process | Server process | Server as subprocess |
 
 ## Key Takeaways
 
@@ -326,6 +488,9 @@ Read through SimpleMCPServer.java and answer:
 3. **STDIO enables process isolation** - Server runs in separate process
 4. **JSON Schema validates inputs** - Type-safe parameter passing
 5. **Tool discovery is dynamic** - Clients learn about tools at runtime
+6. **Agents can use MCP tools** - Build AI systems that leverage MCP
+7. **Client-server architecture** - Clean separation of concerns
+8. **Subprocess management** - Server runs as independent process
 
 ## Next Steps
 

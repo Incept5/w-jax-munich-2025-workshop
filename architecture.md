@@ -63,13 +63,8 @@ This is a multi-module Maven workshop project demonstrating modern Java 21+ AI a
 |-------|--------|----------|-------|--------|
 | **0** | `stage-0-demo/` | Setup (35min) | Backend abstraction, multi-modal | ✅ Complete |
 | **1** | `stage-1-simple-agent/` | 3h 15min | Tool calling, agent loops | ✅ Complete |
-<<<<<<< HEAD
-| **2** | `stage-2-mcp-server/` | 40min | MCP protocol, tool exposure | ❌ TODO |
-| **3** | `stage-3-agentic-rag/` | 35min | RAG, vector search, embeddings | 🔄 Phase 1 ✅ |
-=======
 | **2** | `stage-2-mcp-server/` | 40min | MCP protocol, tool exposure | ✅ Complete |
 | **3** | `stage-3-agentic-rag/` | 35min | RAG, vector search, embeddings | ❌ TODO |
->>>>>>> e005ba993c1bba552a7ec2bcb18794ad2ab5ca2d
 | **4** | `stage-4-multi-agent/` | 40min | Multi-agent, orchestration | ❌ TODO |
 | **5** | `stage-5-enterprise/` | 25min | Production patterns | ❌ TODO |
 
@@ -273,27 +268,30 @@ mvn test  # Runs integration test with real Ollama
 
 ---
 
-### Stage 2: MCP Server (`stage-2-mcp-server/`) ✅
+### Stage 2: MCP Server & Agent (`stage-2-mcp-server/`) ✅
 
 **Status**: Complete  
-**Purpose**: Build Model Context Protocol server using official Java SDK  
+**Purpose**: Build Model Context Protocol server AND agent that uses MCP tools  
 **Workshop Time**: 13:40-14:20 (40 min - MCP Deep Dive)
 
 **What Participants Build**:
 - MCP server that exposes tools via JSON-RPC 2.0
-- STDIO-based communication for process isolation
-- Tool discovery via standard MCP protocol
-- JSON Schema for parameter validation
+- MCP client that connects to server via STDIO
+- AI agent that uses MCP tools for reasoning
+- Three operating modes: server, agent, and interactive
 
 **Learning Objectives**:
 - Understand MCP protocol fundamentals
-- Use official MCP Java SDK for server/client
-- Expose tools through MCP protocol
-- Connect agent to MCP server
+- Build both MCP server and client
+- Expose and consume tools through MCP
+- Create agent that leverages MCP architecture
+- Manage subprocess communication
 
 **Key Components**:
 - `SimpleMCPServer.java` - MCP server with JSON-RPC 2.0
-- `MCPDemo.java` - Demo application with usage examples
+- `MCPClient.java` - MCP client with subprocess management
+- `MCPAgent.java` - AI agent using MCP tools
+- `MCPDemo.java` - Multi-mode demo (server/agent/interactive)
 - `tool/Tool.java` - Tool interface with JSON Schema support
 - `tool/WeatherTool.java` - Weather tool with MCP compatibility
 - `tool/CountryInfoTool.java` - Country info tool with MCP compatibility
@@ -306,16 +304,25 @@ mvn test  # Runs integration test with real Ollama
 - Tool discovery via `tools/list`
 - Tool execution via `tools/call`
 - JSON Schema parameter validation
+- Subprocess management for server
 
 **Running**:
 ```bash
 cd stage-2-mcp-server
-./run.sh
+
+# Server mode (for MCP Inspector/Claude)
+./run.sh server
+
+# Agent mode (single task)
+./run.sh agent "What's the weather in Tokyo?"
+
+# Interactive mode (chat)
+./run.sh interactive
 ```
 
 **Testing with MCP Inspector**:
 ```bash
-npx @modelcontextprotocol/inspector java -jar target/stage-2-mcp-server.jar
+npx @modelcontextprotocol/inspector java -jar target/stage-2-mcp-server.jar server
 ```
 
 **Architecture Link**: *[stage-2-mcp-server/README.md](./stage-2-mcp-server/README.md)*
@@ -854,15 +861,6 @@ mvn package -DskipTests
    - Integration test with real Ollama
    - Verbose mode for debugging
 
-<<<<<<< HEAD
-### 🔄 In Progress
-
-- **stage-3-agentic-rag/** - Phase 1 (Ingestion) Complete ✅, Phase 2 (Agent) TODO
-
-### ❌ TODO: Remaining Stages
-
-- **stage-2-mcp-server/** - MCP protocol implementation
-=======
 4. **stage-2-mcp-server/** - MCP server implementation
    - JSON-RPC 2.0 protocol over STDIO
    - Tool discovery and execution
@@ -872,7 +870,6 @@ mvn package -DskipTests
 
 ### ❌ TODO: Remaining Stages
 - **stage-3-agentic-rag/** - RAG with vector search
->>>>>>> e005ba993c1bba552a7ec2bcb18794ad2ab5ca2d
 - **stage-4-multi-agent/** - Multi-agent orchestration
 - **stage-5-enterprise/** - Production patterns
 

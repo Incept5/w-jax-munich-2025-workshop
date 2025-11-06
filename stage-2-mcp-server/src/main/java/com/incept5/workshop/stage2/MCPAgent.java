@@ -1,70 +1,83 @@
 
-package com.incept5.workshop.stage1;
+package com.incept5.workshop.stage2;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import com.incept5.ollama.backend.AIBackend;
 import com.incept5.ollama.exception.AIBackendException;
 import com.incept5.ollama.model.AIResponse;
-import com.incept5.workshop.stage1.tool.ToolRegistry;
-import com.incept5.workshop.stage1.util.ToolCallParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
- * Simple agent that can reason and use tools to accomplish tasks.
+ * AI agent that uses tools exposed by an MCP server.
  * 
- * This agent implements the classic agent loop:
- * 1. THINK: Ask the LLM what to do next
- * 2. ACT: If the LLM wants to use a tool, execute it
- * 3. OBSERVE: Add the tool result to the context
- * 4. Repeat until task is complete
+ * This agent demonstrates how to:
+ * 1. Connect to an MCP server and discover tools
+ * 2. Use the LLM to reason about when to use tools
+ * 3. Execute tools via the MCP protocol
+ * 4. Iterate until the task is complete
  * 
- * The agent uses a simple XML-like format for tool calls, which the LLM
- * learns through the system prompt and examples.
+ * The agent implements the classic agent loop:
+ * - THINK: Ask the LLM what to do next
+ * - ACT: If the LLM wants to use a tool, call it via MCP
+ * - OBSERVE: Add the tool result to the context
+ * - Repeat until task is complete
  */
-public class SimpleAgent {
-    private static final Logger logger = LoggerFactory.getLogger(SimpleAgent.class);
+public class MCPAgent implements AutoCloseable {
+    private static final Logger logger = LoggerFactory.getLogger(MCPAgent.class);
     
     private final AIBackend backend;
-    private final ToolRegistry toolRegistry;
-    private final ToolCallParser parser;
+    private final MCPClient mcpClient;
+    private final Gson gson;
     private final int maxIterations;
     
+    // Pattern to match JSON tool calls in code blocks
+    private static final Pattern TOOL_CALL_PATTERN = Pattern.compile(
+            "```json\\s*\\{\\s*\"tool\"\\s*:\\s*\"([^\"]+)\"\\s*,\\s*\"parameters\"\\s*:\\s*\\{([^}]*)\\}\\s*\\}\\s*```",
+            Pattern.DOTALL
+    );
+    
     /**
-     * Creates a new agent with default settings (max 10 iterations).
+     * Creates a new MCP agent with default settings (max 10 iterations).
      * 
      * @param backend the AI backend to use for reasoning
-     * @param toolRegistry the registry of available tools
+     * @param mcpClient the MCP client for tool execution
      */
-    public SimpleAgent(AIBackend backend, ToolRegistry toolRegistry) {
-        this(backend, toolRegistry, 10);
+    public MCPAgent(AIBackend backend, MCPClient mcpClient) {
+        this(backend, mcpClient, 10);
     }
     
     /**
-     * Creates a new agent with custom iteration limit.
+     * Creates a new MCP agent with custom iteration limit.
      * 
      * @param backend the AI backend to use for reasoning
-     * @param toolRegistry the registry of available tools
+     * @param mcpClient the MCP client for tool execution
      * @param maxIterations maximum number of think-act-observe iterations
      */
-    public SimpleAgent(AIBackend backend, ToolRegistry toolRegistry, int maxIterations) {
+    public MCPAgent(AIBackend backend, MCPClient mcpClient, int maxIterations) {
         this.backend = backend;
-        this.toolRegistry = toolRegistry;
-        this.parser = new ToolCallParser();
+        this.mcpClient = mcpClient;
+        this.gson = new Gson();
         this.maxIterations = maxIterations;
     }
     
     /**
      * Runs the agent on a task.
      * 
-     * The agent will iterate through the think-act-observe loop until either:
-     * - The LLM provides a final answer (no tool call)
-     * - The maximum number of iterations is reached
-     * 
      * @param task the task to accomplish
-     * @return the agent's response
-     * @throws AIBackendException if there's an error communicating with the AI backend
+     * @return the agent's result
+     * @throws AIBackendException if there's an error with the AI backend
+     * @throws IOException if there's an error communicating with the MCP server
      */
-    public AgentResult run(String task) throws AIBackendException {
+    public AgentResult run(String task) throws AIBackendException, IOException {
         return run(task, false);
     }
     
@@ -73,11 +86,12 @@ public class SimpleAgent {
      * 
      * @param task the task to accomplish
      * @param verbose if true, prints each step of the agent loop
-     * @return the agent's response
-     * @throws AIBackendException if there's an error communicating with the AI backend
+     * @return the agent's result
+     * @throws AIBackendException if there's an error with the AI backend
+     * @throws IOException if there's an error communicating with the MCP server
      */
-    public AgentResult run(String task, boolean verbose) throws AIBackendException {
-        logger.info("Starting agent with task: {}", task);
+    public AgentResult run(String task, boolean verbose) throws AIBackendException, IOException {
+        logger.info("Starting MCP agent with task: {}", task);
         
         StringBuilder context = new StringBuilder();
         context.append("Task: ").append(task).append("\n\n");
@@ -114,7 +128,7 @@ public class SimpleAgent {
             logger.debug("LLM response: {}", llmResponse);
             
             // ACT: Check if LLM wants to use a tool
-            ToolCallParser.ToolCall toolCall = parser.parse(llmResponse);
+            ToolCall toolCall = parseToolCall(llmResponse);
             
             if (toolCall == null) {
                 // No tool call - the LLM has provided a final answer
@@ -129,11 +143,14 @@ public class SimpleAgent {
             
             logger.info("Tool call detected: {}", toolCall);
             
-            // OBSERVE: Execute the tool and add result to context
-            String toolResult = toolRegistry.execute(
-                    toolCall.toolName(), 
-                    toolCall.parameters()
-            );
+            // OBSERVE: Execute the tool via MCP and add result to context
+            String toolResult;
+            try {
+                toolResult = mcpClient.callTool(toolCall.toolName(), toolCall.parameters());
+            } catch (IOException e) {
+                logger.error("Tool execution failed", e);
+                toolResult = "Error executing tool: " + e.getMessage();
+            }
             
             if (verbose) {
                 System.out.println("\n[OBSERVING]");
@@ -162,13 +179,13 @@ public class SimpleAgent {
     }
     
     /**
-     * Builds the system prompt that teaches the LLM how to use tools.
+     * Builds the system prompt that teaches the LLM how to use MCP tools.
      */
     private String buildSystemPrompt() {
         return """
                 You are a helpful AI agent that can use tools to answer questions.
                 
-                """ + toolRegistry.getToolDescriptions() + """
+                """ + mcpClient.getToolDescriptions() + """
                 
                 To use a tool, output JSON in a code block like this:
                 ```json
@@ -206,6 +223,58 @@ public class SimpleAgent {
     }
     
     /**
+     * Parses a tool call from the LLM's response.
+     * 
+     * Expected format:
+     * ```json
+     * {
+     *   "tool": "tool_name",
+     *   "parameters": {
+     *     "param1": "value1",
+     *     "param2": "value2"
+     *   }
+     * }
+     * ```
+     * 
+     * @param response the LLM's response text
+     * @return the parsed tool call, or null if no tool call is found
+     */
+    private ToolCall parseToolCall(String response) {
+        Matcher matcher = TOOL_CALL_PATTERN.matcher(response);
+        
+        if (!matcher.find()) {
+            return null;
+        }
+        
+        String toolName = matcher.group(1);
+        String parametersJson = matcher.group(2);
+        
+        // Parse parameters
+        Map<String, String> parameters = new HashMap<>();
+        
+        // Simple parameter parsing - handles "key": "value" pairs
+        Pattern paramPattern = Pattern.compile("\"([^\"]+)\"\\s*:\\s*\"([^\"]+)\"");
+        Matcher paramMatcher = paramPattern.matcher(parametersJson);
+        
+        while (paramMatcher.find()) {
+            String key = paramMatcher.group(1);
+            String value = paramMatcher.group(2);
+            parameters.put(key, value);
+        }
+        
+        return new ToolCall(toolName, parameters);
+    }
+    
+    /**
+     * Closes the agent and its MCP client.
+     */
+    @Override
+    public void close() {
+        logger.info("Closing MCP agent");
+        mcpClient.close();
+    }
+    
+    /**
      * Result of running the agent.
      * 
      * @param response the final response text
@@ -219,6 +288,19 @@ public class SimpleAgent {
                     "AgentResult{completed=%s, iterations=%d, response='%s'}",
                     completed, iterations, response
             );
+        }
+    }
+    
+    /**
+     * Represents a tool call parsed from the LLM's response.
+     * 
+     * @param toolName the name of the tool to call
+     * @param parameters the parameters to pass to the tool
+     */
+    private record ToolCall(String toolName, Map<String, String> parameters) {
+        @Override
+        public String toString() {
+            return String.format("ToolCall{tool='%s', parameters=%s}", toolName, parameters);
         }
     }
 }
