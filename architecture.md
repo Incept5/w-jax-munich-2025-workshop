@@ -30,10 +30,11 @@ This is a multi-module Maven workshop project demonstrating modern Java 21+ AI a
 
 ### Key Technologies by Stage
 - **Stage 0**: Backend abstraction, multi-modal support
-- **Stage 1**: Tool calling, agent loops, real APIs
-- **Stage 2**: MCP (Model Context Protocol) with official Java SDK
-- **Stage 3**: RAG with PostgreSQL + pgvector
-- **Stage 4**: Enterprise multi-agent system (Embabel Tripper - external reference)
+- **Stage 1**: Function calling fundamentals with simple tools
+- **Stage 2**: Agent loops with real external APIs
+- **Stage 3**: MCP (Model Context Protocol) with official Java SDK
+- **Stage 4**: RAG with PostgreSQL + pgvector
+- **Stage 5**: Enterprise multi-agent system (Embabel Tripper - external reference)
 
 ## Workshop Agenda & Stage Mapping
 
@@ -46,13 +47,13 @@ This is a multi-module Maven workshop project demonstrating modern Java 21+ AI a
 | 09:50-10:30 | How Agents Work (Teaching) | - | ✅ Presentation |
 | 10:30-10:50 | Morning Break | - | - |
 | 10:50-11:40 | Tool-Calling in Practice | Stage 1 | ✅ Complete |
-| 11:40-12:30 | Exercise: First Working Agent | Stage 1 | ✅ Complete |
+| 11:40-12:30 | Exercise: First Working Agent | Stage 2 | ✅ Complete |
 | 12:30-13:20 | Lunch Break | - | - |
 | 13:20-13:40 | Recap & Transition to MCP | - | ✅ Presentation |
-| 13:40-14:20 | MCP Deep Dive + Hands-On | Stage 2 | ✅ Complete |
-| 14:20-14:55 | Agentic RAG & Data Integration | Stage 3 | ✅ Complete |
+| 13:40-14:20 | MCP Deep Dive + Hands-On | Stage 3 | ✅ Complete |
+| 14:20-14:55 | Agentic RAG & Data Integration | Stage 4 | ✅ Complete |
 | 14:55-15:15 | Afternoon Break | - | - |
-| 15:15-16:20 | Enterprise Multi-Agent (Tripper) | Stage 4 | ✅ Reference |
+| 15:15-16:20 | Enterprise Multi-Agent (Tripper) | Stage 5 | ✅ Reference |
 | 16:20-16:30 | Wrap-Up & Discussion | - | ✅ Presentation |
 
 ### Workshop Stages Summary
@@ -60,10 +61,11 @@ This is a multi-module Maven workshop project demonstrating modern Java 21+ AI a
 | Stage | Module | Duration | Focus | Status |
 |-------|--------|----------|-------|--------|
 | **0** | `stage-0-demo/` | Setup (35min) | Backend abstraction, multi-modal | ✅ Complete |
-| **1** | `stage-1-simple-agent/` | 3h 15min | Tool calling, agent loops | ✅ Complete |
-| **2** | `stage-2-mcp-server/` | 40min | MCP protocol, tool exposure | ✅ Complete |
-| **3** | `stage-3-agentic-rag/` | 35min | RAG, vector search, embeddings | ✅ Complete |
-| **4** | `stage-4-embabel-tripper/` | 65min | Enterprise multi-agent reference | ✅ Reference |
+| **1** | `stage-1-function-calling/` | 40min | Function calling fundamentals | ✅ Complete |
+| **2** | `stage-2-simple-agent/` | 50min | Tool calling, agent loops | ✅ Complete |
+| **3** | `stage-3-mcp-server/` | 40min | MCP protocol, tool exposure | ✅ Complete |
+| **4** | `stage-4-agentic-rag/` | 35min | RAG, vector search, embeddings | ✅ Complete |
+| **5** | `stage-5-embabel-tripper/` | 65min | Enterprise multi-agent reference | ✅ Reference |
 
 ## System Architecture
 
@@ -74,15 +76,17 @@ graph TB
         
         PARENT --> SHARED[shared/<br/>Shared Libraries<br/>✅ Complete]
         PARENT --> S0[stage-0-demo/<br/>Foundation Demo<br/>✅ Complete]
-        PARENT --> S1[stage-1-simple-agent/<br/>First Agent + Tools<br/>✅ Complete]
-        PARENT --> S2[stage-2-mcp-server/<br/>MCP Server<br/>✅ Complete]
-        PARENT --> S3[stage-3-agentic-rag/<br/>RAG Agent<br/>✅ Complete]
-        PARENT -.references.-> S4[stage-4-embabel-tripper/<br/>Enterprise Multi-Agent<br/>✅ Reference<br/>External: Tripper]
+        PARENT --> S1[stage-1-function-calling/<br/>Function Calling Demo<br/>✅ Complete]
+        PARENT --> S2[stage-2-simple-agent/<br/>First Agent + Tools<br/>✅ Complete]
+        PARENT --> S3[stage-3-mcp-server/<br/>MCP Server<br/>✅ Complete]
+        PARENT --> S4[stage-4-agentic-rag/<br/>RAG Agent<br/>✅ Complete]
+        PARENT -.references.-> S5[stage-5-embabel-tripper/<br/>Enterprise Multi-Agent<br/>✅ Reference<br/>External: Tripper]
         
         S0 -.depends on.-> SHARED
         S1 -.depends on.-> SHARED
         S2 -.depends on.-> SHARED
         S3 -.depends on.-> SHARED
+        S4 -.depends on.-> SHARED
     end
     
     subgraph "AI Backends"
@@ -98,7 +102,8 @@ graph TB
     S1 --> OLLAMA
     S2 --> OLLAMA
     S3 --> OLLAMA
-    S3 --> POSTGRES
+    S4 --> OLLAMA
+    S4 --> POSTGRES
 ```
 
 ## Module Structure
@@ -213,11 +218,73 @@ cd stage-0-demo
 
 ---
 
-### Stage 1: Simple Agent (`stage-1-simple-agent/`) ✅
+### Stage 1: Function Calling Demo (`stage-1-function-calling/`) ✅
+
+**Status**: Complete  
+**Purpose**: Demonstrate LLM function calling capabilities with simple tools  
+**Workshop Time**: 10:50-11:40 (50 min - Tool Calling Fundamentals)
+
+**What Participants Learn**:
+- Understand function calling protocol with Ollama
+- Define function schemas using JSON Schema
+- Test multiple models for function calling support
+- See how LLMs extract parameters from prompts
+- Analyze function calling results and statistics
+
+**Learning Objectives**:
+- Function calling mechanics before complex patterns
+- Tool definition with JSON Schema
+- Parameter extraction and validation
+- Testing framework for function calling
+- Understanding model capabilities
+
+**Key Components**:
+- `FunctionCallingDemo.java` - Main test runner with model filtering
+- `FunctionCallingClient.java` - Ollama function calling client
+- `tool/FunctionTool.java` - Tool interface
+- `tool/DayOfWeekTool.java` - Parameter-free function demo
+- `tool/WeatherTool.java` - Function with required parameters
+
+**Sample Functions**:
+1. **get_current_day()** - No parameters, returns current day of week
+2. **get_weather(city)** - Required string parameter, returns mock weather
+
+**Running**:
+```bash
+cd stage-1-function-calling
+./run.sh                    # Test all models
+./run.sh jan                # Test models with "jan"
+./run.sh "qwen*" 20         # Test qwen models under 20GB
+```
+
+**Output**:
+- Console: Real-time test progress
+- CSV: `function_calling_results.csv` with statistics
+- Summary: Success rates and timing information
+
+**Test Cases**:
+1. "What is the day of the week today?" → `get_current_day()`
+2. "What is the weather in the capital of France?" → `get_weather(city=Paris)`
+3. "Is it going to be sunny in Paris tomorrow?" → `get_weather(city=Paris)`
+
+**Configuration**:
+```java
+private static final int NUM_RUNS = 10;
+private static final double TEMPERATURE = 0.6;
+private static final double DEFAULT_MAX_SIZE_GB = 100.0;
+```
+
+**Dependencies**: `shared`
+
+**Architecture Link**: *[stage-1-function-calling/README.md](./stage-1-function-calling/README.md)*
+
+---
+
+### Stage 2: Simple Agent (`stage-2-simple-agent/`) ✅
 
 **Status**: Complete  
 **Purpose**: Build a working AI agent with tool-calling capabilities  
-**Workshop Time**: 10:50-12:30 (1h 50min - Tool Calling + First Agent)
+**Workshop Time**: 11:40-12:30 (50 min - First Working Agent)
 
 **What Participants Build**:
 - Complete agent loop (think → act → observe)
@@ -243,7 +310,7 @@ cd stage-0-demo
 
 **Running**:
 ```bash
-cd stage-1-simple-agent
+cd stage-2-simple-agent
 ./run.sh "What's the weather in the capital of Japan?"
 ./run.sh --verbose "Tell me about Brazil"
 ```
@@ -255,11 +322,11 @@ mvn test  # Runs integration test with real Ollama
 
 **Dependencies**: `shared`
 
-**Architecture Link**: *[stage-1-simple-agent/README.md](./stage-1-simple-agent/README.md)*
+**Architecture Link**: *[stage-2-simple-agent/README.md](./stage-2-simple-agent/README.md)*
 
 ---
 
-### Stage 2: MCP Server & Agent (`stage-2-mcp-server/`) ✅
+### Stage 3: MCP Server & Agent (`stage-3-mcp-server/`) ✅
 
 **Status**: Complete  
 **Purpose**: Build Model Context Protocol server AND agent that uses MCP tools  
@@ -299,7 +366,7 @@ mvn test  # Runs integration test with real Ollama
 
 **Running**:
 ```bash
-cd stage-2-mcp-server
+cd stage-3-mcp-server
 
 # Server mode (for MCP Inspector/Claude)
 ./run.sh server
@@ -313,14 +380,14 @@ cd stage-2-mcp-server
 
 **Testing with MCP Inspector**:
 ```bash
-npx @modelcontextprotocol/inspector java -jar target/stage-2-mcp-server.jar server
+npx @modelcontextprotocol/inspector java -jar target/stage-3-mcp-server.jar server
 ```
 
-**Architecture Link**: *[stage-2-mcp-server/README.md](./stage-2-mcp-server/README.md)*
+**Architecture Link**: *[stage-3-mcp-server/README.md](./stage-3-mcp-server/README.md)*
 
 ---
 
-### Stage 3: Agentic RAG (`stage-3-agentic-rag/`) ✅
+### Stage 4: Agentic RAG (`stage-4-agentic-rag/`) ✅
 
 **Status**: Complete  
 **Purpose**: Add retrieval-augmented generation with PostgreSQL + pgvector  
@@ -392,7 +459,7 @@ volumes:
 
 **Running**:
 ```bash
-cd stage-3-agentic-rag
+cd stage-4-agentic-rag
 
 # Start PostgreSQL + pgvector
 docker-compose up -d
@@ -412,11 +479,11 @@ docker-compose up -d
 mvn test  # Runs integration test with real Ollama + PostgreSQL
 ```
 
-**Architecture Link**: *[stage-3-agentic-rag/README.md](./stage-3-agentic-rag/README.md)*
+**Architecture Link**: *[stage-4-agentic-rag/README.md](./stage-4-agentic-rag/README.md)*
 
 ---
 
-### Stage 4: Enterprise Multi-Agent System (`external: tripper/`) ✅
+### Stage 5: Enterprise Multi-Agent System (`external: tripper/`) ✅
 
 **Status**: Reference Implementation (External Repository)  
 **Purpose**: Demonstrate production-ready multi-agent architecture with enterprise patterns  
@@ -517,9 +584,9 @@ mvn test  # Runs integration test with real Ollama + PostgreSQL
 - **Brave Search** - For web search (free tier: 2000 queries/month)
 - **Google Maps** - For location services (free tier sufficient)
 
-**Setup Instructions**: See `stage-4-embabel-tripper/README.md` for detailed setup
+**Setup Instructions**: See `stage-5-embabel-tripper/README.md` for detailed setup
 
-**Architecture Link**: *[stage-4-embabel-tripper/README.md](./stage-4-embabel-tripper/README.md)*
+**Architecture Link**: *[stage-5-embabel-tripper/README.md](./stage-5-embabel-tripper/README.md)*
 
 ---
 
@@ -530,10 +597,11 @@ graph LR
     SHARED[shared]:::complete
     
     S0[stage-0-demo]:::complete --> SHARED
-    S1[stage-1-simple-agent]:::complete --> SHARED
-    S2[stage-2-mcp-server]:::complete --> SHARED
-    S3[stage-3-agentic-rag]:::complete --> SHARED
-    S4[stage-4-embabel-tripper]:::reference -.external.-> SHARED
+    S1[stage-1-function-calling]:::complete --> SHARED
+    S2[stage-2-simple-agent]:::complete --> SHARED
+    S3[stage-3-mcp-server]:::complete --> SHARED
+    S4[stage-4-agentic-rag]:::complete --> SHARED
+    S5[stage-5-embabel-tripper]:::reference -.external.-> SHARED
     
     classDef complete fill:#90EE90,stroke:#006400,stroke-width:2px
     classDef reference fill:#87CEEB,stroke:#4682B4,stroke-width:2px,stroke-dasharray: 5 5
@@ -544,7 +612,7 @@ graph LR
 - Stages are independent from each other
 - No circular dependencies
 - Each stage can be built/run independently
-- Stage 2 includes both MCP server AND client integration
+- Stage 3 includes both MCP server AND client integration
 
 ## Project Build Structure
 
@@ -630,7 +698,19 @@ w-jax-munich-2025-workshop/
 │       ├── OllamaDemo.java          # Full-featured CLI demo
 │       └── SimpleExample.java       # Minimal usage example
 │
-├── stage-1-simple-agent/            # ✅ COMPLETE
+├── stage-1-function-calling/        # ✅ COMPLETE
+│   ├── pom.xml
+│   ├── README.md                    # Stage guide
+│   ├── run.sh                       # Quick run script
+│   └── src/main/java/com/incept5/workshop/stage1/
+│       ├── FunctionCallingDemo.java # Main test runner
+│       ├── FunctionCallingClient.java # Ollama function calling client
+│       └── tool/
+│           ├── FunctionTool.java    # Tool interface
+│           ├── DayOfWeekTool.java   # Day of week function
+│           └── WeatherTool.java     # Weather function
+│
+├── stage-2-simple-agent/            # ✅ COMPLETE
 │   ├── pom.xml
 │   ├── README.md                    # Comprehensive stage guide
 │   ├── IMPLEMENTATION_NOTES.md      # Implementation details
@@ -651,7 +731,7 @@ w-jax-munich-2025-workshop/
 │           ├── README.md            # Test documentation
 │           └── SimpleAgentIntegrationTest.java
 │
-├── stage-2-mcp-server/              # ✅ COMPLETE
+├── stage-3-mcp-server/              # ✅ COMPLETE
 │   ├── pom.xml
 │   ├── README.md
 │   ├── run.sh
@@ -664,7 +744,7 @@ w-jax-munich-2025-workshop/
 │               ├── WeatherTool.java
 │               └── CountryInfoTool.java
 │
-├── stage-3-agentic-rag/             # ✅ COMPLETE
+├── stage-4-agentic-rag/             # ✅ COMPLETE
 │   ├── pom.xml
 │   ├── README.md
 │   ├── run.sh
@@ -696,7 +776,7 @@ w-jax-munich-2025-workshop/
 │       └── test/java/com/incept5/workshop/stage3/
 │           └── RAGAgentIntegrationTest.java
 │
-└── stage-4-embabel-tripper/         # ✅ REFERENCE (External)
+└── stage-5-embabel-tripper/         # ✅ REFERENCE (External)
     ├── README.md                    # Setup and exploration guide
     ├── API_KEYS.md                  # API key setup instructions
     └── EXPLORATION.md               # Guided code exploration activities
@@ -833,21 +913,28 @@ mvn package -DskipTests
    - Model parameter control
    - Image support across all backends
 
-3. **stage-1-simple-agent/** - Complete agent implementation
+3. **stage-1-function-calling/** - Function calling demonstration
+   - Test multiple models for function calling capability
+   - Two sample functions (day of week, weather)
+   - CSV results export with statistics
+   - Model filtering by name and size
+   - No external API calls (mock data)
+
+4. **stage-2-simple-agent/** - Complete agent implementation
    - Full agent loop (think → act → observe)
    - Real API tools (weather, country info)
    - Multi-step reasoning
    - Integration test with real Ollama
    - Verbose mode for debugging
 
-4. **stage-2-mcp-server/** - MCP server implementation
+5. **stage-3-mcp-server/** - MCP server implementation
    - JSON-RPC 2.0 protocol over STDIO
    - Tool discovery and execution
    - MCP initialization handshake
    - JSON Schema parameter validation
    - Compatible with MCP Inspector and Claude Desktop
 
-5. **stage-3-agentic-rag/** - RAG agent implementation
+6. **stage-4-agentic-rag/** - RAG agent implementation
    - PostgreSQL + pgvector integration
    - Document chunking and embedding pipeline
    - Similarity search with cosine distance
@@ -856,7 +943,7 @@ mvn package -DskipTests
    - Integration test with real documents and embeddings
 
 ### ✅ Reference Implementation
-- **stage-4-embabel-tripper/** - Enterprise multi-agent system (external repository)
+- **stage-5-embabel-tripper/** - Enterprise multi-agent system (external repository)
   - Production-ready Spring Boot + Embabel application
   - Multiple LLMs, MCP at scale, OAuth2 security
   - Docker Compose infrastructure, Zipkin tracing
@@ -867,7 +954,11 @@ mvn package -DskipTests
 The existing code has been organized into:
 - `shared/` - All reusable backend/client code
 - `stage-0-demo/` - Foundation demonstration
-- `stage-1-simple-agent/` - First real agent with tools
+- `stage-1-function-calling/` - Function calling fundamentals
+- `stage-2-simple-agent/` - First real agent with tools
+- `stage-3-mcp-server/` - MCP server and agent
+- `stage-4-agentic-rag/` - RAG with pgvector
+- `stage-5-embabel-tripper/` - Enterprise reference (external)
 
 No further migration needed for completed modules.
 
@@ -908,13 +999,21 @@ mvn clean package
 cd stage-0-demo
 ./run.sh "Hello from W-JAX!"
 
-# Run Stage 1 (Simple Agent)
-cd stage-1-simple-agent
+# Run Stage 1 (Function Calling)
+cd stage-1-function-calling
+./run.sh
+
+# Run Stage 2 (Simple Agent)
+cd stage-2-simple-agent
 ./run.sh "What's the weather in Munich?"
 ./run.sh --verbose "Tell me about Germany"
 
-# Run Stage 3 (RAG - requires Docker)
-cd stage-3-agentic-rag
+# Run Stage 3 (MCP Server)
+cd stage-3-mcp-server
+./run.sh agent "What's the weather in Tokyo?"
+
+# Run Stage 4 (RAG - requires Docker)
+cd stage-4-agentic-rag
 docker-compose up -d  # Start PostgreSQL + pgvector
 ./run.sh "What does the documentation say about..."
 
@@ -922,7 +1021,7 @@ docker-compose up -d  # Start PostgreSQL + pgvector
 mvn test
 
 # Build specific module with dependencies
-mvn -pl stage-1-simple-agent -am clean package
+mvn -pl stage-2-simple-agent -am clean package
 ```
 
 ### Switching Models
@@ -946,9 +1045,9 @@ java -jar target/stage-0-demo.jar -m "qwen2.5:7b" -p "Hello"
 
 ### Internal Documentation
 - [Workshop Agenda](./AGENDA.md) - Full day schedule
-- [Stage 1 README](./stage-1-simple-agent/README.md) - Complete with examples
-- [Stage 1 Implementation Notes](./stage-1-simple-agent/IMPLEMENTATION_NOTES.md)
-- Per-stage architecture docs (to be created for stages 2-5)
+- [Stage 2 README](./stage-2-simple-agent/README.md) - Complete with examples
+- [Stage 2 Implementation Notes](./stage-2-simple-agent/IMPLEMENTATION_NOTES.md)
+- Per-stage architecture docs (to be created for stages 3-5)
 
 ### External Resources
 - [Java 21 Documentation](https://openjdk.org/projects/jdk/21/)

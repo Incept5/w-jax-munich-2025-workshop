@@ -24,6 +24,7 @@
     <modules>
         <module>shared</module>
         <module>stage-0-demo</module>
+        <module>stage-1-function-calling</module>
         <module>stage-1-simple-agent</module>
         <module>stage-2-mcp-server</module>
         <module>stage-3-agentic-rag</module>
