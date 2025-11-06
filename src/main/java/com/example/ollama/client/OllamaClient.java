@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
- * Modern Java 25 HTTP client for Ollama API.
+ * Modern Java 21+ HTTP client for Ollama API.
  * Uses virtual threads, pattern matching, and other modern Java features.
  */
 public class OllamaClient implements AutoCloseable {

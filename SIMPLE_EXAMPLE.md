@@ -43,7 +43,7 @@ This minimal example shows:
 
 ### Prerequisites
 
-1. **Java 25** installed with preview features enabled
+1. **Java 21+** installed
 2. **Ollama** running: `ollama serve`
 3. **Model pulled**: `ollama pull qwen3:4b`
 
@@ -198,8 +198,8 @@ To use this code in your own project:
 3. **Set Java version**:
    ```xml
    <properties>
-       <maven.compiler.source>25</maven.compiler.source>
-       <maven.compiler.target>25</maven.compiler.target>
+       <maven.compiler.source>21</maven.compiler.source>
+       <maven.compiler.target>21</maven.compiler.target>
    </properties>
    ```
 

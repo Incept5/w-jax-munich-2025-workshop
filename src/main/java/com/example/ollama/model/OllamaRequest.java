@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Record representing an Ollama API request using Java 25 records feature.
+ * Record representing an Ollama API request using Java 21 records feature.
  * Records provide immutable data carriers with automatic getters, equals, hashCode, and toString.
  */
 public record OllamaRequest(

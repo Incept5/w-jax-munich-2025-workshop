@@ -3,7 +3,7 @@ package com.example.ollama.model;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * Record representing an Ollama API response using Java 25 records feature.
+ * Record representing an Ollama API response using Java 21 records feature.
  */
 public record OllamaResponse(
         String model,

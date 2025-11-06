@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Modern Java 25 demonstration of Ollama API integration.
+ * Modern Java 21+ demonstration of Ollama API integration.
  * Features:
  * - Records for immutable data models
  * - Virtual threads for concurrency
@@ -88,7 +88,7 @@ public class OllamaDemo {
         // Standard mode: full display with headers and timing
         System.out.println("""
                 ╔══════════════════════════════════════════════════════════╗
-                ║           Ollama Java 25 Demo Application               ║
+                ║           Ollama Java Demo Application               ║
                 ╚══════════════════════════════════════════════════════════╝
                 """);
 
@@ -392,7 +392,7 @@ public class OllamaDemo {
      */
     private static void printHelp() {
         System.out.println("""
-                Ollama Java 25 Demo - Modern Java integration with AI backends
+                Ollama Java Demo - Modern Java integration with AI backends
 
                 Usage: java -jar ollama-java-demo.jar [OPTIONS]
 
@@ -452,7 +452,7 @@ public class OllamaDemo {
 
                 Features:
                   • Multiple AI backend support (Ollama, LM Studio, MLX-VLM)
-                  • Java 25 with modern language features
+                  • Java 21+ with modern language features
                   • Virtual threads for efficient concurrency
                   • Pattern matching for elegant error handling
                   • Records for immutable data models

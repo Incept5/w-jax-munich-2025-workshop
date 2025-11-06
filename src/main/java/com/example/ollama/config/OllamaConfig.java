@@ -3,7 +3,7 @@ package com.example.ollama.config;
 import java.time.Duration;
 
 /**
- * Configuration record for Ollama client using Java 25 records.
+ * Configuration record for Ollama client using Java 21+ records.
  * Provides immutable configuration with sensible defaults.
  */
 public record OllamaConfig(

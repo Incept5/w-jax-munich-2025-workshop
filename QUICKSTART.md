@@ -18,11 +18,11 @@ This creates an executable JAR at `target/ollama-java-demo.jar` (1.3MB with all 
 ### Basic Usage
 
 ```bash
-# Default run (requires --enable-preview for Java 25 features)
-java --enable-preview -jar target/ollama-java-demo.jar
+# Default run 
+java -jar target/ollama-java-demo.jar
 
 # Show help
-java --enable-preview -jar target/ollama-java-demo.jar --help
+java -jar target/ollama-java-demo.jar --help
 ```
 
 ## Common Commands
@@ -163,7 +163,7 @@ mvn exec:java
 mvn exec:java -Dexec.args="-p 'Hello' -s"
 ```
 
-## Java 25 Features Used
+## Java 21+ Features Used
 
 ✨ **Records** - Immutable data models with automatic methods
 ✨ **Virtual Threads** - Efficient concurrency with Project Loom
@@ -181,9 +181,6 @@ mvn exec:java -Dexec.args="-p 'Hello' -s"
 
 **Problem**: `Model not found`
 **Solution**: Pull the model first with `ollama pull gemma3`
-
-**Problem**: Preview features warning
-**Solution**: Always use `--enable-preview` flag with Java 25
 
 ## Project Structure
 
