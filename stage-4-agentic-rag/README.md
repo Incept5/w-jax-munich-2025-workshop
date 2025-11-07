@@ -2,46 +2,92 @@
 
 **Status**: ✅ Complete (Phase 1: Ingestion Pipeline + Phase 2: Conversational Agent)
 
-## ✅ Backend Options: Ollama or Python
+## ⚠️ Important: Use Python Embedding Service
 
-**UPDATE (2025-11-07)**: Both Ollama and Python backends now work correctly! Choose based on your needs.
+**Due to an Ollama API bug, you MUST use the Python embedding service for this stage.**
 
-### Option 1: Ollama Backend (Simpler Setup)
+The Python service provides:
+- ✅ Reliable embedding generation
+- ✅ Drop-in replacement for Ollama API
+- ✅ Fast local inference
+- ✅ No external dependencies once set up
 
-```bash
-# Start Ollama (if not already running)
-ollama serve
+### Setup Steps (Required)
 
-# Pull embedding model (if needed)
-ollama pull nomic-embed-text
-
-# Run ingestion with Ollama
-./ingest.sh --backend=ollama
-```
-
-**Pros**: Simpler setup, no Python dependencies, uses your existing Ollama installation
-
-### Option 2: Python Backend (More Reliable)
+**Step 1: Start the Python Embedding Service**
 
 ```bash
-# Terminal 1: Start Python embedding service
-cd embedding-service
+cd stage-4-agentic-rag/embedding-service
 ./start.sh
-
-# Terminal 2: Run ingestion
-cd ..
-./ingest.sh --backend=python  # or just ./ingest.sh (Python is default)
 ```
 
-**Pros**: More reliable, better tested, handles edge cases well
+**What happens on first run:**
+- Creates conda environment with Python 3.11
+- Installs dependencies (fastapi, sentence-transformers, PyTorch, etc.)
+- Downloads nomic-embed-text-v1.5 model (~500MB, one-time)
+- Starts service on http://localhost:8001
 
-### Which Should I Use?
+**Subsequent runs:** Service starts immediately (environment and model cached)
 
-- **Workshop/Learning**: Use **Ollama** (simpler, fewer dependencies)
-- **Production**: Use **Python** (more reliable, better tested)
-- **No Preference**: Use **Python** (default in ingest.sh)
+**Wait for this output before proceeding:**
+```
+✓ Model loaded successfully (768 dimensions)
+INFO:     Uvicorn running on http://0.0.0.0:8001
+```
 
-See [`OLLAMA_FIX.md`](./OLLAMA_FIX.md) for technical details on the backend implementation.
+**Step 2: Run Ingestion (In a New Terminal)**
+
+```bash
+cd stage-4-agentic-rag
+./ingest.sh
+```
+
+The ingestion script will:
+- ✓ Verify Python service is running
+- ✓ Start PostgreSQL with pgvector
+- ✓ Process documents and generate embeddings
+- ✓ Store everything in the database
+
+### Prerequisites for Python Service
+
+**Required:**
+- **Conda** (Miniconda or Anaconda)
+  - Install: https://docs.conda.io/en/latest/miniconda.html
+- **8GB+ RAM** recommended
+- **500MB disk space** for model download (one-time)
+
+**Verify conda is installed:**
+```bash
+conda --version
+# Should output: conda X.Y.Z
+```
+
+**If conda is not found:**
+```bash
+# Initialize conda for your shell
+conda init bash  # or zsh, fish, etc.
+
+# Restart your shell or source config
+source ~/.bashrc  # or ~/.zshrc
+```
+
+### Troubleshooting Python Service
+
+If you encounter issues, see [`embedding-service/README.md`](./embedding-service/README.md) for detailed troubleshooting.
+
+**Quick verification:**
+```bash
+cd embedding-service
+./verify-setup.sh
+```
+
+**Common issues:**
+- **"conda: command not found"** → Run `conda init bash` and restart shell
+- **Wrong Python version** → Environment will auto-create with Python 3.11
+- **Port 8001 in use** → Change port in `server.py`
+- **Module not found** → Run `./verify-setup.sh` to diagnose
+
+See [`OLLAMA_FIX.md`](./OLLAMA_FIX.md) for technical details on why Ollama can't be used.
 
 ---
 
@@ -324,40 +370,39 @@ docker ps
 python3 --version  # Should be 3.9 or higher
 ```
 
-### 3. Ollama Running (for LLM only, not embeddings)
+### 3. Ollama Running (for LLM only)
 ```bash
 # Start Ollama
 ollama serve
 
-# Pull required LLM model (for agent reasoning)
+# Pull required LLM model (for agent reasoning, NOT embeddings)
 ollama pull incept5/Jan-v1-2509:fp16
-
-# Note: You do NOT need to pull nomic-embed-text for Ollama
-# The Python embedding service handles embeddings
 ```
 
-### 4. Start Python Embedding Service (REQUIRED)
+**Note**: Ollama is only used for the agent's reasoning (LLM). The Python service handles all embeddings.
+
+### 4. Verify Python Embedding Service is Running
+
+The Python service should already be running from the setup steps above.
+
+**Check the service:**
+```bash
+# In the terminal where you ran ./start.sh, you should see:
+# ✓ Model loaded successfully (768 dimensions)
+# INFO:     Uvicorn running on http://0.0.0.0:8001
+
+# Test from another terminal:
+curl http://localhost:8001/health
+# Should return: {"status":"healthy","model":"nomic-ai/nomic-embed-text-v1.5","dimensions":768}
+```
+
+**If not running:**
 ```bash
 cd stage-4-agentic-rag/embedding-service
 ./start.sh
-
-# Wait for output:
-# ✓ Model loaded successfully (768 dimensions)
-# INFO:     Uvicorn running on http://0.0.0.0:8001
 ```
 
-**First run will**:
-- Create conda environment (recommended over venv)
-- Install dependencies (fastapi, sentence-transformers, PyTorch, einops, etc.)
-- Download nomic-embed-text-v1.5 model (~500MB, one-time)
-- Start the embedding service
-
-**Prerequisites**: Conda (Miniconda or Anaconda) must be installed  
-**Installation**: https://docs.conda.io/en/latest/miniconda.html
-
-**Subsequent runs**: Service starts immediately (environment and model cached)
-
-**See**: [`embedding-service/README.md`](./embedding-service/README.md) for detailed setup and troubleshooting
+**For troubleshooting**, see [`embedding-service/README.md`](./embedding-service/README.md)
 
 ### 5. Run the Ingestion Script (REQUIRED)
 ```bash
@@ -369,12 +414,12 @@ cd stage-4-agentic-rag
 ```
 
 **What `ingest.sh` does**:
-- ✓ Verifies Python embedding service is running
+- ✓ Verifies Python embedding service is running (REQUIRED)
 - ✓ Starts PostgreSQL with pgvector extension (Docker)
 - ✓ Runs database migrations (Flyway)
 - ✓ Loads repository text files (committed to git)
 - ✓ Chunks documents into searchable segments
-- ✓ Generates embeddings via Python service (not Ollama)
+- ✓ Generates embeddings via Python service (768 dimensions)
 - ✓ Stores everything in PostgreSQL
 
 **Optional refresh mode** (`./ingest.sh --refresh`):
@@ -386,8 +431,8 @@ cd stage-4-agentic-rag
 ```
 🚀 Stage 4: RAG Ingestion Pipeline
 
-🐍 Using Python embedding service (recommended)
-✓ Python service is ready
+🐍 Using Python embedding service (REQUIRED)
+✓ Python service is ready at http://localhost:8001
 
 📄 Using committed repository files from git
    (Use --refresh to fetch fresh data with gitingest)
@@ -414,7 +459,10 @@ Processing embabel-examples...
 Total documents: 487
 ```
 
-**First-time setup takes**: 2-3 minutes (generating embeddings from committed files)
+**First-time setup takes**: 
+- Python service first run: 2-3 minutes (download model, create environment)
+- Ingestion: 2-3 minutes (generating embeddings from committed files)
+- Total: ~5 minutes for complete setup
 
 **Note**: The repository text files are already committed to git, so no external downloads are needed. To fetch fresh content, use `./ingest.sh --refresh` (requires `gitingest` installation).
 
@@ -449,6 +497,17 @@ Total documents: 487
 
 ### Step 1: Setup (One-Time)
 
+**Terminal 1 - Start Python Service:**
+```bash
+cd stage-4-agentic-rag/embedding-service
+./start.sh
+
+# Wait for:
+# ✓ Model loaded successfully (768 dimensions)
+# INFO:     Uvicorn running on http://0.0.0.0:8001
+```
+
+**Terminal 2 - Run Ingestion:**
 ```bash
 cd stage-4-agentic-rag
 
@@ -812,20 +871,21 @@ docker exec -it stage4-pgvector psql -U workshop -d workshop_rag -c "SELECT COUN
 
 Should show count > 0 (typically ~487 documents).
 
-### Ollama connection refused
+### Ollama connection refused (for LLM)
 
-**Solution**: Start Ollama and pull models
+**Solution**: Start Ollama and pull the LLM model
 ```bash
 # Start Ollama
 ollama serve
 
-# Pull required models
+# Pull required LLM model (for agent reasoning)
 ollama pull incept5/Jan-v1-2509:fp16
-ollama pull nomic-embed-text
 
 # Verify
 curl http://localhost:11434/api/tags
 ```
+
+**Note**: You do NOT need `nomic-embed-text` in Ollama. The Python service handles embeddings.
 
 ### PostgreSQL connection refused
 
@@ -852,6 +912,49 @@ docker-compose logs
 ollama pull qwen2.5:7b
 # Update LLM_MODEL in RAGAgentDemo.java
 ```
+
+### Python embedding service not running
+
+**Error**: "Connection refused" or "Service not available" during ingestion
+
+**Solution**: Start the Python service
+```bash
+cd embedding-service
+./start.sh
+
+# Wait for:
+# ✓ Model loaded successfully (768 dimensions)
+# INFO:     Uvicorn running on http://0.0.0.0:8001
+```
+
+**Verify it's working:**
+```bash
+curl http://localhost:8001/health
+# Should return: {"status":"healthy",...}
+```
+
+### Python service setup issues
+
+**Problem**: Service won't start or shows errors
+
+**Solution 1**: Run verification script
+```bash
+cd embedding-service
+./verify-setup.sh
+```
+
+**Solution 2**: Recreate conda environment
+```bash
+conda env remove -n embedding-service
+./start.sh  # Will recreate environment
+```
+
+**Solution 3**: Check detailed troubleshooting
+See [`embedding-service/README.md`](./embedding-service/README.md) for:
+- Conda installation issues
+- Python version problems
+- Module not found errors
+- Port conflicts
 
 ### "Repository file not found" error
 
@@ -883,9 +986,15 @@ pipx install gitingest  # if pipx already installed
 # Or manually:
 docker-compose down -v
 rm -rf data/
+
+# Stop Python service (Ctrl+C in the terminal where it's running)
+# Or:
+pkill -f "python.*server.py"
 ```
 
-Then re-run `./ingest.sh` to start fresh.
+Then restart:
+1. Python service: `cd embedding-service && ./start.sh`
+2. Ingestion: `./ingest.sh`
 
 ## What You'll Learn
 
