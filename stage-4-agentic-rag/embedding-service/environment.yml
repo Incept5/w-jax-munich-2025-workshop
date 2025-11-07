@@ -1,0 +1,15 @@
+name: embedding-service
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pytorch>=2.0.0
+  - pip
+  - pip:
+    - fastapi>=0.115.0
+    - uvicorn[standard]>=0.32.0
+    - sentence-transformers>=3.3.0
+    - pydantic>=2.10.0
+    - einops>=0.8.1

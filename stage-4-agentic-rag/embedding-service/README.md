@@ -1,96 +1,87 @@
-# Python Embedding Service
+# Local Embedding Service
 
-## Why This Service Exists
+A FastAPI-based embedding service that provides Ollama-compatible API for generating embeddings using sentence-transformers.
 
-**TL;DR**: Ollama has a bug in its embedding API (as of January 2025) that causes ingestion to fail. This Python service provides a reliable workaround while maintaining API compatibility.
+## Prerequisites
 
-## The Ollama Bug
-
-When using Ollama's `/api/embeddings` endpoint during document ingestion, the following issues occur:
-
-- Embedding generation becomes unreliable after processing multiple documents
-- Connection timeouts or malformed responses
-- Inconsistent vector dimensions in responses
-
-This affects the workshop's ability to demonstrate RAG reliably.
-
-## Our Solution
-
-This Python service:
-- ✅ Provides the **exact same API** as Ollama
-- ✅ Uses the **same embedding model** (nomic-embed-text-v1.5)
-- ✅ Generates **identical 768-dimensional vectors**
-- ✅ Is **fast and reliable** (sentence-transformers library)
-- ✅ Requires **no changes** to Java code
+- **Conda** (Miniconda or Anaconda)
+  - Install from: https://docs.conda.io/en/latest/miniconda.html
+- **8GB+ RAM** recommended for model loading
 
 ## Quick Start
 
-### Installation
+### 1. Start the Service
 
 ```bash
-cd embedding-service
+cd stage-4-agentic-rag/embedding-service
 ./start.sh
 ```
 
-This will:
-1. Create a Python virtual environment
-2. Install dependencies (fastapi, sentence-transformers, etc.)
-3. Download the nomic-embed-text-v1.5 model (~500MB, one-time)
-4. Start the service on http://localhost:8001
+The script will:
+- Check for conda installation
+- Create a conda environment (first time only)
+- Install all dependencies
+- Start the server on http://localhost:8001
 
-### Testing
-
-```bash
-# In another terminal
-cd embedding-service
-./test.sh
-```
-
-Expected output:
-```
-🧪 Testing embedding service...
-✅ Service is responding
-Response (first 100 chars):
-{"embedding":[0.123, -0.456, 0.789, ...]}
-```
-
-## Usage with Ingestion
-
-### Recommended (Python Service)
+### 2. Test the Service
 
 ```bash
-# Terminal 1: Start Python service
-cd embedding-service
-./start.sh
+# Health check
+curl http://localhost:8001/health
 
-# Terminal 2: Run ingestion
-cd ..
-./ingest.sh  # Uses Python by default
+# Generate embedding
+curl -X POST http://localhost:8001/api/embeddings \
+  -H "Content-Type: application/json" \
+  -d '{"model": "nomic-embed-text", "prompt": "Hello, world!"}'
 ```
 
-### Alternative (Ollama - Not Recommended)
+## Manual Setup
 
-If you want to try Ollama despite the bug:
+If you prefer to set up the environment manually:
 
 ```bash
-# Terminal 1: Start Ollama
-ollama serve
+# Create conda environment
+conda env create -f environment.yml
 
-# Terminal 2: Run ingestion with Ollama
-EMBEDDING_BACKEND=ollama ./ingest.sh
+# Activate environment
+conda activate embedding-service
+
+# Start server
+python server.py
 ```
 
-Or use the command line flag:
+## Environment Management
+
+### Update Dependencies
 
 ```bash
-./ingest.sh --backend=ollama
+# Update environment.yml with new packages
+conda env update -f environment.yml --prune
 ```
 
-## API Compatibility
+### Recreate Environment
 
-The Python service implements Ollama's `/api/embeddings` endpoint exactly:
+```bash
+# Remove existing environment
+conda env remove -n embedding-service
 
-**Request**:
+# Create fresh environment
+conda env create -f environment.yml
+```
+
+### Remove Environment
+
+```bash
+conda env remove -n embedding-service
+```
+
+## API Endpoints
+
+### POST /api/embeddings
+
+Generate embedding for text (Ollama-compatible format).
+
+**Request:**
 ```json
 {
   "model": "nomic-embed-text",
@@ -98,149 +89,187 @@ The Python service implements Ollama's `/api/embeddings` endpoint exactly:
 }
 ```
 
-**Response**:
+**Response:**
 ```json
 {
-  "embedding": [0.123, -0.456, 0.789, ...]
+  "embedding": [0.123, -0.456, ...]
 }
 ```
 
-This means the Java `EmbeddingService` class works identically with both backends - just change the URL!
+### GET /health
 
-## Configuration
+Health check endpoint.
 
-### Environment Variable
-
-```bash
-export EMBEDDING_SERVICE_URL="http://localhost:8001"
-./ingest.sh
+**Response:**
+```json
+{
+  "status": "healthy",
+  "model": "nomic-ai/nomic-embed-text-v1.5",
+  "dimensions": 768
+}
 ```
 
-### Command Line
+### GET /
 
-```bash
-# Use Python (default)
-./ingest.sh
+Service information.
 
-# Use Ollama
-./ingest.sh --backend=ollama
+## Model Information
 
-# Use Python explicitly
-./ingest.sh --backend=python
-```
+**Default Model:** `nomic-ai/nomic-embed-text-v1.5`
+- Dimensions: 768
+- Context Length: 8192 tokens
+- License: Apache 2.0
 
-### Java Code
-
-```java
-// Option 1: Use Python service explicitly
-EmbeddingService service = new EmbeddingService(
-    "http://localhost:8001", 
-    "nomic-embed-text"
-);
-
-// Option 2: Use environment variable
-EmbeddingService service = EmbeddingService.fromEnvironment();
-
-// Option 3: Default to Ollama (not recommended)
-EmbeddingService service = new EmbeddingService();
-```
+The model is downloaded automatically on first run and cached locally.
 
 ## Troubleshooting
 
-### Port Already in Use
+### Conda Not Found
 
-If port 8001 is taken:
+If you get "conda: command not found":
 
 ```bash
-# Edit server.py, change the port:
-uvicorn.run(app, host="0.0.0.0", port=8002)  # Use 8002 instead
+# Initialize conda for your shell
+conda init bash  # or zsh, fish, etc.
 
-# Then update the URL when running:
-EMBEDDING_SERVICE_URL="http://localhost:8002" ./ingest.sh
+# Restart your shell or source the config
+source ~/.bashrc  # or ~/.zshrc
+```
+
+### Module Not Found Errors (einops, etc.)
+
+If you see "No module named 'einops'" or similar import errors despite successful installation:
+
+**Root Cause:** Old venv or PYTHONPATH interfering with conda environment.
+
+**Solution:**
+
+1. Run the verification script:
+   ```bash
+   ./test-conda-fix.sh
+   ```
+
+2. If issues persist, recreate the environment:
+   ```bash
+   # Remove old environment
+   conda env remove -n embedding-service
+   
+   # Remove any old venv directory
+   rm -rf venv/
+   
+   # Start fresh
+   ./start.sh
+   ```
+
+3. Check for interfering environment variables:
+   ```bash
+   # These should be empty or not set
+   echo $PYTHONPATH
+   echo $VIRTUAL_ENV
+   ```
+
+**Why This Happens:**
+- The start.sh script now clears PYTHONPATH/VIRTUAL_ENV before activation
+- Uses `conda run` instead of `conda activate` for reliability
+- Python 3.11 is used (3.14 not yet supported by sentence-transformers)
+
+### Port Already in Use
+
+If port 8001 is already in use, modify `server.py`:
+
+```python
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8002, log_level="info")  # Change port
 ```
 
 ### Model Download Issues
 
-The first run downloads ~500MB. If it fails:
+If model download fails:
+
+1. Check internet connection
+2. Try manual download:
+   ```python
+   from sentence_transformers import SentenceTransformer
+   model = SentenceTransformer("nomic-ai/nomic-embed-text-v1.5")
+   ```
+
+### Memory Issues
+
+If you encounter out-of-memory errors:
+- Close other applications
+- Ensure at least 8GB RAM available
+- Consider using a smaller model
+
+### Python Version Issues
+
+The service requires **Python 3.11** (specified in environment.yml). If you see Python 3.14 or other versions:
+
+1. Remove the environment:
+   ```bash
+   conda env remove -n embedding-service
+   ```
+
+2. Recreate with correct Python version:
+   ```bash
+   ./start.sh
+   ```
+
+3. Verify:
+   ```bash
+   conda run -n embedding-service python --version
+   # Should show: Python 3.11.x
+   ```
+
+## Development
+
+### Running Tests
 
 ```bash
-cd embedding-service
-source venv/bin/activate
-
-# Manually download the model
-python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('nomic-ai/nomic-embed-text-v1.5', trust_remote_code=True)"
+conda activate embedding-service
+pytest tests/  # (if tests are added)
 ```
 
-### Python Version
-
-Requires Python 3.9+:
+### Code Formatting
 
 ```bash
-python3 --version  # Check version
+conda activate embedding-service
+pip install black
+black server.py
 ```
 
-If you need to install Python 3.9+:
+## Architecture
 
-```bash
-# macOS
-brew install python@3.11
-
-# Ubuntu/Debian
-sudo apt install python3.11
-
-# Windows
-# Download from python.org
+```
+┌─────────────────────────────────────┐
+│  Java RAG Agent (stage-4-agentic-rag)│
+└────────────────┬────────────────────┘
+                 │ HTTP POST
+                 │ /api/embeddings
+                 ▼
+┌─────────────────────────────────────┐
+│  FastAPI Server (port 8001)          │
+│  ├─ /api/embeddings                  │
+│  ├─ /health                          │
+│  └─ /                                │
+└────────────────┬────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────┐
+│  sentence-transformers               │
+│  └─ nomic-embed-text-v1.5           │
+└─────────────────────────────────────┘
 ```
 
-### Dependencies Installation Fails
+## Why This Service?
 
-If pip install fails:
+This service provides a workaround for Ollama's embedding API bug while maintaining API compatibility for drop-in replacement in the workshop RAG agent.
 
-```bash
-# Update pip first
-pip install --upgrade pip
+Benefits:
+- **Fast**: Local inference with optimized transformers
+- **Compatible**: Drop-in replacement for Ollama embedding API
+- **Reliable**: No Ollama bugs or network issues
+- **Flexible**: Easy to swap models
 
-# Install dependencies one by one to identify the problem
-pip install fastapi
-pip install uvicorn[standard]
-pip install sentence-transformers
-pip install pydantic
-pip install torch
-```
+## License
 
-## When Ollama Gets Fixed
-
-Once the Ollama bug is resolved, you can:
-
-1. Keep using the Python service (it works great!)
-2. Switch back to Ollama: `./ingest.sh --backend=ollama`
-3. Remove the Python service entirely (optional)
-
-The beauty of this design is that switching is trivial - just change the URL!
-
-## Performance Comparison
-
-| Backend | Speed | Reliability | Setup |
-|---------|-------|-------------|-------|
-| Python Service | ~100 embeddings/sec | ✅ Excellent | Simple |
-| Ollama | ~80 embeddings/sec | ❌ Buggy | Medium |
-
-*Benchmarked on M2 MacBook Pro with ~800 token chunks*
-
-## Architecture Benefits
-
-This implementation demonstrates several software engineering best practices:
-
-1. **Dependency Inversion**: Code depends on an interface (HTTP API), not implementation
-2. **Configuration over Hard-coding**: Backend URL is configurable
-3. **Fail-safe Defaults**: Falls back gracefully with clear error messages
-4. **Easy Testing**: Can swap backends for testing without code changes
-5. **Future-proof**: When Ollama fixes the bug, switching back is one line
-
----
-
-**Note**: This is a temporary workaround. We're keeping Ollama support in the codebase because:
-- The bug will likely be fixed soon
-- Some participants may have working Ollama versions
-- It demonstrates backend flexibility patterns
-- Shows real-world problem-solving in workshops
+This service is part of the W-JAX Munich 2025 Workshop materials.

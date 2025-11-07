@@ -331,12 +331,17 @@ cd stage-4-agentic-rag/embedding-service
 ```
 
 **First run will**:
-- Create Python virtual environment
-- Install dependencies (fastapi, sentence-transformers, etc.)
+- Create conda environment (recommended over venv)
+- Install dependencies (fastapi, sentence-transformers, PyTorch, einops, etc.)
 - Download nomic-embed-text-v1.5 model (~500MB, one-time)
 - Start the embedding service
 
-**Subsequent runs**: Service starts immediately (model cached)
+**Prerequisites**: Conda (Miniconda or Anaconda) must be installed  
+**Installation**: https://docs.conda.io/en/latest/miniconda.html
+
+**Subsequent runs**: Service starts immediately (environment and model cached)
+
+**See**: [`embedding-service/README.md`](./embedding-service/README.md) for detailed setup and troubleshooting
 
 ### 5. Run the Ingestion Script (REQUIRED)
 ```bash
