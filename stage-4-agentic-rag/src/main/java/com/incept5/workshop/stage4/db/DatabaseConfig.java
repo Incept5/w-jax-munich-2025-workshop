@@ -16,24 +16,32 @@ public class DatabaseConfig {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
     
     // Connection settings - configurable via environment variables for workshop sharing
-    private static final String DEFAULT_JDBC_URL = System.getenv().getOrDefault(
-        "DB_URL", 
-        "jdbc:postgresql://localhost:5432/workshop_rag"
-    );
-    private static final String DEFAULT_USERNAME = System.getenv().getOrDefault(
-        "DB_USER",
-        "workshop"
-    );
-    private static final String DEFAULT_PASSWORD = System.getenv().getOrDefault(
-        "DB_PASSWORD",
-        "workshop123"
-    );
+    // Note: Using methods instead of static finals to read env vars at call time (not class load time)
+    private static String getDefaultJdbcUrl() {
+        return System.getenv().getOrDefault("DB_URL", "jdbc:postgresql://localhost:5432/workshop_rag");
+    }
+    
+    private static String getDefaultUsername() {
+        return System.getenv().getOrDefault("DB_USER", "workshop");
+    }
+    
+    private static String getDefaultPassword() {
+        return System.getenv().getOrDefault("DB_PASSWORD", "workshop123");
+    }
     
     /**
      * Create a DataSource with default configuration.
+     * Reads environment variables at call time for maximum flexibility.
      */
     public static DataSource createDataSource() {
-        return createDataSource(DEFAULT_JDBC_URL, DEFAULT_USERNAME, DEFAULT_PASSWORD);
+        String jdbcUrl = getDefaultJdbcUrl();
+        String username = getDefaultUsername();
+        String password = getDefaultPassword();
+        
+        logger.debug("Database config from environment: DB_URL={}", System.getenv("DB_URL"));
+        logger.debug("Resolved JDBC URL: {}", jdbcUrl);
+        
+        return createDataSource(jdbcUrl, username, password);
     }
     
     /**
