@@ -11,7 +11,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>stage-3-agentic-rag</artifactId>
+    <artifactId>stage-4-agentic-rag</artifactId>
     <packaging>jar</packaging>
 
     <name>W-JAX Munich 2025 Workshop - Stage 3: Agentic RAG</name>
