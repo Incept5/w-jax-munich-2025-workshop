@@ -3,7 +3,7 @@ version: '3.8'
 services:
   pgvector:
     image: pgvector/pgvector:pg17
-    container_name: stage3-pgvector
+    container_name: stage4-pgvector
     environment:
       POSTGRES_USER: workshop
       POSTGRES_PASSWORD: workshop123

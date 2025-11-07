@@ -91,7 +91,7 @@ graph TB
 ### Directory Structure
 
 ```
-stage-3-agentic-rag/
+stage-4-agentic-rag/
 ├── pom.xml                              # Maven configuration with new dependencies
 ├── README.md                            # Stage-specific instructions
 ├── architecture.md                      # This file
@@ -111,7 +111,7 @@ stage-3-agentic-rag/
 │       └── ...
 │
 └── src/
-    ├── main/java/com/incept5/workshop/stage3/
+    ├── main/java/com/incept5/workshop/stage4/
     │   ├── RAGAgent.java                     # Main conversational agent
     │   ├── RAGAgentDemo.java                 # CLI demonstration
     │   │
@@ -133,7 +133,7 @@ stage-3-agentic-rag/
     │       ├── JsonToolCallParser.java       # Parse JSON tool calls
     │       └── ConversationMemory.java       # Track conversation history
     │
-    └── test/java/com/incept5/workshop/stage3/
+    └── test/java/com/incept5/workshop/stage4/
         ├── README.md                         # Test documentation
         └── RAGAgentIntegrationTest.java      # End-to-end test
 ```
@@ -179,8 +179,8 @@ docker run --rm \
 
 # Step 4: Process each repository from repos.yaml
 echo "📚 Ingesting repositories..."
-java -cp target/stage-3-agentic-rag.jar \
-    com.incept5.workshop.stage3.ingestion.IngestionService \
+java -cp target/stage-4-agentic-rag.jar \
+    com.incept5.workshop.stage4.ingestion.IngestionService \
     repos.yaml
 
 echo
@@ -1039,7 +1039,7 @@ public class EmbeddingService {
 ### 1. Initial Setup & Ingestion
 
 ```bash
-cd stage-3-agentic-rag
+cd stage-4-agentic-rag
 
 # One command to setup everything
 ./ingest.sh
@@ -1429,14 +1429,14 @@ for (int i = 0; i < chunks.size(); i += batchSize) {
 
 **Participants execute**:
 ```bash
-cd stage-3-agentic-rag
+cd stage-4-agentic-rag
 ./ingest.sh
 ```
 
 **While ingestion runs, explore**:
 ```bash
 # Connect to PostgreSQL
-docker exec -it stage3-pgvector psql -U workshop -d workshop_rag
+docker exec -it stage4-pgvector psql -U workshop -d workshop_rag
 
 # Check documents table
 \d documents
@@ -1603,7 +1603,7 @@ CREATE TABLE messages (
 docker ps
 
 # Check logs
-docker logs stage3-pgvector
+docker logs stage4-pgvector
 
 # Restart
 docker-compose restart

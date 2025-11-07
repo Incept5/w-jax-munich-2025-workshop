@@ -2,7 +2,7 @@
 #!/bin/bash
 
 # Build the project if JAR doesn't exist or source files are newer
-if [ ! -f target/stage-1-simple-agent.jar ] || [ src/ -nt target/stage-1-simple-agent.jar ]; then
+if [ ! -f target/stage-2-simple-agent.jar ] || [ src/ -nt target/stage-2-simple-agent.jar ]; then
     echo "Building project..."
     mvn clean package -DskipTests
     if [ $? -ne 0 ]; then
@@ -13,4 +13,4 @@ if [ ! -f target/stage-1-simple-agent.jar ] || [ src/ -nt target/stage-1-simple-
 fi
 
 # Run the application with all arguments passed through
-java -jar target/stage-1-simple-agent.jar "$@"
+java -jar target/stage-2-simple-agent.jar "$@"

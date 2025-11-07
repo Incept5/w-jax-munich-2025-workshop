@@ -12,7 +12,7 @@ NC='\033[0m' # No Color
 
 # Script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-JAR_FILE="$SCRIPT_DIR/target/stage-2-mcp-server.jar"
+JAR_FILE="$SCRIPT_DIR/target/stage-3-mcp-server.jar"
 
 # Check if JAR exists
 if [ ! -f "$JAR_FILE" ]; then
@@ -35,7 +35,7 @@ case "$MODE" in
     server)
         # Print header
         echo -e "${BLUE}═══════════════════════════════════════════════════════════${NC}"
-        echo -e "${BLUE}  Stage 2: MCP Server${NC}"
+        echo -e "${BLUE}  Stage 3: MCP Server${NC}"
         echo -e "${BLUE}═══════════════════════════════════════════════════════════${NC}"
         echo ""
         
@@ -93,7 +93,7 @@ case "$MODE" in
     interactive)
         # Print header
         echo -e "${BLUE}═══════════════════════════════════════════════════════════${NC}"
-        echo -e "${BLUE}  Stage 2: MCP Agent - Interactive Mode${NC}"
+        echo -e "${BLUE}  Stage 3: MCP Agent - Interactive Mode${NC}"
         echo -e "${BLUE}═══════════════════════════════════════════════════════════${NC}"
         echo ""
         
@@ -102,7 +102,7 @@ case "$MODE" in
         ;;
     
     help|--help|-h)
-        echo -e "${BLUE}Stage 2: MCP Server & Agent${NC}"
+        echo -e "${BLUE}Stage 3: MCP Server & Agent${NC}"
         echo ""
         echo "Usage: $0 [mode] [options]"
         echo ""

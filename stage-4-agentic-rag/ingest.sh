@@ -55,7 +55,7 @@ docker-compose up -d
 # Wait for PostgreSQL to be ready
 echo "Waiting for PostgreSQL to be ready..."
 for i in {1..30}; do
-    if docker exec stage3-pgvector pg_isready -U workshop -d workshop_rag &> /dev/null; then
+    if docker exec stage4-pgvector pg_isready -U workshop -d workshop_rag &> /dev/null; then
         echo -e "${GREEN}✓ PostgreSQL is ready${NC}"
         break
     fi
@@ -98,15 +98,15 @@ fi
 
 # Run the ingestion
 if [ "$REFRESH_MODE" = true ]; then
-    java -jar target/stage-3-agentic-rag-1.0-SNAPSHOT.jar repos.yaml --refresh
+    java -jar target/stage-4-agentic-rag-1.0-SNAPSHOT.jar repos.yaml --refresh
 else
-    java -jar target/stage-3-agentic-rag-1.0-SNAPSHOT.jar repos.yaml
+    java -jar target/stage-4-agentic-rag-1.0-SNAPSHOT.jar repos.yaml
 fi
 
 echo
 echo -e "${GREEN}✅ Ingestion pipeline complete!${NC}"
 echo
 echo "Next steps:"
-echo "  - Check documents: docker exec -it stage3-pgvector psql -U workshop -d workshop_rag -c 'SELECT COUNT(*) FROM documents;'"
-echo "  - Query by source: docker exec -it stage3-pgvector psql -U workshop -d workshop_rag -c 'SELECT source, COUNT(*) FROM documents GROUP BY source;'"
+echo "  - Check documents: docker exec -it stage4-pgvector psql -U workshop -d workshop_rag -c 'SELECT COUNT(*) FROM documents;'"
+echo "  - Query by source: docker exec -it stage4-pgvector psql -U workshop -d workshop_rag -c 'SELECT source, COUNT(*) FROM documents GROUP BY source;'"
 echo "  - Stop database: docker-compose down"

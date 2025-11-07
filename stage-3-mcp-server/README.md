@@ -142,8 +142,8 @@ MCP is an open protocol that standardizes how applications provide context to La
 ## Project Structure
 
 ```
-stage-2-mcp-server/
-├── src/main/java/com/incept5/workshop/stage2/
+stage-3-mcp-server/
+├── src/main/java/com/incept5/workshop/stage3/
 │   ├── SimpleMCPServer.java     # MCP server implementation
 │   ├── MCPClient.java            # MCP client for connecting to server
 │   ├── MCPAgent.java             # AI agent that uses MCP tools
@@ -159,36 +159,53 @@ stage-2-mcp-server/
 
 ## Running the Project
 
+### Prerequisites
+
+**IMPORTANT**: You must build the project before running any commands:
+
+```bash
+cd stage-3-mcp-server
+mvn clean package
+```
+
+This creates the executable JAR file at `target/stage-3-mcp-server.jar`.
+
+**Having issues?** See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for common problems and solutions.
+
 ### Quick Start
 
 ```bash
-# Build the project
-cd stage-2-mcp-server
-mvn clean package
+# After building (mvn clean package), you can run:
 
 # Run in different modes:
 
 # 1. Server mode (for MCP Inspector/Claude Desktop)
 ./run.sh server
-# or: java -jar target/stage-2-mcp-server.jar server
+# or: java -jar target/stage-3-mcp-server.jar server
 
 # 2. Agent mode (single task)
 ./run.sh agent "What's the weather in Tokyo?"
-# or: java -jar target/stage-2-mcp-server.jar agent "What's the weather in Tokyo?"
+# or: java -jar target/stage-3-mcp-server.jar agent "What's the weather in Tokyo?"
 
 # 3. Interactive mode (chat with the agent)
 ./run.sh interactive
-# or: java -jar target/stage-2-mcp-server.jar interactive
+# or: java -jar target/stage-3-mcp-server.jar interactive
 ```
 
 ### Testing with MCP Inspector
 
-The MCP Inspector is a tool for testing MCP servers:
+The MCP Inspector is a tool for testing MCP servers.
+
+**First, make sure you've built the project** (see Prerequisites above).
+
+Then run:
 
 ```bash
 # Install and run the inspector (requires Node.js)
-npx @modelcontextprotocol/inspector java -jar target/stage-2-mcp-server.jar server
+npx @modelcontextprotocol/inspector java -jar target/stage-3-mcp-server.jar server
 ```
+
+**Troubleshooting**: If you see "Unable to access jarfile", you need to build first with `mvn clean package`. See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for details.
 
 This will:
 1. Start your MCP server
@@ -241,7 +258,7 @@ Add your server to Claude Desktop's configuration:
       "command": "java",
       "args": [
         "-jar",
-        "/absolute/path/to/stage-2-mcp-server.jar",
+        "/absolute/path/to/stage-3-mcp-server.jar",
         "server"
       ]
     }
@@ -364,7 +381,7 @@ Example schema:
 
 2. In another terminal, use the MCP Inspector:
    ```bash
-   npx @modelcontextprotocol/inspector java -jar target/stage-2-mcp-server.jar server
+   npx @modelcontextprotocol/inspector java -jar target/stage-3-mcp-server.jar server
    ```
 
 3. Test the tools through the web interface

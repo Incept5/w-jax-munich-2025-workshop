@@ -8,7 +8,7 @@ echo "🚀 Stage 3: RAG Agent Demo"
 echo
 
 # Check if jar exists
-if [ ! -f "target/stage-3-agentic-rag-1.0-SNAPSHOT.jar" ]; then
+if [ ! -f "target/stage-4-agentic-rag-1.0-SNAPSHOT.jar" ]; then
     echo "📦 Building project..."
     mvn clean package -DskipTests
     echo
@@ -26,5 +26,5 @@ fi
 echo
 
 # Run the agent (explicitly specify the demo class)
-java -cp target/stage-3-agentic-rag-1.0-SNAPSHOT.jar \
-    com.incept5.workshop.stage3.agent.RAGAgentDemo $VERBOSE
+java -cp target/stage-4-agentic-rag-1.0-SNAPSHOT.jar \
+    com.incept5.workshop.stage4.agent.RAGAgentDemo $VERBOSE

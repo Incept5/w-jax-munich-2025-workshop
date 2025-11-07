@@ -13,7 +13,7 @@
     </parent>
 
     <artifactId>stage-2-simple-agent</artifactId>
-    <name>Stage 1 - Simple Agent with Tool Calling</name>
+    <name>Stage 2 - Simple Agent with Tool Calling</name>
     <description>First agent with real-world API tool calls</description>
 
     <dependencies>
@@ -71,7 +71,7 @@
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.incept5.workshop.stage1.SimpleAgentDemo</mainClass>
+                                    <mainClass>com.incept5.workshop.stage2.SimpleAgentDemo</mainClass>
                                 </transformer>
                             </transformers>
                             <filters>

@@ -145,11 +145,11 @@ For country info:
 ## Project Structure
 
 ```
-stage-1-simple-agent/
+stage-2-simple-agent/
 ├── pom.xml                           # Maven configuration
 ├── README.md                         # This file
 ├── run.sh                            # Quick run script
-└── src/main/java/com/incept5/workshop/stage1/
+└── src/main/java/com/incept5/workshop/stage2/
     ├── SimpleAgent.java              # Core agent loop (~200 lines)
     ├── SimpleAgentDemo.java          # CLI runner (~150 lines)
     ├── tool/
