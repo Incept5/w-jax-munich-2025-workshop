@@ -148,10 +148,10 @@ public class EmbeddingService {
             // Check response status
             if (response.statusCode() != 200) {
                 String errorMsg = String.format(
-                    "Embedding generation failed: %d - %s%nRequest body (first 200 chars): %s",
+                    "Embedding generation failed: %d - %s%nFull request body: %s",
                     response.statusCode(),
                     response.body(),
-                    jsonBody.substring(0, Math.min(200, jsonBody.length()))
+                    jsonBody
                 );
                 throw new RuntimeException(errorMsg);
             }

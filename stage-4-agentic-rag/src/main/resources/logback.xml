@@ -9,6 +9,9 @@
 
     <!-- Set logging level for the application -->
     <logger name="com.incept5.workshop.stage4" level="INFO"/>
+    
+    <!-- Enable TRACE logging for EmbeddingService -->
+    <logger name="com.incept5.workshop.stage4.ingestion.EmbeddingService" level="TRACE"/>
 
     <!-- Suppress HikariCP DEBUG spam -->
     <logger name="com.zaxxer.hikari" level="WARN"/>

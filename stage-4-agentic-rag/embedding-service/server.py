@@ -10,10 +10,11 @@ import base64
 import logging
 from typing import List, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
 import uvicorn
+import json
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -46,7 +47,7 @@ class EmbeddingResponse(BaseModel):
     embedding: List[float]
 
 @app.post("/api/embeddings")
-async def generate_embedding(request: EmbeddingRequest) -> EmbeddingResponse:
+async def generate_embedding(request: Request) -> EmbeddingResponse:
     """
     Generate embedding for the given text.
     
@@ -55,29 +56,63 @@ async def generate_embedding(request: EmbeddingRequest) -> EmbeddingResponse:
     
     Compatible with Ollama's /api/embeddings endpoint format.
     """
+    # Read and log raw request body
+    try:
+        body_bytes = await request.body()
+        logger.info("📥 Raw request received:")
+        logger.info("   Content-Type: %s", request.headers.get("content-type"))
+        logger.info("   Body length: %d bytes", len(body_bytes))
+        logger.info("   Body (first 200 chars): %s",
+                   body_bytes[:200].decode('utf-8', errors='replace'))
+
+        # Parse JSON manually
+        body_str = body_bytes.decode('utf-8')
+        request_data = json.loads(body_str)
+
+        # Extract fields
+        model_name = request_data.get('model')
+        prompt = request_data.get('prompt')
+        encoding = request_data.get('encoding', 'plain')
+
+        logger.info("   Parsed - Model: %s, Encoding: %s, Prompt length: %d",
+                   model_name, encoding, len(prompt) if prompt else 0)
+
+        if not prompt:
+            raise HTTPException(status_code=422, detail="Missing 'prompt' field")
+    except json.JSONDecodeError as e:
+        logger.error("❌ JSON decode error: %s", e)
+        logger.error("   Raw body: %s", body_bytes[:500])
+        raise HTTPException(status_code=422, detail=f"Invalid JSON: {str(e)}") from e
+    except Exception as e:
+        logger.error("❌ Request parsing error: %s", e)
+        raise HTTPException(status_code=422,
+                           detail=f"Request parsing failed: {str(e)}") from e
+
     try:
         # DECODE if base64 encoded
-        if request.encoding == "base64":
+        if encoding == "base64":
             logger.debug("Decoding base64 input (length: %d)",
-                        len(request.prompt))
+                        len(prompt))
             try:
-                decoded_bytes = base64.b64decode(request.prompt)
+                decoded_bytes = base64.b64decode(prompt)
                 text = decoded_bytes.decode('utf-8')
                 logger.debug("Decoded to %d characters", len(text))
             except base64.binascii.Error as e:
-                logger.error("Base64 decoding failed: %s", e)
+                logger.error("❌ Base64 decoding failed: %s", e)
+                logger.error("   Raw prompt (first 200 chars): %s", prompt[:200])
                 raise HTTPException(
                     status_code=422,
                     detail=f"Invalid base64 encoding: {str(e)}"
                 ) from e
             except UnicodeDecodeError as e:
-                logger.error("UTF-8 decoding failed: %s", e)
+                logger.error("❌ UTF-8 decoding failed: %s", e)
+                logger.error("   Decoded bytes (first 100): %s", decoded_bytes[:100])
                 raise HTTPException(
                     status_code=422,
                     detail=f"Invalid UTF-8 content: {str(e)}"
                 ) from e
         else:
-            text = request.prompt
+            text = prompt
 
         logger.debug("Generating embedding for text: %s...", text[:50])
 
@@ -87,11 +122,14 @@ async def generate_embedding(request: EmbeddingRequest) -> EmbeddingResponse:
         # Convert to list and return
         return EmbeddingResponse(embedding=embedding.tolist())
 
-    except HTTPException:
-        # Re-raise HTTP exceptions as-is
+    except HTTPException as e:
+        # Log HTTP exceptions before re-raising
+        logger.error("❌ HTTP Exception: %s", e.detail)
         raise
     except Exception as e:
-        logger.error("Embedding generation failed: %s", e)
+        logger.error("❌ Embedding generation failed: %s", e)
+        logger.error("   Request details: model=%s, encoding=%s, prompt_len=%d",
+                    model_name, encoding, len(prompt) if prompt else 0)
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 @app.get("/health")
