@@ -10,11 +10,10 @@ import base64
 import logging
 from typing import List, Optional
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
 import uvicorn
-import json
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -46,60 +45,37 @@ class EmbeddingResponse(BaseModel):
     """Response model for embedding generation."""
     embedding: List[float]
 
+
 @app.post("/api/embeddings")
-async def generate_embedding(request: Request) -> EmbeddingResponse:
+async def generate_embedding(request_body: EmbeddingRequest) -> EmbeddingResponse:
     """
     Generate embedding for the given text.
-    
+
     Supports both plain text and base64-encoded input to handle
     special characters, code blocks, and multi-line content safely.
-    
+
     Compatible with Ollama's /api/embeddings endpoint format.
     """
-    # Read and log raw request body
-    try:
-        body_bytes = await request.body()
-        logger.info("📥 Raw request received:")
-        logger.info("   Content-Type: %s", request.headers.get("content-type"))
-        logger.info("   Body length: %d bytes", len(body_bytes))
-        logger.info("   Body (first 200 chars): %s",
-                   body_bytes[:200].decode('utf-8', errors='replace'))
-
-        # Parse JSON manually
-        body_str = body_bytes.decode('utf-8')
-        request_data = json.loads(body_str)
-
-        # Extract fields
-        model_name = request_data.get('model')
-        prompt = request_data.get('prompt')
-        encoding = request_data.get('encoding', 'plain')
-
-        logger.info("   Parsed - Model: %s, Encoding: %s, Prompt length: %d",
-                   model_name, encoding, len(prompt) if prompt else 0)
-
-        if not prompt:
-            raise HTTPException(status_code=422, detail="Missing 'prompt' field")
-    except json.JSONDecodeError as e:
-        logger.error("❌ JSON decode error: %s", e)
-        logger.error("   Raw body: %s", body_bytes[:500])
-        raise HTTPException(status_code=422, detail=f"Invalid JSON: {str(e)}") from e
-    except Exception as e:
-        logger.error("❌ Request parsing error: %s", e)
-        raise HTTPException(status_code=422,
-                           detail=f"Request parsing failed: {str(e)}") from e
+    # Log the parsed request
+    logger.info("📥 Received embedding request:")
+    logger.info("   Model: %s", request_body.model)
+    logger.info("   Encoding: %s", request_body.encoding)
+    logger.info("   Prompt length: %d chars", len(request_body.prompt))
+    logger.info("   Prompt (first 100 chars): %s", request_body.prompt[:100])
 
     try:
         # DECODE if base64 encoded
-        if encoding == "base64":
+        if request_body.encoding == "base64":
             logger.debug("Decoding base64 input (length: %d)",
-                        len(prompt))
+                        len(request_body.prompt))
             try:
-                decoded_bytes = base64.b64decode(prompt)
+                decoded_bytes = base64.b64decode(request_body.prompt)
                 text = decoded_bytes.decode('utf-8')
                 logger.debug("Decoded to %d characters", len(text))
             except base64.binascii.Error as e:
                 logger.error("❌ Base64 decoding failed: %s", e)
-                logger.error("   Raw prompt (first 200 chars): %s", prompt[:200])
+                logger.error("   Raw prompt (first 200 chars): %s",
+                           request_body.prompt[:200])
                 raise HTTPException(
                     status_code=422,
                     detail=f"Invalid base64 encoding: {str(e)}"
@@ -112,7 +88,7 @@ async def generate_embedding(request: Request) -> EmbeddingResponse:
                     detail=f"Invalid UTF-8 content: {str(e)}"
                 ) from e
         else:
-            text = prompt
+            text = request_body.prompt
 
         logger.debug("Generating embedding for text: %s...", text[:50])
 
@@ -129,8 +105,10 @@ async def generate_embedding(request: Request) -> EmbeddingResponse:
     except Exception as e:
         logger.error("❌ Embedding generation failed: %s", e)
         logger.error("   Request details: model=%s, encoding=%s, prompt_len=%d",
-                    model_name, encoding, len(prompt) if prompt else 0)
+                    request_body.model, request_body.encoding,
+                    len(request_body.prompt))
         raise HTTPException(status_code=500, detail=str(e)) from e
+
 
 @app.get("/health")
 async def health_check():
@@ -140,6 +118,7 @@ async def health_check():
         "model": MODEL_NAME,
         "dimensions": model.get_sentence_embedding_dimension()
     }
+
 
 @app.get("/")
 async def root():
@@ -154,6 +133,7 @@ async def root():
         },
         "note": "Ollama-compatible API for embedding generation"
     }
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8001, log_level="info")
