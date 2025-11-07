@@ -11,19 +11,39 @@ unset PYTHONPATH
 unset VIRTUAL_ENV
 unset CONDA_PREFIX
 
-# Determine conda base path
-if [ -d "/opt/miniconda3" ]; then
-    CONDA_BASE="/opt/miniconda3"
-elif [ -d "$HOME/miniconda3" ]; then
-    CONDA_BASE="$HOME/miniconda3"
-elif [ -d "$HOME/anaconda3" ]; then
-    CONDA_BASE="$HOME/anaconda3"
-else
-    echo "❌ Error: Could not find conda installation"
-    echo "Please install Miniconda or Anaconda first:"
-    echo "  https://docs.conda.io/en/latest/miniconda.html"
+# Determine conda base path using conda's own detection
+echo "🔍 Detecting conda installation..."
+
+# Check if conda command is available
+if ! command -v conda &> /dev/null; then
+    echo "❌ Error: conda command not found in PATH"
+    echo ""
+    echo "Please initialize conda in your shell:"
+    echo "  # For bash:"
+    echo "  source ~/miniconda3/etc/profile.d/conda.sh"
+    echo "  # or"
+    echo "  source ~/anaconda3/etc/profile.d/conda.sh"
+    echo ""
+    echo "  # For zsh (add to ~/.zshrc):"
+    echo "  eval \"\$(conda shell.zsh hook)\""
+    echo ""
+    echo "Or install Miniconda: https://docs.conda.io/en/latest/miniconda.html"
     exit 1
 fi
+
+# Get conda base directory from conda itself
+CONDA_BASE=$(conda info --base 2>/dev/null)
+
+# Validate the result
+if [ -z "$CONDA_BASE" ] || [ ! -d "$CONDA_BASE" ]; then
+    echo "❌ Error: Could not determine conda base directory"
+    echo "   conda info --base returned: '$CONDA_BASE'"
+    echo ""
+    echo "Please ensure conda is properly installed and initialized."
+    exit 1
+fi
+
+echo "✅ Found conda at: $CONDA_BASE"
 
 # Set environment paths
 ENV_PATH="$CONDA_BASE/envs/embedding-service"
