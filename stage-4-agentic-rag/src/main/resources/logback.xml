@@ -11,7 +11,7 @@
     <logger name="com.incept5.workshop.stage4" level="INFO"/>
     
     <!-- Enable TRACE logging for EmbeddingService -->
-    <logger name="com.incept5.workshop.stage4.ingestion.EmbeddingService" level="TRACE"/>
+    <logger name="com.incept5.workshop.stage4.ingestion.EmbeddingService" level="INFO"/>
 
     <!-- Suppress HikariCP DEBUG spam -->
     <logger name="com.zaxxer.hikari" level="WARN"/>
