@@ -36,6 +36,7 @@ public class EmbeddingService {
     private final String model;
     private final HttpClient httpClient;
     private final Gson gson;
+    private final boolean isPythonBackend;
     
     /**
      * Create embedding service with Ollama backend (default).
@@ -64,10 +65,36 @@ public class EmbeddingService {
             .connectTimeout(Duration.ofSeconds(30))
             .build();
         this.gson = new Gson();
+        this.isPythonBackend = detectBackend();
         
         logger.info("📊 EmbeddingService initialized:");
-        logger.info("   Backend: {}", baseUrl);
+        logger.info("   Backend: {} ({})", baseUrl, isPythonBackend ? "Python" : "Ollama");
         logger.info("   Model: {}", model);
+    }
+    
+    /**
+     * Detect backend type based on environment variable or URL.
+     * 
+     * Option B: Check EMBEDDING_BACKEND env var first
+     * Option A (fallback): Detect by port (:8001 = Python)
+     * 
+     * @return true if Python backend, false if Ollama
+     */
+    private boolean detectBackend() {
+        // Option B: Check EMBEDDING_BACKEND env var first
+        String backendType = System.getenv("EMBEDDING_BACKEND");
+        if (backendType != null && !backendType.isEmpty()) {
+            boolean isPython = "python".equalsIgnoreCase(backendType);
+            logger.info("🔧 Backend type from env EMBEDDING_BACKEND={}: {}", 
+                backendType, isPython ? "Python" : "Ollama");
+            return isPython;
+        }
+        
+        // Option A (fallback): Detect by port
+        boolean isPython = baseUrl.contains(":8001");
+        logger.info("🔍 Backend type auto-detected from URL {}: {}", 
+            baseUrl, isPython ? "Python" : "Ollama");
+        return isPython;
     }
     
     /**
@@ -117,22 +144,38 @@ public class EmbeddingService {
         String trimmedText = text.trim();
         
         try {
-            // BASE64 ENCODE the text to avoid JSON escaping issues with code/special chars
-            String encodedText = Base64.getEncoder()
-                .encodeToString(trimmedText.getBytes(StandardCharsets.UTF_8));
+            Map<String, Object> requestBody;
+            String encodedText = null;  // For logging purposes
             
-            // Build request body with encoded text
-            Map<String, Object> requestBody = Map.of(
-                "model", model,
-                "prompt", encodedText,
-                "encoding", "base64"  // Signal to server that content is base64-encoded
-            );
+            if (isPythonBackend) {
+                // Python backend: use base64 encoding to avoid JSON escaping issues
+                encodedText = Base64.getEncoder()
+                    .encodeToString(trimmedText.getBytes(StandardCharsets.UTF_8));
+                
+                requestBody = Map.of(
+                    "model", model,
+                    "prompt", encodedText,
+                    "encoding", "base64"
+                );
+                logger.debug("Using Python backend with base64 encoding");
+            } else {
+                // Ollama backend: use plain text
+                requestBody = Map.of(
+                    "model", model,
+                    "prompt", trimmedText
+                );
+                logger.debug("Using Ollama backend with plain text");
+            }
             
             String jsonBody = gson.toJson(requestBody);
             
             // Debug logging with detailed size information
-            logger.debug("Generating embedding for text (original: {} chars, encoded: {} chars)", 
-                trimmedText.length(), encodedText.length());
+            if (isPythonBackend && encodedText != null) {
+                logger.debug("Generating embedding for text (original: {} chars, encoded: {} chars)", 
+                    trimmedText.length(), encodedText.length());
+            } else {
+                logger.debug("Generating embedding for text ({} chars)", trimmedText.length());
+            }
             logger.debug("JSON body size: {} bytes", jsonBody.getBytes(StandardCharsets.UTF_8).length);
             logger.trace("Request body: {}", jsonBody);
             logger.trace("Request body (first 200 chars): {}", 
@@ -202,13 +245,17 @@ public class EmbeddingService {
     
     /**
      * Test connection to the embedding service.
+     * Uses /health for Python backend, /api/tags for Ollama.
      * 
      * @throws RuntimeException if connection fails
      */
     private void testConnection() {
         try {
+            // Use different health check endpoints based on backend
+            String healthPath = isPythonBackend ? "/health" : "/api/tags";
+            
             HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/health"))
+                .uri(URI.create(baseUrl + healthPath))
                 .GET()
                 .timeout(Duration.ofSeconds(10))
                 .build();
@@ -220,7 +267,7 @@ public class EmbeddingService {
                 throw new RuntimeException("Health check failed with status: " + response.statusCode());
             }
             
-            logger.debug("Health check response: {}", response.body());
+            logger.debug("Health check response from {}: {}", healthPath, response.body());
             
         } catch (Exception e) {
             throw new RuntimeException("Connection test failed: " + e.getMessage(), e);

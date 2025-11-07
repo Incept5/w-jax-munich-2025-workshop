@@ -91,6 +91,7 @@ fi
 
 # Export for Java to use
 export EMBEDDING_SERVICE_URL=$EMBEDDING_URL
+export EMBEDDING_BACKEND=$EMBEDDING_BACKEND
 
 # Step 2: Check gitingest only if refresh mode
 if [ "$REFRESH_MODE" = true ]; then

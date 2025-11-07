@@ -2,11 +2,26 @@
 
 **Status**: ✅ Complete (Phase 1: Ingestion Pipeline + Phase 2: Conversational Agent)
 
-## ⚠️ Important: Ollama Bug Workaround
+## ✅ Backend Options: Ollama or Python
 
-**There is currently a bug in Ollama's embedding API** that affects document ingestion. We've implemented a Python-based embedding service as a reliable workaround.
+**UPDATE (2025-11-07)**: Both Ollama and Python backends now work correctly! Choose based on your needs.
 
-### Quick Fix (Recommended)
+### Option 1: Ollama Backend (Simpler Setup)
+
+```bash
+# Start Ollama (if not already running)
+ollama serve
+
+# Pull embedding model (if needed)
+ollama pull nomic-embed-text
+
+# Run ingestion with Ollama
+./ingest.sh --backend=ollama
+```
+
+**Pros**: Simpler setup, no Python dependencies, uses your existing Ollama installation
+
+### Option 2: Python Backend (More Reliable)
 
 ```bash
 # Terminal 1: Start Python embedding service
@@ -15,17 +30,18 @@ cd embedding-service
 
 # Terminal 2: Run ingestion
 cd ..
-./ingest.sh  # Automatically uses Python service
+./ingest.sh --backend=python  # or just ./ingest.sh (Python is default)
 ```
 
-### Why Python Instead of Ollama?
+**Pros**: More reliable, better tested, handles edge cases well
 
-- ✅ Uses the **same model** (nomic-embed-text-v1.5)
-- ✅ Generates **identical embeddings** (768 dimensions)
-- ✅ **Drop-in replacement** - no code changes needed
-- ✅ **More reliable** than current Ollama version
+### Which Should I Use?
 
-See [`embedding-service/README.md`](./embedding-service/README.md) for full details.
+- **Workshop/Learning**: Use **Ollama** (simpler, fewer dependencies)
+- **Production**: Use **Python** (more reliable, better tested)
+- **No Preference**: Use **Python** (default in ingest.sh)
+
+See [`OLLAMA_FIX.md`](./OLLAMA_FIX.md) for technical details on the backend implementation.
 
 ---
 
