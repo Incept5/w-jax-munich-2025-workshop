@@ -57,7 +57,10 @@ public class EmbeddingService {
     public EmbeddingService(String baseUrl, String model) {
         this.baseUrl = baseUrl;
         this.model = model;
+        // Force HTTP/1.1 to avoid HTTP/2 upgrade issues with FastAPI
+        // Java's HttpClient defaults to HTTP/2 which can cause empty body issues
         this.httpClient = HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(Duration.ofSeconds(30))
             .build();
         this.gson = new Gson();
@@ -127,10 +130,13 @@ public class EmbeddingService {
             
             String jsonBody = gson.toJson(requestBody);
             
-            // Debug logging
+            // Debug logging with detailed size information
             logger.debug("Generating embedding for text (original: {} chars, encoded: {} chars)", 
                 trimmedText.length(), encodedText.length());
+            logger.debug("JSON body size: {} bytes", jsonBody.getBytes(StandardCharsets.UTF_8).length);
             logger.trace("Request body: {}", jsonBody);
+            logger.trace("Request body (first 200 chars): {}", 
+                jsonBody.substring(0, Math.min(200, jsonBody.length())));
             
             // Build HTTP request with explicit charset
             HttpRequest request = HttpRequest.newBuilder()
