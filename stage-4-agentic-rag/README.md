@@ -87,8 +87,6 @@ cd embedding-service
 - **Port 8001 in use** → Change port in `server.py`
 - **Module not found** → Run `./verify-setup.sh` to diagnose
 
-See [`OLLAMA_FIX.md`](./OLLAMA_FIX.md) for technical details on why Ollama can't be used.
-
 ---
 
 ## What This Stage Demonstrates
@@ -369,17 +367,6 @@ docker ps
 # Check Python version
 python3 --version  # Should be 3.9 or higher
 ```
-
-### 3. Ollama Running (for LLM only)
-```bash
-# Start Ollama
-ollama serve
-
-# Pull required LLM model (for agent reasoning, NOT embeddings)
-ollama pull incept5/Jan-v1-2509:fp16
-```
-
-**Note**: Ollama is only used for the agent's reasoning (LLM). The Python service handles all embeddings.
 
 ### 4. Verify Python Embedding Service is Running
 
