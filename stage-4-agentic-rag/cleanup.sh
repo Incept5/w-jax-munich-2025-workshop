@@ -60,21 +60,6 @@ else
 fi
 echo ""
 
-echo -e "${YELLOW}Step 4: Cleaning up generated files (optional)...${NC}"
-read -p "Do you want to remove generated data files in data/gitingest-output/? (y/N): " -n 1 -r
-echo ""
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    if [ -d "data/gitingest-output" ]; then
-        rm -rf data/gitingest-output/*.txt
-        echo -e "${GREEN}✓ Generated data files removed${NC}"
-    else
-        echo -e "${GREEN}✓ No data directory found${NC}"
-    fi
-else
-    echo -e "${YELLOW}⊘ Skipping data file cleanup${NC}"
-fi
-echo ""
-
 echo -e "${YELLOW}Step 5: Cleaning Maven build artifacts (optional)...${NC}"
 read -p "Do you want to clean Maven target directory? (y/N): " -n 1 -r
 echo ""
