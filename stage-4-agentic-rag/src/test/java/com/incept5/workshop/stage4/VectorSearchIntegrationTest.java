@@ -78,9 +78,10 @@ public class VectorSearchIntegrationTest {
         dataSource = DatabaseConfig.createDataSource();
         logger.info("✓ DataSource created");
         
-        // Create embedding service
-        embeddingService = new EmbeddingService(getOllamaBaseUrl(), "nomic-embed-text");
-        logger.info("✓ EmbeddingService created");
+        // Create embedding service (environment-aware)
+        embeddingService = EmbeddingService.fromEnvironment();
+        logger.info("✓ EmbeddingService created (provider: {}, model: {})",
+            embeddingService.getProviderName(), embeddingService.getModelName());
         
         // Create vector store
         vectorStore = new PgVectorStore(dataSource, embeddingService);

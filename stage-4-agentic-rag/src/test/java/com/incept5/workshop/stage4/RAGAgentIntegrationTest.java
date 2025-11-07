@@ -100,8 +100,9 @@ public class RAGAgentIntegrationTest {
         
         // 3. Create embedding service
         logger.info("Creating embedding service...");
-        embeddingService = new EmbeddingService(OLLAMA_BASE_URL, EMBEDDING_MODEL);
-        logger.info("✓ Embedding service created (model: {})", EMBEDDING_MODEL);
+        embeddingService = EmbeddingService.fromEnvironment();
+        logger.info("✓ Embedding service created (provider: {}, model: {})", 
+            embeddingService.getProviderName(), embeddingService.getModelName());
         
         // 4. Create vector store
         logger.info("Creating vector store...");

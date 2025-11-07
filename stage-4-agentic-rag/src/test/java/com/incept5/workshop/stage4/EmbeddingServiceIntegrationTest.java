@@ -71,10 +71,11 @@ public class EmbeddingServiceIntegrationTest {
     static void setup() {
         logger.info("=== Setting up EmbeddingService Integration Test ===");
         
-        embeddingService = new EmbeddingService(OLLAMA_BASE_URL, EMBEDDING_MODEL);
+        // Use environment-aware service (will use Python or OpenAI based on config)
+        embeddingService = EmbeddingService.fromEnvironment();
         logger.info("✓ EmbeddingService created");
-        logger.info("  Base URL: {}", OLLAMA_BASE_URL);
-        logger.info("  Model: {}", EMBEDDING_MODEL);
+        logger.info("  Provider: {}", embeddingService.getProviderName());
+        logger.info("  Model: {}", embeddingService.getModelName());
         logger.info("  Expected dimensions: {}", EXPECTED_DIMENSIONS);
         logger.info("=== Setup complete ===\n");
     }

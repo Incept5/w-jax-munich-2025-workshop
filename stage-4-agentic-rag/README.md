@@ -58,34 +58,47 @@ This is **example code** showing a 2-stage RAG (Retrieval-Augmented Generation) 
 
 Make sure you have:
 
-1. **Conda/Miniconda** installed ([Download](https://docs.conda.io/en/latest/miniconda.html))
-   ```bash
-   conda --version  # Should show version number
-   ```
-
-2. **Docker** running
+1. **Docker** running (required for PostgreSQL)
    ```bash
    docker ps  # Should not error
    ```
 
-3. **Ollama** running with model
+2. **Ollama** running with model (required for LLM)
    ```bash
    ollama serve
+   ollama pull incept5/Jan-v1-2509:fp16  # Or your preferred model
    ```
 
-4. **Python 3.9+**
-   ```bash
-   python3 --version
-   ```
+3. **Choose Your Embedding Provider:**
+
+   **Option A: Python Service (Free, Local)** ✅ Recommended
+   - Requires: Conda/Miniconda ([Download](https://docs.conda.io/en/latest/miniconda.html))
+   - One-time setup: 2-3 minutes
+   - Cost: FREE
+   - Speed: ~2-3 minutes for ingestion
+
+   **Option B: OpenAI API (Paid, Simple)**
+   - Requires: OpenAI API key ([Get one](https://platform.openai.com/api-keys))
+   - Setup: Just add API key to `.env` file
+   - Cost: ~$0.008 (less than 1 cent for workshop)
+   - Speed: ~1-2 minutes for ingestion
 
 ---
 
-### Step 1: Start Python Embedding Service (Terminal 1)
+### Option A: Using Python Embedding Service (Free, Local)
 
-⚠️ **Important:** You MUST use the Python embedding service (Ollama has a bug).
+**Step 1: Configure (one-time)**
 
 ```bash
-cd stage-4-agentic-rag/embedding-service
+cd stage-4-agentic-rag
+cp .env.example .env
+# Edit .env and ensure: EMBEDDING_PROVIDER=python
+```
+
+**Step 2: Start Python Service (Terminal 1)**
+
+```bash
+cd embedding-service
 ./start.sh
 ```
 
@@ -104,29 +117,52 @@ INFO:     Uvicorn running on http://0.0.0.0:8001
 - Port 8001 in use → Change port in `server.py`
 - More help: See [`embedding-service/README.md`](./embedding-service/README.md)
 
----
-
-### Step 2: Run Ingestion Pipeline (Terminal 2)
+**Step 3: Run Ingestion (Terminal 2)**
 
 ```bash
 cd stage-4-agentic-rag
 ./ingest.sh
 ```
 
+---
+
+### Option B: Using OpenAI Embeddings (Paid, Simple)
+
+**Step 1: Configure**
+
+```bash
+cd stage-4-agentic-rag
+cp .env.example .env
+```
+
+Edit `.env` and add:
+```bash
+EMBEDDING_PROVIDER=openai
+OPENAI_API_KEY=sk-proj-your-key-here
+```
+
+**Step 2: Run Ingestion**
+
+```bash
+./ingest.sh
+```
+
 **This will:**
-1. ✓ Verify Python service is running
+1. ✓ Verify OpenAI API key is set
 2. ✓ Start PostgreSQL with pgvector (Docker)
 3. ✓ Load 5 Embabel repositories (committed files)
 4. ✓ Chunk into ~800 token segments
-5. ✓ Generate embeddings (768 dimensions)
+5. ✓ Generate embeddings via OpenAI (768 dimensions)
 6. ✓ Store 487 searchable chunks
 
-**Takes 2-3 minutes.** You'll see:
+**Takes 1-2 minutes.** You'll see:
 ```
 🚀 Stage 4: RAG Ingestion Pipeline
 
-🐍 Using Python embedding service
-✓ Python service is ready at http://localhost:8001
+🤖 Using OpenAI embeddings
+   text-embedding-3-small, 768 dimensions
+✓ OpenAI API key configured: sk-proj...xyz
+💰 Estimated cost: ~$0.008 (less than 1 cent)
 
 Processing embabel-agent...
   → Chunks created: 98
@@ -141,7 +177,7 @@ Total documents: 487
 
 ---
 
-### Step 3: Start Chatting!
+### Start Chatting!
 
 ```bash
 ./run.sh          # Standard mode
@@ -277,6 +313,41 @@ Explore these to understand the implementation:
 
 ---
 
+## Embedding Provider Comparison
+
+| Feature | Python Service | OpenAI API |
+|---------|---------------|------------|
+| **Setup Time** | 2-3 minutes (first time) | 30 seconds |
+| **Cost** | FREE | ~$0.008 per ingestion |
+| **Speed** | 2-3 minutes ingestion | 1-2 minutes ingestion |
+| **Requirements** | Conda/Miniconda | API key |
+| **Privacy** | 100% local | Data sent to OpenAI |
+| **Model** | nomic-embed-text | text-embedding-3-small |
+| **Dimensions** | 768 | 768 |
+| **Quality** | Excellent for code | Excellent general purpose |
+| **Internet** | Not required | Required |
+| **Recommended For** | Privacy-conscious, local dev | Quick setup, workshops |
+
+### Switching Providers
+
+You can switch embedding providers at any time:
+
+```bash
+# Switch to OpenAI
+echo "EMBEDDING_PROVIDER=openai" >> .env
+echo "OPENAI_API_KEY=sk-..." >> .env
+./ingest.sh
+
+# Switch to Python
+echo "EMBEDDING_PROVIDER=python" >> .env
+cd embedding-service && ./start.sh  # Terminal 1
+./ingest.sh                         # Terminal 2
+```
+
+**Note:** When switching providers, you need to re-run ingestion since embeddings are different.
+
+---
+
 ## Configuration
 
 ### Change LLM Model
@@ -312,6 +383,33 @@ settings:
 ---
 
 ## Troubleshooting
+
+### OpenAI API Issues
+
+**"OPENAI_API_KEY not set"**
+
+```bash
+# Check if .env file exists
+cat .env
+
+# Add API key
+echo "OPENAI_API_KEY=sk-proj-your-key-here" >> .env
+
+# Verify it's loaded
+source .env && echo $OPENAI_API_KEY
+```
+
+**"OpenAI API connection failed"**
+
+- Check your API key is valid at https://platform.openai.com/api-keys
+- Verify you have credits: https://platform.openai.com/usage
+- Check network/firewall isn't blocking api.openai.com
+
+**"Rate limit exceeded"**
+
+- You're making too many requests
+- Wait a few seconds and try again
+- Upgrade your OpenAI plan if needed
 
 ### "No documents found"
 

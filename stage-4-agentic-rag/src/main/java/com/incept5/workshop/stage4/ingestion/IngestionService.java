@@ -256,12 +256,49 @@ public class IngestionService {
         // Parse settings
         @SuppressWarnings("unchecked")
         Map<String, Object> settingsMap = (Map<String, Object>) yamlData.get("settings");
+        
+        // Parse embedding configuration (optional)
+        IngestionConfig.EmbeddingConfig embeddingConfig = null;
+        if (settingsMap.containsKey("embedding")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> embeddingMap = (Map<String, Object>) settingsMap.get("embedding");
+            
+            // Parse Python config
+            IngestionConfig.EmbeddingConfig.PythonConfig pythonConfig = null;
+            if (embeddingMap.containsKey("python")) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> pythonMap = (Map<String, Object>) embeddingMap.get("python");
+                pythonConfig = new IngestionConfig.EmbeddingConfig.PythonConfig(
+                    (String) pythonMap.get("url"),
+                    (String) pythonMap.get("model")
+                );
+            }
+            
+            // Parse OpenAI config
+            IngestionConfig.EmbeddingConfig.OpenAIConfig openaiConfig = null;
+            if (embeddingMap.containsKey("openai")) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> openaiMap = (Map<String, Object>) embeddingMap.get("openai");
+                openaiConfig = new IngestionConfig.EmbeddingConfig.OpenAIConfig(
+                    (String) openaiMap.get("model")
+                );
+            }
+            
+            embeddingConfig = new IngestionConfig.EmbeddingConfig(
+                (String) embeddingMap.getOrDefault("provider", "python"),
+                (Integer) embeddingMap.getOrDefault("dimensions", 768),
+                pythonConfig,
+                openaiConfig
+            );
+        }
+        
         IngestionConfig.Settings settings = new IngestionConfig.Settings(
             (Integer) settingsMap.getOrDefault("chunkSize", 800),
             (Integer) settingsMap.getOrDefault("chunkOverlap", 200),
             ((Number) settingsMap.getOrDefault("similarityThreshold", 0.7)).doubleValue(),
             (String) settingsMap.getOrDefault("embeddingModel", "nomic-embed-text"),
-            (String) settingsMap.getOrDefault("ollamaBaseUrl", getDefaultOllamaBaseUrl())
+            (String) settingsMap.getOrDefault("ollamaBaseUrl", getDefaultOllamaBaseUrl()),
+            embeddingConfig
         );
         
         IngestionConfig config = new IngestionConfig(repos, settings);
@@ -279,14 +316,8 @@ public class IngestionService {
         logger.info("✓ Migrations complete");
         
         // 3. Create services
-        // Use environment-aware embedding service (supports both Ollama and Python backends)
-        EmbeddingService embeddingService = EmbeddingService.fromEnvironment();
-        
-        // Alternative: Explicitly specify backend
-        // EmbeddingService embeddingService = new EmbeddingService(
-        //     "http://localhost:8001",  // Python service
-        //     "nomic-embed-text"
-        // );
+        // Use configuration to create appropriate embedding provider
+        EmbeddingService embeddingService = EmbeddingService.fromConfig(config);
         
         PgVectorStore vectorStore = new PgVectorStore(dataSource, embeddingService);
         

@@ -14,10 +14,11 @@ public record IngestionConfig(
         int chunkOverlap,
         double similarityThreshold,
         String embeddingModel,
-        String ollamaBaseUrl
+        String ollamaBaseUrl,
+        EmbeddingConfig embedding
     ) {
         public Settings() {
-            this(800, 200, 0.7, "nomic-embed-text", getDefaultOllamaBaseUrl());
+            this(800, 200, 0.7, "nomic-embed-text", getDefaultOllamaBaseUrl(), null);
         }
         
         /**
@@ -36,5 +37,24 @@ public record IngestionConfig(
             
             return "http://localhost:11434";
         }
+    }
+    
+    /**
+     * Embedding provider configuration.
+     */
+    public record EmbeddingConfig(
+        String provider,
+        int dimensions,
+        PythonConfig python,
+        OpenAIConfig openai
+    ) {
+        public record PythonConfig(
+            String url,
+            String model
+        ) {}
+        
+        public record OpenAIConfig(
+            String model
+        ) {}
     }
 }

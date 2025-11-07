@@ -28,5 +28,20 @@ settings:
   chunkSize: 800          # tokens per chunk
   chunkOverlap: 200       # overlap for context
   similarityThreshold: 0.7
+  
+  # Embedding configuration
+  embedding:
+    provider: python      # "python" (free, local) or "openai" (paid, simple)
+    dimensions: 768       # Must match existing database! (locked at 768)
+    
+    python:
+      url: http://localhost:8001
+      model: nomic-embed-text
+    
+    openai:
+      model: text-embedding-3-small  # or "text-embedding-3-large" for better quality
+      # API key loaded from .env file (OPENAI_API_KEY)
+  
+  # Legacy settings (deprecated, use embedding.python instead)
   embeddingModel: nomic-embed-text
   ollamaBaseUrl: http://localhost:11434

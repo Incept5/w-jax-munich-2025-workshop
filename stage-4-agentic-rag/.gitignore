@@ -1,3 +1,6 @@
+# Environment configuration
+.env
+
 # Data directory (gitingest outputs)
 data/
 # But keep the committed text files

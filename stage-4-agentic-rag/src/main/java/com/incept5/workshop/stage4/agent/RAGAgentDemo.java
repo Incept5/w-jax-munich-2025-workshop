@@ -84,8 +84,9 @@ public class RAGAgentDemo {
             
             // 3. Setup embedding service
             System.out.println("   └─ Initializing embedding service...");
-            EmbeddingService embeddingService = new EmbeddingService(OLLAMA_BASE_URL, EMBEDDING_MODEL);
-            System.out.println("   └─ ✓ Embedding service ready (model: " + EMBEDDING_MODEL + ")");
+            EmbeddingService embeddingService = EmbeddingService.fromEnvironment();
+            System.out.println("   └─ ✓ Embedding service ready (provider: " + embeddingService.getProviderName() + 
+                ", model: " + embeddingService.getModelName() + ")");
             
             // 4. Setup vector store
             System.out.println("   └─ Initializing vector store...");

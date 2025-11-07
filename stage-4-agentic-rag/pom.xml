@@ -74,6 +74,10 @@
             <version>${snakeyaml.version}</version>
         </dependency>
 
+        <!-- OpenAI Java Client (optional, for OpenAI embeddings) -->
+        <!-- Note: This is a lightweight HTTP client approach, not the full OpenAI SDK -->
+        <!-- We use java.net.http.HttpClient built into Java 11+ -->
+
         <!-- JSON processing (Gson from parent) -->
         <dependency>
             <groupId>com.google.code.gson</groupId>

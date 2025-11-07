@@ -16,82 +16,94 @@ NC='\033[0m' # No Color
 
 # Parse command line arguments
 REFRESH_MODE=false
-EMBEDDING_BACKEND=${EMBEDDING_BACKEND:-"python"}  # default to python
+
+# Check for .env file
+if [ -f ".env" ]; then
+    echo -e "${BLUE}📋 Loading configuration from .env file${NC}"
+    export $(grep -v '^#' .env | xargs)
+fi
+
+# Determine embedding provider (priority: CLI arg > env var > repos.yaml > default)
+EMBEDDING_PROVIDER=${EMBEDDING_PROVIDER:-"python"}  # default to python
 
 for arg in "$@"; do
     if [[ "$arg" == "--refresh" ]]; then
         REFRESH_MODE=true
-    elif [[ "$arg" == "--backend=ollama" ]]; then
-        EMBEDDING_BACKEND="ollama"
-    elif [[ "$arg" == "--backend=python" ]]; then
-        EMBEDDING_BACKEND="python"
+    elif [[ "$arg" == "--provider=python" ]] || [[ "$arg" == "--backend=python" ]]; then
+        EMBEDDING_PROVIDER="python"
+    elif [[ "$arg" == "--provider=openai" ]] || [[ "$arg" == "--backend=openai" ]]; then
+        EMBEDDING_PROVIDER="openai"
     fi
 done
+
+# Export for Java to use
+export EMBEDDING_PROVIDER
 
 if [ "$REFRESH_MODE" = true ]; then
     echo -e "${BLUE}🔄 Refresh mode enabled - will fetch fresh repository data${NC}"
 fi
 
-# Step 1: Backend selection and verification
+# Step 1: Provider selection and verification
 echo
-if [ "$EMBEDDING_BACKEND" = "python" ]; then
-    echo -e "${BLUE}🐍 Using Python embedding service (recommended)${NC}"
-    EMBEDDING_URL="http://localhost:8001"
+if [ "$EMBEDDING_PROVIDER" = "python" ]; then
+    echo -e "${BLUE}🐍 Using Python embedding service${NC}"
+    echo -e "${BLUE}   Free, local, 768 dimensions${NC}"
+    
+    # Get Python service URL from env or default
+    PYTHON_URL=${PYTHON_EMBEDDING_SERVICE_URL:-"http://localhost:8001"}
     
     # Check if Python service is running
-    if ! curl -s $EMBEDDING_URL/health > /dev/null 2>&1; then
-        echo -e "${RED}❌ Python embedding service not running!${NC}"
+    if ! curl -s $PYTHON_URL/health > /dev/null 2>&1; then
+        echo -e "${RED}❌ Python embedding service not running at $PYTHON_URL${NC}"
         echo
         echo "Start it with:"
         echo -e "  ${GREEN}cd embedding-service && ./start.sh${NC}"
         echo
-        echo "Or switch to Ollama (not recommended due to bug):"
-        echo -e "  ${YELLOW}EMBEDDING_BACKEND=ollama ./ingest.sh${NC}"
+        echo "Or switch to OpenAI (requires API key):"
+        echo -e "  ${YELLOW}./ingest.sh --provider=openai${NC}"
         echo
         exit 1
     fi
-    echo -e "${GREEN}✓ Python service is ready${NC}"
+    echo -e "${GREEN}✓ Python service is ready at $PYTHON_URL${NC}"
     
-elif [ "$EMBEDDING_BACKEND" = "ollama" ]; then
-    echo -e "${YELLOW}🦙 Using Ollama (⚠️  has known bug, may fail)${NC}"
-    EMBEDDING_URL="http://localhost:11434"
+elif [ "$EMBEDDING_PROVIDER" = "openai" ]; then
+    echo -e "${BLUE}🤖 Using OpenAI embeddings${NC}"
+    echo -e "${BLUE}   text-embedding-3-small, 768 dimensions${NC}"
     
-    # Check if Ollama is running
-    if ! curl -s $EMBEDDING_URL/api/tags > /dev/null 2>&1; then
-        echo -e "${RED}❌ Ollama not running!${NC}"
+    # Check for API key
+    if [ -z "$OPENAI_API_KEY" ]; then
+        echo -e "${RED}❌ OPENAI_API_KEY not set!${NC}"
         echo
-        echo "Start Ollama with:"
-        echo -e "  ${GREEN}ollama serve${NC}"
+        echo "Get your API key from: https://platform.openai.com/api-keys"
         echo
-        echo "Or switch to Python service (recommended):"
-        echo -e "  ${GREEN}EMBEDDING_BACKEND=python ./ingest.sh${NC}"
+        echo "Then either:"
+        echo -e "  1. Add to .env file: ${GREEN}OPENAI_API_KEY=sk-...${NC}"
+        echo -e "  2. Export it: ${GREEN}export OPENAI_API_KEY=sk-...${NC}"
+        echo
+        echo "Or switch to Python service (free, local):"
+        echo -e "  ${GREEN}./ingest.sh --provider=python${NC}"
         echo
         exit 1
     fi
     
-    # Check if embedding model is available
-    if ! curl -s $EMBEDDING_URL/api/tags | grep -q "nomic-embed-text"; then
-        echo -e "${YELLOW}⚠️  nomic-embed-text model not found${NC}"
-        echo "Pulling model... (this may take a few minutes)"
-        ollama pull nomic-embed-text
-        echo -e "${GREEN}✓ Model pulled${NC}"
-    fi
-    echo -e "${GREEN}✓ Ollama is ready${NC}"
+    # Show masked API key for confirmation
+    MASKED_KEY="${OPENAI_API_KEY:0:7}...${OPENAI_API_KEY: -4}"
+    echo -e "${GREEN}✓ OpenAI API key configured: $MASKED_KEY${NC}"
+    
+    # Show cost estimate
+    echo -e "${YELLOW}💰 Estimated cost: ~\$0.008 (less than 1 cent)${NC}"
+    echo -e "${YELLOW}   Based on 487 documents × ~800 tokens${NC}"
     
 else
-    echo -e "${RED}❌ Unknown backend: $EMBEDDING_BACKEND${NC}"
-    echo "Valid options: python, ollama"
+    echo -e "${RED}❌ Unknown provider: $EMBEDDING_PROVIDER${NC}"
+    echo "Valid options: python, openai"
     echo
     echo "Usage:"
-    echo "  ./ingest.sh                    # Use Python (default)"
-    echo "  EMBEDDING_BACKEND=ollama ./ingest.sh"
-    echo "  ./ingest.sh --backend=python"
+    echo "  ./ingest.sh                      # Use Python (default, free)"
+    echo "  ./ingest.sh --provider=openai    # Use OpenAI (paid, ~\$0.008)"
+    echo "  EMBEDDING_PROVIDER=openai ./ingest.sh"
     exit 1
 fi
-
-# Export for Java to use
-export EMBEDDING_SERVICE_URL=$EMBEDDING_URL
-export EMBEDDING_BACKEND=$EMBEDDING_BACKEND
 
 # Step 2: Check gitingest only if refresh mode
 if [ "$REFRESH_MODE" = true ]; then
@@ -146,7 +158,7 @@ echo -e "${BLUE}📚 Starting ingestion pipeline...${NC}"
 echo "This will:"
 echo "  1. Run database migrations (Flyway)"
 echo "  2. Process repositories"
-echo "  3. Generate embeddings with $EMBEDDING_BACKEND"
+echo "  3. Generate embeddings with $EMBEDDING_PROVIDER"
 echo "  4. Store in PostgreSQL with pgvector"
 echo
 
