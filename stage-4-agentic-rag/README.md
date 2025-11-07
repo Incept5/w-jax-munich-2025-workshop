@@ -310,7 +310,7 @@ export OLLAMA_MODEL="qwen2.5:7b"
 java -Dollama.model="mistral:7b" -jar target/stage-4-agentic-rag-1.0-SNAPSHOT.jar
 ```
 
-**Default Model:** `incept5/Jan-v1-2509:fp16`
+**Default Model:** `qwen3:4b`
 
 **Note:** The embedding model (`nomic-embed-text`) remains unchanged regardless of LLM model override. This is intentional - embeddings must be generated with the same model used during ingestion for semantic search to work correctly.
 

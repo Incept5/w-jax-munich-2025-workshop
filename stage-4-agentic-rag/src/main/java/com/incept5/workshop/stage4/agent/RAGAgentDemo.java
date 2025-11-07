@@ -56,7 +56,7 @@ public class RAGAgentDemo {
      * Priority order:
      * 1. System property: ollama.model
      * 2. Environment variable: OLLAMA_MODEL
-     * 3. Default: incept5/Jan-v1-2509:fp16
+     * 3. Default: qwen3:4b
      */
     private static String getModelName() {
         String model = System.getProperty("ollama.model");
@@ -69,7 +69,7 @@ public class RAGAgentDemo {
             return model;
         }
         
-        return "incept5/Jan-v1-2509:fp16";
+        return "qwen3:4b";
     }
 
     private static final String EMBEDDING_MODEL = "nomic-embed-text";

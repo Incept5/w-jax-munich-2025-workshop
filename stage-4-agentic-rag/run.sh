@@ -33,7 +33,7 @@ while [[ $# -gt 0 ]]; do
             echo
             echo "Options:"
             echo "  --verbose, -v          Show agent reasoning steps"
-            echo "  --model, -m MODEL      Override LLM model (default: incept5/Jan-v1-2509:fp16)"
+            echo "  --model, -m MODEL      Override LLM model (default: qwen3:4b)"
             echo "  --help, -h             Show this help message"
             echo
             echo "Examples:"
