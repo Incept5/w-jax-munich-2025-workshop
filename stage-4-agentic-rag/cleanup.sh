@@ -43,7 +43,7 @@ fi
 echo ""
 
 echo -e "${YELLOW}Step 2: Removing Docker volumes...${NC}"
-if docker volume ls --quiet --filter name=stage-3-agentic-rag_pgvector_data | grep -q .; then
+if docker volume ls --quiet --filter name=stage-4-agentic-rag_pgvector_data | grep -q .; then
     $DOCKER_COMPOSE down -v
     echo -e "${GREEN}✓ Volumes removed${NC}"
 else
@@ -52,8 +52,8 @@ fi
 echo ""
 
 echo -e "${YELLOW}Step 3: Checking for orphaned containers...${NC}"
-if docker ps -a --filter name=stage3-pgvector --quiet | grep -q .; then
-    docker rm -f stage3-pgvector 2>/dev/null || true
+if docker ps -a --filter name=stage4-pgvector --quiet | grep -q .; then
+    docker rm -f stage4-pgvector 2>/dev/null || true
     echo -e "${GREEN}✓ Orphaned containers removed${NC}"
 else
     echo -e "${GREEN}✓ No orphaned containers found${NC}"

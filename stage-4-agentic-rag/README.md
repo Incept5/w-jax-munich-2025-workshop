@@ -287,7 +287,7 @@ ollama pull nomic-embed-text          # Embedding model for vector search
 
 ### 3. Run the Ingestion Script (REQUIRED)
 ```bash
-cd stage-3-agentic-rag
+cd stage-4-agentic-rag
 
 # This MUST be run before the agent will work
 ./ingest.sh
@@ -371,13 +371,13 @@ Total documents: 487
 ### Step 1: Setup (One-Time)
 
 ```bash
-cd stage-3-agentic-rag
+cd stage-4-agentic-rag
 
 # Install dependencies and ingest documentation
 ./ingest.sh
 
 # Verify ingestion succeeded
-docker exec -it stage3-pgvector psql -U workshop -d workshop_rag -c "SELECT COUNT(*) FROM documents;"
+docker exec -it stage4-pgvector psql -U workshop -d workshop_rag -c "SELECT COUNT(*) FROM documents;"
 # Should show: count: 487 (or similar number > 0)
 ```
 
@@ -622,7 +622,7 @@ mvn test -Dtest=RAGAgentIntegrationTest#testVectorSearch
 ## Project Structure
 
 ```
-stage-3-agentic-rag/
+stage-4-agentic-rag/
 ├── README.md                        # This file
 ├── architecture.md                  # Detailed architecture documentation
 ├── ingest.sh                        # ⚠️ RUN THIS FIRST
@@ -642,7 +642,7 @@ stage-3-agentic-rag/
 │       └── ...
 │
 └── src/
-    ├── main/java/com/incept5/workshop/stage3/
+    ├── main/java/com/incept5/workshop/stage4/
     │   ├── agent/
     │   │   ├── RAGAgent.java                # Main conversational agent
     │   │   ├── ConversationMemory.java      # Multi-turn context tracking
@@ -664,7 +664,7 @@ stage-3-agentic-rag/
     │       ├── IngestionConfig.java         # Configuration
     │       └── RepoConfig.java              # Repository metadata
     │
-    └── test/java/com/incept5/workshop/stage3/
+    └── test/java/com/incept5/workshop/stage4/
         ├── RAGAgentIntegrationTest.java     # Comprehensive tests
         └── VectorSearchIntegrationTest.java # Database-specific tests
 ```
@@ -728,7 +728,7 @@ settings:
 
 **Verify**:
 ```bash
-docker exec -it stage3-pgvector psql -U workshop -d workshop_rag -c "SELECT COUNT(*) FROM documents;"
+docker exec -it stage4-pgvector psql -U workshop -d workshop_rag -c "SELECT COUNT(*) FROM documents;"
 ```
 
 Should show count > 0 (typically ~487 documents).
@@ -752,7 +752,7 @@ curl http://localhost:11434/api/tags
 
 **Solution**: Start Docker Compose
 ```bash
-cd stage-3-agentic-rag
+cd stage-4-agentic-rag
 docker-compose up -d
 
 # Check status

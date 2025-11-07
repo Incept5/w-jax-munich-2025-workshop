@@ -8,7 +8,7 @@
     </appender>
 
     <!-- Set logging level for the application -->
-    <logger name="com.incept5.workshop.stage3" level="INFO"/>
+    <logger name="com.incept5.workshop.stage4" level="INFO"/>
 
     <!-- Suppress HikariCP DEBUG spam -->
     <logger name="com.zaxxer.hikari" level="WARN"/>

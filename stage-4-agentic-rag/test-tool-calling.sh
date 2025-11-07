@@ -26,7 +26,7 @@ fi
 echo "✓ Model is available"
 
 # Check if PostgreSQL is running
-if ! docker ps | grep -q stage3-pgvector; then
+if ! docker ps | grep -q stage4-pgvector; then
     echo "⚠️  WARNING: PostgreSQL container not running"
     echo "   Starting PostgreSQL..."
     docker-compose up -d
@@ -36,7 +36,7 @@ fi
 echo "✓ PostgreSQL is running"
 
 # Check if database has documents
-DOC_COUNT=$(docker exec stage3-pgvector psql -U workshop -d workshop_rag -t -c "SELECT COUNT(*) FROM documents;" 2>/dev/null | xargs || echo "0")
+DOC_COUNT=$(docker exec stage4-pgvector psql -U workshop -d workshop_rag -t -c "SELECT COUNT(*) FROM documents;" 2>/dev/null | xargs || echo "0")
 
 if [ "$DOC_COUNT" -eq "0" ]; then
     echo "⚠️  WARNING: No documents in database"
@@ -54,7 +54,7 @@ echo
 echo "─────────────────────────────────────────────────────────────────"
 echo
 
-java -jar target/stage-3-agentic-rag.jar --verbose --query "What is Embabel?"
+java -jar target/stage-4-agentic-rag.jar --verbose --query "What is Embabel?"
 
 echo
 echo "─────────────────────────────────────────────────────────────────"

@@ -113,7 +113,7 @@
                 <configuration>
                     <transformers>
                         <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>com.incept5.workshop.stage3.ingestion.IngestionService</mainClass>
+                            <mainClass>com.incept5.workshop.stage4.ingestion.IngestionService</mainClass>
                         </transformer>
                         <!-- Merge service files properly for Flyway plugins -->
                         <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>

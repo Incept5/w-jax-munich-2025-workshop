@@ -12,7 +12,7 @@
     </parent>
 
     <artifactId>stage-3-mcp-server</artifactId>
-    <name>Stage 2 - MCP Server with Official Java SDK</name>
+    <name>Stage 3 - MCP Server with Official Java SDK</name>
     <description>Model Context Protocol server exposing tools via official SDK</description>
 
     <dependencies>
@@ -70,7 +70,7 @@
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.incept5.workshop.stage2.MCPDemo</mainClass>
+                                    <mainClass>com.incept5.workshop.stage3.MCPDemo</mainClass>
                                 </transformer>
                             </transformers>
                             <filters>

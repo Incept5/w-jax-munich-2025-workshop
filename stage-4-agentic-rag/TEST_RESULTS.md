@@ -242,19 +242,19 @@ Context expansion: 2-3x documents
 
 ### Run Vector Search Tests
 ```bash
-cd stage-3-agentic-rag
+cd stage-4-agentic-rag
 mvn test -Dtest=VectorSearchIntegrationTest
 ```
 
 ### Run Agent Tests (with longer timeout)
 ```bash
-cd stage-3-agentic-rag
+cd stage-4-agentic-rag
 mvn test -Dtest=RAGAgentIntegrationTest -Dsurefire.timeout=300
 ```
 
 ### Run All Tests
 ```bash
-cd stage-3-agentic-rag
+cd stage-4-agentic-rag
 mvn test
 ```
 
