@@ -42,13 +42,14 @@ This is **example code** showing a 2-stage RAG (Retrieval-Augmented Generation) 
 - ✅ Production-ready PostgreSQL with pgvector
 - ✅ Natural conversation with context memory
 
-**Ideas to Extend:**
-- Add your own repositories to `repos.yaml`
-- Implement metadata filtering (by file type, date, author)
-- Add hybrid search (vector + keyword)
-- Build a web UI with streaming responses
-- Create specialized agents for different codebases
-- Add document re-ranking for better relevance
+**Want to Learn by Doing?**
+👉 See **[EXERCISES.md](./EXERCISES.md)** for 10+ hands-on exercises that teach you how RAG works:
+- Visualize embeddings and understand vector search
+- Experiment with chunk sizes and search parameters
+- Build custom chunking strategies for code
+- Add metadata filtering and hybrid search
+- Create a web UI with streaming responses
+- Measure and improve search quality
 
 ---
 
