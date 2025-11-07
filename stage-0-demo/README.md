@@ -62,7 +62,7 @@ curl http://localhost:11434/api/tags
 
 ```bash
 # Clone or navigate to the project directory
-cd ollama-java-demo
+cd stage-0-demo
 
 # Build the project (creates executable JAR)
 mvn clean package

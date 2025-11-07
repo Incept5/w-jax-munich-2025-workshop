@@ -21,16 +21,16 @@ import java.util.Arrays;
  * 
  * Usage:
  *   # Start MCP server (for MCP Inspector or Claude Desktop)
- *   java -jar stage-2-mcp-server.jar server
+ *   java -jar stage-3-mcp-server.jar server
  * 
  *   # Run agent with a single task
- *   java -jar stage-2-mcp-server.jar agent "What's the weather in Tokyo?"
+ *   java -jar stage-3-mcp-server.jar agent "What's the weather in Tokyo?"
  * 
  *   # Interactive chat mode
- *   java -jar stage-2-mcp-server.jar interactive
+ *   java -jar stage-3-mcp-server.jar interactive
  * 
  *   # Default (no args) starts the server
- *   java -jar stage-2-mcp-server.jar
+ *   java -jar stage-3-mcp-server.jar
  */
 public class MCPDemo {
     private static final Logger logger = LoggerFactory.getLogger(MCPDemo.class);
@@ -66,13 +66,13 @@ public class MCPDemo {
         logger.info("  - country_info: Get information about a country");
         logger.info("");
         logger.info("Test with MCP Inspector:");
-        logger.info("  npx @modelcontextprotocol/inspector java -jar target/stage-2-mcp-server.jar");
+        logger.info("  npx @modelcontextprotocol/inspector java -jar target/stage-3-mcp-server.jar");
         logger.info("");
         logger.info("Or integrate with Claude Desktop by adding to claude_desktop_config.json:");
         logger.info("  \"mcpServers\": {");
         logger.info("    \"workshop\": {");
         logger.info("      \"command\": \"java\",");
-        logger.info("      \"args\": [\"-jar\", \"/path/to/stage-2-mcp-server.jar\", \"server\"]");
+        logger.info("      \"args\": [\"-jar\", \"/path/to/stage-3-mcp-server.jar\", \"server\"]");
         logger.info("    }");
         logger.info("  }");
         logger.info("");
@@ -91,7 +91,7 @@ public class MCPDemo {
     private static void runAgent(String[] args) {
         if (args.length < 2) {
             System.err.println("Error: Agent mode requires a task argument");
-            System.err.println("Usage: java -jar stage-2-mcp-server.jar agent \"Your task here\"");
+            System.err.println("Usage: java -jar stage-3-mcp-server.jar agent \"Your task here\"");
             System.exit(1);
         }
         
@@ -119,7 +119,7 @@ public class MCPDemo {
             );
             
             // Start MCP server as subprocess
-            String jarPath = "target/stage-2-mcp-server.jar";
+            String jarPath = "target/stage-3-mcp-server.jar";
             MCPClient mcpClient = new MCPClient("java", "-jar", jarPath, "server");
             
             // Create and run agent
@@ -166,7 +166,7 @@ public class MCPDemo {
             );
             
             // Start MCP server as subprocess
-            String jarPath = "target/stage-2-mcp-server.jar";
+            String jarPath = "target/stage-3-mcp-server.jar";
             MCPClient mcpClient = new MCPClient("java", "-jar", jarPath, "server");
             
             System.out.println("Connected to MCP server");
@@ -220,7 +220,7 @@ public class MCPDemo {
      * Prints usage information.
      */
     private static void printUsage() {
-        System.out.println("Usage: java -jar stage-2-mcp-server.jar [mode] [options]");
+        System.out.println("Usage: java -jar target/stage-3-mcp-server.jar [mode] [options]");
         System.out.println();
         System.out.println("Modes:");
         System.out.println("  server              Start MCP server (default)");
@@ -232,12 +232,12 @@ public class MCPDemo {
         System.out.println();
         System.out.println("Examples:");
         System.out.println("  # Start server for MCP Inspector");
-        System.out.println("  java -jar stage-2-mcp-server.jar server");
+        System.out.println("  java -jar target/stage-3-mcp-server.jar server");
         System.out.println();
         System.out.println("  # Run agent with task");
-        System.out.println("  java -jar stage-2-mcp-server.jar agent \"What's the weather in Paris?\"");
+        System.out.println("  java -jar target/stage-3-mcp-server.jar agent \"What's the weather in Paris?\"");
         System.out.println();
         System.out.println("  # Interactive mode");
-        System.out.println("  java -jar stage-2-mcp-server.jar interactive");
+        System.out.println("  java -jar target/stage-3-mcp-server.jar interactive");
     }
 }

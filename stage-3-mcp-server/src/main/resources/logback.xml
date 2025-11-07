@@ -20,5 +20,5 @@
     </root>
     
     <!-- You can adjust log levels for specific packages if needed -->
-    <!-- <logger name="com.incept5.workshop.stage2" level="DEBUG" /> -->
+    <!-- <logger name="com.incept5.workshop.stage3" level="DEBUG" /> -->
 </configuration>
