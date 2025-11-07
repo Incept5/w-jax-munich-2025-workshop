@@ -53,6 +53,23 @@ public class VectorSearchIntegrationTest {
         "agent examples"
     };
     
+    /**
+     * Get Ollama base URL from environment or system property
+     */
+    private static String getOllamaBaseUrl() {
+        String url = System.getProperty("ollama.base.url");
+        if (url != null && !url.isBlank()) {
+            return url;
+        }
+        
+        url = System.getenv("OLLAMA_BASE_URL");
+        if (url != null && !url.isBlank()) {
+            return url;
+        }
+        
+        return "http://localhost:11434";
+    }
+    
     @BeforeAll
     static void setup() {
         logger.info("=== Setting up Vector Search Integration Test ===");
@@ -62,7 +79,7 @@ public class VectorSearchIntegrationTest {
         logger.info("✓ DataSource created");
         
         // Create embedding service
-        embeddingService = new EmbeddingService("http://localhost:11434", "nomic-embed-text");
+        embeddingService = new EmbeddingService(getOllamaBaseUrl(), "nomic-embed-text");
         logger.info("✓ EmbeddingService created");
         
         // Create vector store

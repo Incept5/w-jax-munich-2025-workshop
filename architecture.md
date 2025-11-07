@@ -19,9 +19,11 @@ This is a multi-module Maven workshop project demonstrating modern Java 21+ AI a
 - **Testing**: JUnit 5.11.3
 
 ### AI Backends
-- **Ollama**: Primary local LLM backend (default)
-- **LM Studio**: OpenAI-compatible local inference
-- **MLX-VLM**: Apple Silicon optimized vision models
+- **Ollama**: Primary local LLM backend (default: localhost:11434, configurable)
+- **LM Studio**: OpenAI-compatible local inference (default: localhost:1234/v1, configurable)
+- **MLX-VLM**: Apple Silicon optimized vision models (default: localhost:8000, configurable)
+
+**Configuration**: All backend URLs are externally configurable via environment variables or system properties. See [CONFIGURATION.md](./CONFIGURATION.md) for details.
 
 ### Default Model
 - **Primary**: `incept5/Jan-v1-2509:fp16`

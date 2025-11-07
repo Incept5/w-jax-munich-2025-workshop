@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * 4. Tests semantic similarity between related and unrelated texts
  * 
  * Prerequisites:
- * - Ollama running at http://localhost:11434
+ * - Ollama running (default: localhost:11434, configurable via OLLAMA_BASE_URL)
  * - Model available: nomic-embed-text (run: ollama pull nomic-embed-text)
  * 
  * This is a single comprehensive test following workshop standards:
@@ -32,7 +32,24 @@ public class EmbeddingServiceIntegrationTest {
     private static final Logger logger = LoggerFactory.getLogger(EmbeddingServiceIntegrationTest.class);
     
     // Configuration
-    private static final String OLLAMA_BASE_URL = "http://localhost:11434";
+    private static final String OLLAMA_BASE_URL = getOllamaBaseUrl();
+    
+    /**
+     * Get Ollama base URL from environment or system property
+     */
+    private static String getOllamaBaseUrl() {
+        String url = System.getProperty("ollama.base.url");
+        if (url != null && !url.isBlank()) {
+            return url;
+        }
+        
+        url = System.getenv("OLLAMA_BASE_URL");
+        if (url != null && !url.isBlank()) {
+            return url;
+        }
+        
+        return "http://localhost:11434";
+    }
     private static final String EMBEDDING_MODEL = "nomic-embed-text";
     private static final int EXPECTED_DIMENSIONS = 768;
     

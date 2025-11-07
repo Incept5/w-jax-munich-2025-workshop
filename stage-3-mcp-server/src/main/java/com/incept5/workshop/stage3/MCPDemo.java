@@ -35,6 +35,23 @@ import java.util.Arrays;
 public class MCPDemo {
     private static final Logger logger = LoggerFactory.getLogger(MCPDemo.class);
     
+    /**
+     * Get Ollama base URL from environment or system property
+     */
+    private static String getOllamaBaseUrl() {
+        String url = System.getProperty("ollama.base.url");
+        if (url != null && !url.isBlank()) {
+            return url;
+        }
+        
+        url = System.getenv("OLLAMA_BASE_URL");
+        if (url != null && !url.isBlank()) {
+            return url;
+        }
+        
+        return "http://localhost:11434";
+    }
+    
     public static void main(String[] args) {
         // Determine mode from arguments
         String mode = args.length > 0 ? args[0] : "server";
@@ -113,7 +130,7 @@ public class MCPDemo {
             // Create AI backend
             AIBackend backend = BackendFactory.createBackend(
                     BackendType.OLLAMA,
-                    "http://localhost:11434",
+                    getOllamaBaseUrl(),
                     "incept5/Jan-v1-2509:fp16",
                     Duration.ofSeconds(300)
             );
