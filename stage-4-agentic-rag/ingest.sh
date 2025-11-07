@@ -1,28 +1,100 @@
 #!/bin/bash
-# Stage 3: RAG Ingestion Pipeline
-# This script sets up the complete RAG infrastructure and ingests repositories
+# Stage 4: RAG Ingestion Pipeline
+# Supports both Ollama and Python embedding backends
 
 set -e  # Exit on error
 
-echo "🚀 Stage 3: RAG Ingestion Pipeline"
+echo "🚀 Stage 4: RAG Ingestion Pipeline"
 echo
 
 # Colors for output
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
+YELLOW='\033[0;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # Parse command line arguments
 REFRESH_MODE=false
-if [[ "$1" == "--refresh" ]]; then
-    REFRESH_MODE=true
+EMBEDDING_BACKEND=${EMBEDDING_BACKEND:-"python"}  # default to python
+
+for arg in "$@"; do
+    if [[ "$arg" == "--refresh" ]]; then
+        REFRESH_MODE=true
+    elif [[ "$arg" == "--backend=ollama" ]]; then
+        EMBEDDING_BACKEND="ollama"
+    elif [[ "$arg" == "--backend=python" ]]; then
+        EMBEDDING_BACKEND="python"
+    fi
+done
+
+if [ "$REFRESH_MODE" = true ]; then
     echo -e "${BLUE}🔄 Refresh mode enabled - will fetch fresh repository data${NC}"
-    echo
 fi
 
-# Step 1: Check gitingest only if refresh mode
+# Step 1: Backend selection and verification
+echo
+if [ "$EMBEDDING_BACKEND" = "python" ]; then
+    echo -e "${BLUE}🐍 Using Python embedding service (recommended)${NC}"
+    EMBEDDING_URL="http://localhost:8001"
+    
+    # Check if Python service is running
+    if ! curl -s $EMBEDDING_URL/health > /dev/null 2>&1; then
+        echo -e "${RED}❌ Python embedding service not running!${NC}"
+        echo
+        echo "Start it with:"
+        echo -e "  ${GREEN}cd embedding-service && ./start.sh${NC}"
+        echo
+        echo "Or switch to Ollama (not recommended due to bug):"
+        echo -e "  ${YELLOW}EMBEDDING_BACKEND=ollama ./ingest.sh${NC}"
+        echo
+        exit 1
+    fi
+    echo -e "${GREEN}✓ Python service is ready${NC}"
+    
+elif [ "$EMBEDDING_BACKEND" = "ollama" ]; then
+    echo -e "${YELLOW}🦙 Using Ollama (⚠️  has known bug, may fail)${NC}"
+    EMBEDDING_URL="http://localhost:11434"
+    
+    # Check if Ollama is running
+    if ! curl -s $EMBEDDING_URL/api/tags > /dev/null 2>&1; then
+        echo -e "${RED}❌ Ollama not running!${NC}"
+        echo
+        echo "Start Ollama with:"
+        echo -e "  ${GREEN}ollama serve${NC}"
+        echo
+        echo "Or switch to Python service (recommended):"
+        echo -e "  ${GREEN}EMBEDDING_BACKEND=python ./ingest.sh${NC}"
+        echo
+        exit 1
+    fi
+    
+    # Check if embedding model is available
+    if ! curl -s $EMBEDDING_URL/api/tags | grep -q "nomic-embed-text"; then
+        echo -e "${YELLOW}⚠️  nomic-embed-text model not found${NC}"
+        echo "Pulling model... (this may take a few minutes)"
+        ollama pull nomic-embed-text
+        echo -e "${GREEN}✓ Model pulled${NC}"
+    fi
+    echo -e "${GREEN}✓ Ollama is ready${NC}"
+    
+else
+    echo -e "${RED}❌ Unknown backend: $EMBEDDING_BACKEND${NC}"
+    echo "Valid options: python, ollama"
+    echo
+    echo "Usage:"
+    echo "  ./ingest.sh                    # Use Python (default)"
+    echo "  EMBEDDING_BACKEND=ollama ./ingest.sh"
+    echo "  ./ingest.sh --backend=python"
+    exit 1
+fi
+
+# Export for Java to use
+export EMBEDDING_SERVICE_URL=$EMBEDDING_URL
+
+# Step 2: Check gitingest only if refresh mode
 if [ "$REFRESH_MODE" = true ]; then
+    echo
     echo -e "${BLUE}📦 Checking gitingest installation...${NC}"
     if ! command -v gitingest &> /dev/null; then
         echo -e "${RED}Error: gitingest is required for --refresh mode${NC}"
@@ -36,18 +108,19 @@ if [ "$REFRESH_MODE" = true ]; then
     fi
     echo -e "${GREEN}✓ gitingest is available${NC}"
 else
+    echo
     echo -e "${BLUE}📄 Using committed repository files from git${NC}"
     echo -e "${BLUE}   (Use --refresh to fetch fresh data with gitingest)${NC}"
 fi
 
-# Step 2: Build the Java project
+# Step 3: Build the Java project
 echo
 echo -e "${BLUE}🔨 Building Stage 3 project...${NC}"
 cd "$(dirname "$0")"
 mvn clean package -DskipTests
 echo -e "${GREEN}✓ Build complete${NC}"
 
-# Step 3: Start PostgreSQL + pgvector
+# Step 4: Start PostgreSQL + pgvector
 echo
 echo -e "${BLUE}🐘 Starting PostgreSQL with pgvector...${NC}"
 docker-compose up -d
@@ -66,35 +139,15 @@ for i in {1..30}; do
     sleep 1
 done
 
-# Step 4: Run ingestion (includes Flyway migrations)
+# Step 5: Run ingestion (includes Flyway migrations)
 echo
 echo -e "${BLUE}📚 Starting ingestion pipeline...${NC}"
 echo "This will:"
 echo "  1. Run database migrations (Flyway)"
-echo "  2. Process repositories with gitingest"
-echo "  3. Generate embeddings with Ollama"
+echo "  2. Process repositories"
+echo "  3. Generate embeddings with $EMBEDDING_BACKEND"
 echo "  4. Store in PostgreSQL with pgvector"
 echo
-
-# Check if Ollama is running
-if ! curl -s http://localhost:11434/api/tags &> /dev/null; then
-    echo -e "${RED}Warning: Ollama does not appear to be running at localhost:11434${NC}"
-    echo "Please start Ollama with: ollama serve"
-    echo
-    read -p "Continue anyway? (y/N) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        exit 1
-    fi
-fi
-
-# Check if embedding model is available
-if ! curl -s http://localhost:11434/api/tags | grep -q "nomic-embed-text"; then
-    echo -e "${RED}Warning: nomic-embed-text model not found${NC}"
-    echo "Pulling model... (this may take a few minutes)"
-    ollama pull nomic-embed-text
-    echo -e "${GREEN}✓ Model pulled${NC}"
-fi
 
 # Run the ingestion
 if [ "$REFRESH_MODE" = true ]; then

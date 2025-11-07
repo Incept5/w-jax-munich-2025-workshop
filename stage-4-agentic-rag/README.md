@@ -1,6 +1,33 @@
-# Stage 3: Agentic RAG - Retrieval-Augmented Generation Agent
+# Stage 4: Agentic RAG - Retrieval-Augmented Generation Agent
 
 **Status**: ✅ Complete (Phase 1: Ingestion Pipeline + Phase 2: Conversational Agent)
+
+## ⚠️ Important: Ollama Bug Workaround
+
+**There is currently a bug in Ollama's embedding API** that affects document ingestion. We've implemented a Python-based embedding service as a reliable workaround.
+
+### Quick Fix (Recommended)
+
+```bash
+# Terminal 1: Start Python embedding service
+cd embedding-service
+./start.sh
+
+# Terminal 2: Run ingestion
+cd ..
+./ingest.sh  # Automatically uses Python service
+```
+
+### Why Python Instead of Ollama?
+
+- ✅ Uses the **same model** (nomic-embed-text-v1.5)
+- ✅ Generates **identical embeddings** (768 dimensions)
+- ✅ **Drop-in replacement** - no code changes needed
+- ✅ **More reliable** than current Ollama version
+
+See [`embedding-service/README.md`](./embedding-service/README.md) for full details.
+
+---
 
 ## What This Stage Demonstrates
 
@@ -275,18 +302,45 @@ Cosine Similarity = (A · B) / (||A|| × ||B||)
 docker ps
 ```
 
-### 2. Ollama Running with Models
+### 2. Python 3.9+ Installed
+```bash
+# Check Python version
+python3 --version  # Should be 3.9 or higher
+```
+
+### 3. Ollama Running (for LLM only, not embeddings)
 ```bash
 # Start Ollama
 ollama serve
 
-# Pull required models
-ollama pull incept5/Jan-v1-2509:fp16  # Main LLM for reasoning
-ollama pull nomic-embed-text          # Embedding model for vector search
+# Pull required LLM model (for agent reasoning)
+ollama pull incept5/Jan-v1-2509:fp16
+
+# Note: You do NOT need to pull nomic-embed-text for Ollama
+# The Python embedding service handles embeddings
 ```
 
-### 3. Run the Ingestion Script (REQUIRED)
+### 4. Start Python Embedding Service (REQUIRED)
 ```bash
+cd stage-4-agentic-rag/embedding-service
+./start.sh
+
+# Wait for output:
+# ✓ Model loaded successfully (768 dimensions)
+# INFO:     Uvicorn running on http://0.0.0.0:8001
+```
+
+**First run will**:
+- Create Python virtual environment
+- Install dependencies (fastapi, sentence-transformers, etc.)
+- Download nomic-embed-text-v1.5 model (~500MB, one-time)
+- Start the embedding service
+
+**Subsequent runs**: Service starts immediately (model cached)
+
+### 5. Run the Ingestion Script (REQUIRED)
+```bash
+# In a new terminal
 cd stage-4-agentic-rag
 
 # This MUST be run before the agent will work
@@ -294,11 +348,12 @@ cd stage-4-agentic-rag
 ```
 
 **What `ingest.sh` does**:
+- ✓ Verifies Python embedding service is running
 - ✓ Starts PostgreSQL with pgvector extension (Docker)
 - ✓ Runs database migrations (Flyway)
 - ✓ Loads repository text files (committed to git)
 - ✓ Chunks documents into searchable segments
-- ✓ Generates embeddings for each chunk
+- ✓ Generates embeddings via Python service (not Ollama)
 - ✓ Stores everything in PostgreSQL
 
 **Optional refresh mode** (`./ingest.sh --refresh`):
@@ -308,7 +363,10 @@ cd stage-4-agentic-rag
 
 **Expected output**:
 ```
-🚀 Stage 3: RAG Ingestion Pipeline
+🚀 Stage 4: RAG Ingestion Pipeline
+
+🐍 Using Python embedding service (recommended)
+✓ Python service is ready
 
 📄 Using committed repository files from git
    (Use --refresh to fetch fresh data with gitingest)

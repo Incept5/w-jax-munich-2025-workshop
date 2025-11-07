@@ -262,10 +262,14 @@ public class IngestionService {
         logger.info("✓ Migrations complete");
         
         // 3. Create services
-        EmbeddingService embeddingService = new EmbeddingService(
-            config.settings().ollamaBaseUrl(),
-            config.settings().embeddingModel()
-        );
+        // Use environment-aware embedding service (supports both Ollama and Python backends)
+        EmbeddingService embeddingService = EmbeddingService.fromEnvironment();
+        
+        // Alternative: Explicitly specify backend
+        // EmbeddingService embeddingService = new EmbeddingService(
+        //     "http://localhost:8001",  // Python service
+        //     "nomic-embed-text"
+        // );
         
         PgVectorStore vectorStore = new PgVectorStore(dataSource, embeddingService);
         

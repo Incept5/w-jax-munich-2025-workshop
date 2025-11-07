@@ -14,10 +14,18 @@ import java.time.Duration;
 import java.util.Map;
 
 /**
- * Embedding generation service using Ollama.
+ * Embedding generation service with configurable backend.
  * 
- * Uses the nomic-embed-text model which produces 768-dimensional embeddings.
- * These embeddings are optimized for semantic search and clustering.
+ * Supports two backends:
+ * 1. Ollama (default): http://localhost:11434
+ * 2. Python service (workaround): http://localhost:8001
+ * 
+ * Note: Due to a bug in Ollama's embedding generation (as of January 2025),
+ * we recommend using the Python service for reliable ingestion.
+ * See: embedding-service/README.md for setup instructions.
+ * 
+ * The nomic-embed-text model produces 768-dimensional embeddings optimized
+ * for semantic search and clustering.
  */
 public class EmbeddingService {
     private static final Logger logger = LoggerFactory.getLogger(EmbeddingService.class);
@@ -27,6 +35,23 @@ public class EmbeddingService {
     private final HttpClient httpClient;
     private final Gson gson;
     
+    /**
+     * Create embedding service with Ollama backend (default).
+     * 
+     * WARNING: Ollama has a known bug affecting embedding generation.
+     * Consider using the Python service instead:
+     *   new EmbeddingService("http://localhost:8001", "nomic-embed-text")
+     */
+    public EmbeddingService() {
+        this("http://localhost:11434", "nomic-embed-text");
+    }
+    
+    /**
+     * Create embedding service with custom backend.
+     * 
+     * @param baseUrl Backend URL (e.g., "http://localhost:8001" for Python service)
+     * @param model Model name (e.g., "nomic-embed-text")
+     */
     public EmbeddingService(String baseUrl, String model) {
         this.baseUrl = baseUrl;
         this.model = model;
@@ -34,6 +59,27 @@ public class EmbeddingService {
             .connectTimeout(Duration.ofSeconds(30))
             .build();
         this.gson = new Gson();
+        
+        logger.info("📊 EmbeddingService initialized:");
+        logger.info("   Backend: {}", baseUrl);
+        logger.info("   Model: {}", model);
+    }
+    
+    /**
+     * Create embedding service from environment variable.
+     * 
+     * Checks EMBEDDING_SERVICE_URL environment variable, falls back to Ollama.
+     * This allows easy backend switching without code changes.
+     */
+    public static EmbeddingService fromEnvironment() {
+        String url = System.getenv("EMBEDDING_SERVICE_URL");
+        if (url != null && !url.isEmpty()) {
+            logger.info("🔧 Using embedding service from environment: {}", url);
+            return new EmbeddingService(url, "nomic-embed-text");
+        }
+        logger.warn("⚠️  Using default Ollama backend (has known bug)");
+        logger.warn("   Consider setting EMBEDDING_SERVICE_URL=http://localhost:8001");
+        return new EmbeddingService();
     }
     
     /**

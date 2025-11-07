@@ -1,15 +1,79 @@
 
-# Stage 3: Agentic RAG - Architecture Documentation
+# Stage 4: Agentic RAG - Architecture Documentation
 
 ## Overview
 
-**Status**: ❌ TODO (Phase 1 Ingestion ✅ Complete, Phase 2 Agent TODO)  
+**Status**: ✅ Complete (Phase 1 Ingestion + Phase 2 Agent)  
 **Purpose**: Build a production-ready RAG (Retrieval-Augmented Generation) pipeline with conversational memory  
 **Workshop Time**: 14:20-14:55 (35 minutes - Agentic RAG & Data Integration)
 
+## ⚠️ Ollama Bug and Workaround
+
+### The Issue
+
+As of January 2025, Ollama's `/api/embeddings` endpoint has a bug that causes:
+- Unreliable embedding generation during bulk ingestion
+- Connection timeouts after processing multiple documents  
+- Inconsistent response formats
+
+This makes it unsuitable for the workshop's ingestion pipeline.
+
+### Our Solution
+
+We've implemented a lightweight **Python embedding service** that:
+- Provides the same API as Ollama (drop-in replacement)
+- Uses the same model (nomic-embed-text-v1.5)
+- Generates identical 768-dimensional embeddings
+- Is fast, reliable, and workshop-friendly
+
+### Backend Flexibility
+
+The `EmbeddingService` class supports **any backend** that implements the Ollama API:
+
+```java
+// Python service (recommended)
+EmbeddingService service = new EmbeddingService(
+    "http://localhost:8001", 
+    "nomic-embed-text"
+);
+
+// Ollama (if bug is fixed in your version)
+EmbeddingService service = new EmbeddingService(
+    "http://localhost:11434",
+    "nomic-embed-text"  
+);
+
+// Environment-based (automatic selection)
+EmbeddingService service = EmbeddingService.fromEnvironment();
+```
+
+This design demonstrates good **software architecture**:
+- Dependency inversion (interface, not implementation)
+- Configuration over hard-coding
+- Easy to swap backends
+- Testable with mocks
+
+### For Participants
+
+**Just follow the setup instructions** - the scripts handle everything:
+
+```bash
+cd embedding-service && ./start.sh  # Start Python service
+cd .. && ./ingest.sh                # Run ingestion (auto-detects Python)
+```
+
+When Ollama fixes the bug, switching back is trivial:
+```bash
+EMBEDDING_BACKEND=ollama ./ingest.sh
+```
+
+---
+
 **PREREQUISITES**: 
-- Ollama must be running: `ollama serve`
-- Embedding model installed: `ollama pull nomic-embed-text`
+- Python 3.9+ installed
+- Python embedding service running: `cd embedding-service && ./start.sh`
+- Ollama running (for LLM only): `ollama serve`
+- Main LLM model: `ollama pull incept5/Jan-v1-2509:fp16`
 - PostgreSQL 17 with pgvector (via Docker Compose)
 
 ## Learning Objectives
@@ -25,11 +89,12 @@ By the end of this stage, participants will:
 ## What Participants Build
 
 ### Part 1: Ingestion Pipeline (Shell Script)
-- **gitingest integration**: Extract code from Spring AI and Embabel repositories
+- **Repository text files**: Pre-committed files from gitingest (no external dependencies)
 - **Document processing**: Chunking with overlap for better context
-- **Embedding generation**: Use Ollama's `nomic-embed-text` model
+- **Embedding generation**: Python service with `nomic-embed-text-v1.5` model
 - **Vector storage**: PostgreSQL with pgvector extension
 - **Idempotent ingestion**: Hash-based change detection, safe re-runs
+- **Backend flexibility**: Easy switching between Python and Ollama
 
 ### Part 2: RAG-Enabled Agent (Java)
 - **Conversational agent**: Multi-turn conversations with context retention
@@ -50,8 +115,10 @@ graph TB
         GI --> TXT[*.txt files]
         TXT --> CHUNK[DocumentChunker]
         CHUNK --> EMB[EmbeddingService]
-        EMB --> OLLAMA[Ollama<br/>nomic-embed-text]
-        OLLAMA --> STORE[PgVectorStore]
+        EMB --> PYTHON[Python Service :8001<br/>nomic-embed-text-v1.5<br/>✅ Recommended]
+        EMB -.alternative.-> OLLAMA[Ollama :11434<br/>nomic-embed-text<br/>⚠️ Has Bug]
+        PYTHON --> STORE[PgVectorStore]
+        OLLAMA -.buggy.-> STORE
         STORE --> PG[(PostgreSQL<br/>+ pgvector)]
         
         DOCKER[docker-compose] -.starts.-> PG
@@ -96,19 +163,30 @@ stage-4-agentic-rag/
 ├── README.md                            # Stage-specific instructions
 ├── architecture.md                      # This file
 ├── run.sh                               # Run conversational agent
-├── ingest.sh                            # Ingestion pipeline script
+├── ingest.sh                            # Ingestion pipeline script (supports both backends)
+├── test-embeddings.sh                   # Test both embedding backends
 ├── repos.yaml                           # Repository configuration
 ├── docker-compose.yml                   # PostgreSQL + pgvector setup
+│
+├── embedding-service/                   # Python embedding service (workaround)
+│   ├── server.py                        # FastAPI embedding API
+│   ├── requirements.txt                 # Python dependencies
+│   ├── start.sh                         # Start service script
+│   ├── test.sh                          # Test service script
+│   ├── README.md                        # Detailed service documentation
+│   └── venv/                            # Virtual environment (created on first run)
 │
 ├── db/
 │   └── migration/
 │       └── V1__Create_documents_table.sql    # Flyway migration
 │
-├── data/                                # .gitignored
+├── data/                                # Repository text files (committed to git)
 │   └── gitingest-output/
-│       ├── spring-ai.txt
 │       ├── embabel-agent.txt
-│       └── ...
+│       ├── embabel-examples.txt
+│       ├── embabel-java-template.txt
+│       ├── embabel-kotlin-template.txt
+│       └── tripper.txt
 │
 └── src/
     ├── main/java/com/incept5/workshop/stage4/
@@ -149,23 +227,39 @@ stage-4-agentic-rag/
 **Workflow**:
 ```bash
 #!/bin/bash
-# Stage 3: RAG Ingestion Pipeline
+# Stage 4: RAG Ingestion Pipeline
+# Supports both Ollama and Python embedding backends
 
 set -e  # Exit on error
 
-echo "🚀 Stage 3: RAG Ingestion Pipeline"
-echo
+echo "🚀 Stage 4: RAG Ingestion Pipeline"
 
-# Step 1: Check/Install gitingest
-if ! command -v gitingest &> /dev/null; then
-    echo "📦 Installing gitingest via pipx..."
-    pipx install gitingest
+# Backend selection (default: python)
+EMBEDDING_BACKEND=${EMBEDDING_BACKEND:-"python"}
+
+# Step 1: Verify embedding service is running
+if [ "$EMBEDDING_BACKEND" = "python" ]; then
+    echo "🐍 Using Python embedding service (recommended)"
+    if ! curl -s http://localhost:8001/health > /dev/null 2>&1; then
+        echo "❌ Python service not running!"
+        echo "Start it with: cd embedding-service && ./start.sh"
+        exit 1
+    fi
+    echo "✓ Python service ready"
+    export EMBEDDING_SERVICE_URL="http://localhost:8001"
+elif [ "$EMBEDDING_BACKEND" = "ollama" ]; then
+    echo "🦙 Using Ollama (⚠️ has known bug)"
+    if ! curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
+        echo "❌ Ollama not running!"
+        exit 1
+    fi
+    export EMBEDDING_SERVICE_URL="http://localhost:11434"
 fi
 
 # Step 2: Start PostgreSQL + pgvector
 echo "🐘 Starting PostgreSQL with pgvector..."
 docker-compose up -d
-sleep 5  # Wait for startup
+sleep 5
 
 # Step 3: Run Flyway migrations
 echo "🔧 Running database migrations..."
@@ -177,7 +271,7 @@ docker run --rm \
     -user=workshop -password=workshop123 \
     migrate
 
-# Step 4: Process each repository from repos.yaml
+# Step 4: Process repositories (Java reads EMBEDDING_SERVICE_URL)
 echo "📚 Ingesting repositories..."
 java -cp target/stage-4-agentic-rag.jar \
     com.incept5.workshop.stage4.ingestion.IngestionService \
