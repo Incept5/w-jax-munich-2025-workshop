@@ -71,6 +71,23 @@ This is **example code** showing a 2-stage RAG (Retrieval-Augmented Generation) 
 
 ---
 
+### 🔧 Workshop Instructor: Firewall Setup
+
+If you're hosting the shared database, you need to open port 5432 on your macOS firewall:
+
+**Quick Start:**
+```bash
+./firewall-setup.sh open    # Before workshop
+./firewall-setup.sh verify  # Check everything works
+./firewall-setup.sh close   # After workshop
+```
+
+**Documentation:**
+- **[FIREWALL_QUICKSTART.md](./FIREWALL_QUICKSTART.md)** - 5-minute setup guide
+- **[FIREWALL_SETUP.md](./FIREWALL_SETUP.md)** - Complete reference with troubleshooting
+
+---
+
 ### Prerequisites
 
 Make sure you have:
