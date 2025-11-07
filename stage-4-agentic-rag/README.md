@@ -55,6 +55,19 @@ This is **example code** showing a 2-stage RAG (Retrieval-Augmented Generation) 
 
 ## Quick Start
 
+### 🎯 Workshop Participants: Two Options!
+
+**Option A: Use Shared Database** (Recommended - No Docker needed!)
+- See **[WORKSHOP_SETUP.md](./WORKSHOP_SETUP.md)** for connection details
+- Host IP: `172.20.15.241`
+- Skip to "Step 3: Start Chatting" below
+
+**Option B: Run Everything Locally**
+- Follow full setup below (Docker + Ingestion required)
+- Complete independence, no network dependencies
+
+---
+
 ### Prerequisites
 
 Make sure you have:

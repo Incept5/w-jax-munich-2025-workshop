@@ -15,9 +15,19 @@ import javax.sql.DataSource;
 public class DatabaseConfig {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
     
-    private static final String DEFAULT_JDBC_URL = "jdbc:postgresql://localhost:5432/workshop_rag";
-    private static final String DEFAULT_USERNAME = "workshop";
-    private static final String DEFAULT_PASSWORD = "workshop123";
+    // Connection settings - configurable via environment variables for workshop sharing
+    private static final String DEFAULT_JDBC_URL = System.getenv().getOrDefault(
+        "DB_URL", 
+        "jdbc:postgresql://localhost:5432/workshop_rag"
+    );
+    private static final String DEFAULT_USERNAME = System.getenv().getOrDefault(
+        "DB_USER",
+        "workshop"
+    );
+    private static final String DEFAULT_PASSWORD = System.getenv().getOrDefault(
+        "DB_PASSWORD",
+        "workshop123"
+    );
     
     /**
      * Create a DataSource with default configuration.

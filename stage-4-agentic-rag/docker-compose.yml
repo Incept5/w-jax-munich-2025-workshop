@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: workshop123
       POSTGRES_DB: workshop_rag
     ports:
-      - "5432:5432"
+      - "0.0.0.0:5432:5432"  # Bind to all interfaces for workshop sharing
     volumes:
       - pgvector_data:/var/lib/postgresql/data
     healthcheck:

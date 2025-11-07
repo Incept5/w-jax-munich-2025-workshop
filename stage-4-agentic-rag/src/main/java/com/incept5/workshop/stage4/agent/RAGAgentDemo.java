@@ -75,9 +75,7 @@ public class RAGAgentDemo {
     private static final String EMBEDDING_MODEL = "nomic-embed-text";
 
     
-    private static final String DB_URL = "jdbc:postgresql://localhost:5432/workshop_rag";
-    private static final String DB_USER = "workshop";
-    private static final String DB_PASSWORD = "workshop123";
+    // Database connection is now configured via DatabaseConfig (reads from environment)
     
     public static void main(String[] args) {
         // Parse command-line arguments
@@ -97,6 +95,15 @@ public class RAGAgentDemo {
         
         logger.info("Starting RAG Agent Demo (verbose: {})", verbose);
         
+        // Display database connection info
+        String jdbcUrl = System.getenv().getOrDefault("DB_URL", "jdbc:postgresql://localhost:5432/workshop_rag");
+        String dbUser = System.getenv().getOrDefault("DB_USER", "workshop");
+        String dbMode = jdbcUrl.contains("localhost") ? "LOCAL DATABASE" : "SHARED DATABASE (connected to workshop host)";
+        logger.info("🐘 PostgreSQL Configuration");
+        logger.info("   URL: {}", jdbcUrl);
+        logger.info("   User: {}", dbUser);
+        logger.info("   Mode: {}", dbMode);
+        
         try {
             // Initialize components
             System.out.println("\n🚀 Initializing RAG Agent...");
@@ -113,7 +120,7 @@ public class RAGAgentDemo {
             
             // 2. Setup database connection
             System.out.println("   └─ Connecting to PostgreSQL...");
-            DataSource dataSource = DatabaseConfig.createDataSource(DB_URL, DB_USER, DB_PASSWORD);
+            DataSource dataSource = DatabaseConfig.createDataSource();
             System.out.println("   └─ ✓ Database connection ready");
             
             // 3. Setup embedding service
