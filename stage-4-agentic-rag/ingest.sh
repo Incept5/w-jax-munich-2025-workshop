@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 
 # Parse command line arguments
 REFRESH_MODE=false
-EMBEDDING_BACKEND=${EMBEDDING_BACKEND:-"python"}  # default to python
+EMBEDDING_BACKEND=${EMBEDDING_BACKEND:-"ollama"}  # default to python
 
 for arg in "$@"; do
     if [[ "$arg" == "--refresh" ]]; then
