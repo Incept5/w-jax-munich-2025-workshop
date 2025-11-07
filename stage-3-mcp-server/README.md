@@ -159,12 +159,23 @@ stage-3-mcp-server/
 
 ## Running the Project
 
+### Prerequisites
+
+**IMPORTANT**: You must build the project before running any commands:
+
+```bash
+cd stage-3-mcp-server
+mvn clean package
+```
+
+This creates the executable JAR file at `target/stage-3-mcp-server.jar`.
+
+**Having issues?** See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for common problems and solutions.
+
 ### Quick Start
 
 ```bash
-# Build the project
-cd stage-3-mcp-server
-mvn clean package
+# After building (mvn clean package), you can run:
 
 # Run in different modes:
 
@@ -183,12 +194,18 @@ mvn clean package
 
 ### Testing with MCP Inspector
 
-The MCP Inspector is a tool for testing MCP servers:
+The MCP Inspector is a tool for testing MCP servers.
+
+**First, make sure you've built the project** (see Prerequisites above).
+
+Then run:
 
 ```bash
 # Install and run the inspector (requires Node.js)
 npx @modelcontextprotocol/inspector java -jar target/stage-3-mcp-server.jar server
 ```
+
+**Troubleshooting**: If you see "Unable to access jarfile", you need to build first with `mvn clean package`. See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for details.
 
 This will:
 1. Start your MCP server
