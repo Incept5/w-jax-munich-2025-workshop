@@ -469,6 +469,574 @@ public class CalculatorTool implements Tool {
    ./run.sh agent "What is 15 times 23?"
    ```
 
+## Extension Ideas: Additional Tools
+
+Once you've mastered the basics, try adding these tools to extend your MCP server's capabilities. Each tool demonstrates different aspects of MCP design:
+
+### 1. Time Zone Tool (Simple, No External API)
+
+**Difficulty**: ⭐ Easy  
+**Time**: ~10 minutes  
+**What You'll Learn**: Working with Java time APIs, returning formatted data
+
+```java
+public class TimeZoneTool implements Tool {
+    @Override
+    public String getName() {
+        return "get_time";
+    }
+    
+    @Override
+    public String getDescription() {
+        return "Get the current time in a specific timezone (e.g., 'America/New_York', 'Europe/London', 'Asia/Tokyo')";
+    }
+    
+    @Override
+    public String getParameterSchema() {
+        return """
+            {
+              "type": "object",
+              "properties": {
+                "timezone": {
+                  "type": "string",
+                  "description": "Timezone name (e.g., 'America/New_York', 'Europe/London')"
+                }
+              },
+              "required": ["timezone"]
+            }
+            """;
+    }
+    
+    @Override
+    public String execute(Map<String, String> parameters) 
+            throws ToolExecutionException {
+        String timezone = parameters.get("timezone");
+        try {
+            ZoneId zoneId = ZoneId.of(timezone);
+            ZonedDateTime now = ZonedDateTime.now(zoneId);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
+            return "Current time in " + timezone + ": " + now.format(formatter);
+        } catch (Exception e) {
+            throw new ToolExecutionException(
+                "Invalid timezone: " + timezone + ". Use format like 'America/New_York'");
+        }
+    }
+}
+```
+
+**Test Queries**:
+- "What time is it in Tokyo?"
+- "What's the current time in New York?"
+- "Tell me the time in London and Paris"
+
+### 2. Currency Converter Tool (Medium, Free API)
+
+**Difficulty**: ⭐⭐ Medium  
+**Time**: ~15 minutes  
+**What You'll Learn**: Working with external APIs, handling numeric parameters, error handling  
+**API**: [Exchange Rate API](https://www.exchangerate-api.com/) (free, no auth needed)
+
+```java
+public class CurrencyConverterTool implements Tool {
+    private static final String API_URL = "https://api.exchangerate-api.com/v4/latest/";
+    
+    @Override
+    public String getName() {
+        return "convert_currency";
+    }
+    
+    @Override
+    public String getDescription() {
+        return "Convert amount between currencies using current exchange rates (e.g., USD to EUR)";
+    }
+    
+    @Override
+    public String getParameterSchema() {
+        return """
+            {
+              "type": "object",
+              "properties": {
+                "amount": {
+                  "type": "number",
+                  "description": "Amount to convert"
+                },
+                "from_currency": {
+                  "type": "string",
+                  "description": "Source currency code (e.g., USD, EUR, GBP)"
+                },
+                "to_currency": {
+                  "type": "string",
+                  "description": "Target currency code (e.g., USD, EUR, GBP)"
+                }
+              },
+              "required": ["amount", "from_currency", "to_currency"]
+            }
+            """;
+    }
+    
+    @Override
+    public String execute(Map<String, String> parameters) 
+            throws ToolExecutionException {
+        // Parse parameters
+        double amount = Double.parseDouble(parameters.get("amount"));
+        String fromCurrency = parameters.get("from_currency").toUpperCase();
+        String toCurrency = parameters.get("to_currency").toUpperCase();
+        
+        // Call API and convert
+        // See WeatherTool for HTTP client example
+        // Return formatted result
+    }
+}
+```
+
+**Test Queries**:
+- "Convert 100 USD to EUR"
+- "How much is 50 euros in Japanese yen?"
+- "What's 1000 GBP in dollars?"
+
+### 3. Random Joke Tool (Easy, Free API)
+
+**Difficulty**: ⭐ Easy  
+**Time**: ~10 minutes  
+**What You'll Learn**: Optional parameters, enum types, simple API calls  
+**API**: [JokeAPI](https://v2.jokeapi.dev/) (free, no auth needed)
+
+```java
+public class JokeTool implements Tool {
+    private static final String API_URL = "https://v2.jokeapi.dev/joke/";
+    
+    @Override
+    public String getName() {
+        return "get_joke";
+    }
+    
+    @Override
+    public String getDescription() {
+        return "Get a random joke from a specific category (Programming, Misc, Dark, Pun, Spooky, Christmas)";
+    }
+    
+    @Override
+    public String getParameterSchema() {
+        return """
+            {
+              "type": "object",
+              "properties": {
+                "category": {
+                  "type": "string",
+                  "enum": ["Programming", "Misc", "Dark", "Pun", "Spooky", "Christmas", "Any"],
+                  "description": "Joke category",
+                  "default": "Any"
+                }
+              }
+            }
+            """;
+    }
+    
+    @Override
+    public String execute(Map<String, String> parameters) 
+            throws ToolExecutionException {
+        String category = parameters.getOrDefault("category", "Any");
+        
+        // Call https://v2.jokeapi.dev/joke/{category}
+        // Parse JSON response
+        // Handle both single and two-part jokes
+        // Return formatted joke
+    }
+}
+```
+
+**Test Queries**:
+- "Tell me a programming joke"
+- "I need a joke to lighten the mood"
+- "Give me a pun"
+
+### 4. Unit Converter Tool (Medium)
+
+**Difficulty**: ⭐⭐ Medium  
+**Time**: ~20 minutes  
+**What You'll Learn**: Complex parameter validation, multiple conversion types
+
+```java
+public class UnitConverterTool implements Tool {
+    @Override
+    public String getParameterSchema() {
+        return """
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "Value to convert"
+                },
+                "from_unit": {
+                  "type": "string",
+                  "enum": ["celsius", "fahrenheit", "kelvin", 
+                           "meters", "feet", "miles", "kilometers",
+                           "kilograms", "pounds"],
+                  "description": "Source unit"
+                },
+                "to_unit": {
+                  "type": "string",
+                  "enum": ["celsius", "fahrenheit", "kelvin",
+                           "meters", "feet", "miles", "kilometers",
+                           "kilograms", "pounds"],
+                  "description": "Target unit"
+                }
+              },
+              "required": ["value", "from_unit", "to_unit"]
+            }
+            """;
+    }
+    
+    @Override
+    public String execute(Map<String, String> parameters) 
+            throws ToolExecutionException {
+        // Implement conversion logic for:
+        // - Temperature: C, F, K
+        // - Distance: m, ft, mi, km
+        // - Weight: kg, lb
+        // Validate unit compatibility
+    }
+}
+```
+
+**Test Queries**:
+- "Convert 100 fahrenheit to celsius"
+- "How many kilometers is 50 miles?"
+- "Convert 70 kilograms to pounds"
+
+### 5. Quote of the Day Tool (Easy, Free API)
+
+**Difficulty**: ⭐ Easy  
+**Time**: ~10 minutes  
+**What You'll Learn**: Tools with optional parameters, handling API responses  
+**API**: [Quotable API](https://api.quotable.io/) (free, no auth needed)
+
+```java
+public class QuoteTool implements Tool {
+    @Override
+    public String getParameterSchema() {
+        return """
+            {
+              "type": "object",
+              "properties": {
+                "author": {
+                  "type": "string",
+                  "description": "Author name (optional, e.g., 'Einstein', 'Shakespeare')"
+                },
+                "tag": {
+                  "type": "string",
+                  "description": "Quote category (optional, e.g., 'wisdom', 'technology', 'life')"
+                }
+              }
+            }
+            """;
+    }
+    
+    @Override
+    public String execute(Map<String, String> parameters) 
+            throws ToolExecutionException {
+        // Call https://api.quotable.io/random
+        // Optional: filter by author or tag
+        // Return quote with author
+    }
+}
+```
+
+**Test Queries**:
+- "Give me an inspirational quote"
+- "Share a quote from Einstein"
+- "Tell me a quote about technology"
+
+### 6. UUID Generator Tool (Very Easy)
+
+**Difficulty**: ⭐ Very Easy  
+**Time**: ~5 minutes  
+**What You'll Learn**: Tools with no required parameters
+
+```java
+public class UuidGeneratorTool implements Tool {
+    @Override
+    public String getParameterSchema() {
+        return """
+            {
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer",
+                  "description": "Number of UUIDs to generate (default: 1)",
+                  "default": 1,
+                  "minimum": 1,
+                  "maximum": 10
+                }
+              }
+            }
+            """;
+    }
+    
+    @Override
+    public String execute(Map<String, String> parameters) {
+        int count = Integer.parseInt(parameters.getOrDefault("count", "1"));
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < count; i++) {
+            result.append(UUID.randomUUID().toString());
+            if (i < count - 1) result.append("\n");
+        }
+        return result.toString();
+    }
+}
+```
+
+### 7. IP Address Info Tool (Medium, Free API)
+
+**Difficulty**: ⭐⭐ Medium  
+**Time**: ~15 minutes  
+**What You'll Learn**: Handling optional vs required parameters  
+**API**: [ipapi.co](https://ipapi.co/) (free, no auth, 1000 requests/day)
+
+```java
+public class IpInfoTool implements Tool {
+    @Override
+    public String getParameterSchema() {
+        return """
+            {
+              "type": "object",
+              "properties": {
+                "ip_address": {
+                  "type": "string",
+                  "description": "IP address to look up (optional, defaults to requester's IP)"
+                }
+              }
+            }
+            """;
+    }
+    
+    @Override
+    public String execute(Map<String, String> parameters) 
+            throws ToolExecutionException {
+        // Call https://ipapi.co/{ip}/json/ or https://ipapi.co/json/ for own IP
+        // Return location, ISP, timezone info
+    }
+}
+```
+
+## Step-by-Step: Adding Your Tool
+
+### Step 1: Create Tool Class
+
+Create a new file in `src/main/java/com/incept5/workshop/stage3/tool/`:
+
+```java
+package com.incept5.workshop.stage3.tool;
+
+import java.util.Map;
+
+public class YourTool implements Tool {
+    @Override
+    public String getName() {
+        return "your_tool_name";  // Use snake_case
+    }
+    
+    @Override
+    public String getDescription() {
+        return "Clear description of what your tool does";
+    }
+    
+    @Override
+    public String getParameterSchema() {
+        return """
+            {
+              "type": "object",
+              "properties": {
+                "param_name": {
+                  "type": "string",
+                  "description": "Parameter description"
+                }
+              },
+              "required": ["param_name"]
+            }
+            """;
+    }
+    
+    @Override
+    public String execute(Map<String, String> parameters) 
+            throws ToolExecutionException {
+        // Your implementation here
+        return "Tool result";
+    }
+}
+```
+
+### Step 2: Register Tool
+
+In `SimpleMCPServer.java`, add your tool to the constructor:
+
+```java
+public SimpleMCPServer() {
+    // Existing tools
+    registerTool(new WeatherTool());
+    registerTool(new CountryInfoTool());
+    
+    // Your new tool
+    registerTool(new YourTool());
+}
+```
+
+### Step 3: Build
+
+```bash
+mvn clean package
+```
+
+### Step 4: Test with MCP Inspector
+
+```bash
+npx @modelcontextprotocol/inspector java -jar target/stage-3-mcp-server.jar server
+```
+
+Verify:
+1. Your tool appears in the tools list
+2. The parameter schema looks correct
+3. You can call the tool successfully
+4. Error handling works as expected
+
+### Step 5: Test with Agent
+
+```bash
+./run.sh agent "Use my new tool to..."
+```
+
+## JSON Schema Quick Reference
+
+### Basic Types
+
+```json
+{
+  "properties": {
+    "string_param": { "type": "string" },
+    "number_param": { "type": "number" },
+    "integer_param": { "type": "integer" },
+    "boolean_param": { "type": "boolean" }
+  }
+}
+```
+
+### With Constraints
+
+```json
+{
+  "properties": {
+    "age": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 120
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["A", "B", "C"]
+    }
+  }
+}
+```
+
+### Optional vs Required
+
+```json
+{
+  "properties": {
+    "required_param": { "type": "string" },
+    "optional_param": {
+      "type": "string",
+      "default": "default_value"
+    }
+  },
+  "required": ["required_param"]
+}
+```
+
+## Tips for Tool Development
+
+### 1. Start Simple
+- Begin with tools that need no external APIs
+- Add complexity gradually
+- Test each component before combining
+
+### 2. Good Parameter Names
+- Use snake_case for consistency
+- Be descriptive: `target_city` not `city`
+- Provide clear descriptions in schema
+
+### 3. Error Handling
+- Validate parameters early
+- Throw `ToolExecutionException` with clear messages
+- Handle API failures gracefully
+- Log errors to stderr (not stdout!)
+
+### 4. Testing Strategy
+- Test with MCP Inspector first (isolated testing)
+- Then test with agent (integration testing)
+- Try edge cases (empty strings, invalid formats)
+- Test error conditions
+
+### 5. API Integration
+- Use free APIs with no auth when possible
+- Handle rate limits gracefully
+- Cache responses when appropriate
+- Set reasonable timeouts
+
+### 6. Response Format
+- Return human-readable strings
+- Include units in numeric results
+- Format dates/times clearly
+- Be consistent across tools
+
+## Challenge: Build a Tool Chain
+
+Once you have multiple tools, try creating queries that require tool chaining:
+
+```bash
+# Example: Currency + Weather
+./run.sh agent "What's the weather in Paris and how much is 50 EUR in USD?"
+
+# Example: Time + Weather
+./run.sh agent "What time is it in Tokyo and what's the weather there?"
+
+# Example: Country + Currency + Weather
+./run.sh agent "Tell me about Japan: what's the weather in its capital, \
+                 what time is it there, and how much is 10000 JPY in USD?"
+```
+
+Observe how the agent:
+1. Plans which tools to use
+2. Determines the correct order
+3. Passes results between tools
+4. Synthesizes a final answer
+
+## Helpful Resources
+
+### Free APIs (No Auth Required)
+- [JokeAPI](https://v2.jokeapi.dev/) - Random jokes
+- [Quotable](https://api.quotable.io/) - Random quotes
+- [Exchange Rate API](https://www.exchangerate-api.com/) - Currency conversion
+- [ipapi.co](https://ipapi.co/) - IP geolocation
+- [Open-Meteo](https://open-meteo.com/) - Weather data
+- [REST Countries](https://restcountries.com/) - Country information
+
+### JSON Schema Validators
+- [JSON Schema Validator](https://www.jsonschemavalidator.net/)
+- [JSON Schema Lint](https://jsonschemalint.com/)
+
+### HTTP Clients in Java
+- Java 11+ HttpClient (see `WeatherTool` for example)
+- Handle timeouts and retries
+- Parse JSON responses with Gson
+
+---
+
 ### Exercise 4: Integrate with Claude Desktop (5 minutes)
 
 1. Configure Claude Desktop with your server
