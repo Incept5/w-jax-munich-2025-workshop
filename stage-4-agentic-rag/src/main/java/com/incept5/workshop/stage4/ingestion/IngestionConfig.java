@@ -17,7 +17,24 @@ public record IngestionConfig(
         String ollamaBaseUrl
     ) {
         public Settings() {
-            this(800, 200, 0.7, "nomic-embed-text", "http://localhost:11434");
+            this(800, 200, 0.7, "nomic-embed-text", getDefaultOllamaBaseUrl());
+        }
+        
+        /**
+         * Get default Ollama base URL from environment or system property
+         */
+        private static String getDefaultOllamaBaseUrl() {
+            String url = System.getProperty("ollama.base.url");
+            if (url != null && !url.isBlank()) {
+                return url;
+            }
+            
+            url = System.getenv("OLLAMA_BASE_URL");
+            if (url != null && !url.isBlank()) {
+                return url;
+            }
+            
+            return "http://localhost:11434";
         }
     }
 }

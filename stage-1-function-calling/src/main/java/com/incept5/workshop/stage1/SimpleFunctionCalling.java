@@ -15,7 +15,24 @@ import java.net.http.HttpResponse;
  */
 public class SimpleFunctionCalling {
 
-    private static final String OLLAMA_URL = "http://localhost:11434/api/chat";
+    private static final String OLLAMA_URL = getOllamaBaseUrl() + "/api/chat";
+    
+    /**
+     * Get Ollama base URL from environment or system property
+     */
+    private static String getOllamaBaseUrl() {
+        String url = System.getProperty("ollama.base.url");
+        if (url != null && !url.isBlank()) {
+            return url;
+        }
+        
+        url = System.getenv("OLLAMA_BASE_URL");
+        if (url != null && !url.isBlank()) {
+            return url;
+        }
+        
+        return "http://localhost:11434";
+    }
     private static final String MODEL = "granite4";
 
     public static void main(String[] args) throws Exception {

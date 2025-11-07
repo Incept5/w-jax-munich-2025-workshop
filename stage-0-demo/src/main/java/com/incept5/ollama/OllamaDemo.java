@@ -400,9 +400,9 @@ public class OllamaDemo {
                   -b, --backend <name>     Backend type: ollama, lmstudio, mlx_vlm (default: ollama)
                   -m, --model <name>       Model name (default: gemma3)
                   -u, --url <url>          Backend server URL (default: backend-specific)
-                                           - Ollama: http://localhost:11434
-                                           - LM Studio: http://localhost:1234/v1
-                                           - MLX-VLM: http://localhost:8000
+                                           - Ollama: http://localhost:11434 (env: OLLAMA_BASE_URL)
+                                           - LM Studio: http://localhost:1234/v1 (env: LMSTUDIO_BASE_URL)
+                                           - MLX-VLM: http://localhost:8000 (env: MLX_VLM_BASE_URL)
                   -p, --prompt <text>      Prompt text (default: "What is the capital of France?")
                   -t, --timeout <sec>      Request timeout in seconds (default: 300)
                   -s, --stream             Enable streaming mode

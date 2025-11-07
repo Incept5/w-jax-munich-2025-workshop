@@ -195,6 +195,23 @@ public class IngestionService {
     }
     
     /**
+     * Get default Ollama base URL from environment or system property
+     */
+    private static String getDefaultOllamaBaseUrl() {
+        String url = System.getProperty("ollama.base.url");
+        if (url != null && !url.isBlank()) {
+            return url;
+        }
+        
+        url = System.getenv("OLLAMA_BASE_URL");
+        if (url != null && !url.isBlank()) {
+            return url;
+        }
+        
+        return "http://localhost:11434";
+    }
+    
+    /**
      * Main entry point for the ingestion service.
      */
     public static void main(String[] args) throws Exception {
@@ -244,7 +261,7 @@ public class IngestionService {
             (Integer) settingsMap.getOrDefault("chunkOverlap", 200),
             ((Number) settingsMap.getOrDefault("similarityThreshold", 0.7)).doubleValue(),
             (String) settingsMap.getOrDefault("embeddingModel", "nomic-embed-text"),
-            (String) settingsMap.getOrDefault("ollamaBaseUrl", "http://localhost:11434")
+            (String) settingsMap.getOrDefault("ollamaBaseUrl", getDefaultOllamaBaseUrl())
         );
         
         IngestionConfig config = new IngestionConfig(repos, settings);

@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * - Proper iteration counting and completion status
  * 
  * REQUIREMENTS:
- * - Ollama must be running on localhost:11434
+ * - Ollama must be running (default: localhost:11434, configurable via OLLAMA_BASE_URL)
  * - Model qwen2.5:3b must be available
  * - Network access to wttr.in and restcountries.com
  * 
@@ -57,7 +57,7 @@ class SimpleAgentIntegrationTest {
             // Initialize AI backend with reasonable timeout for tests
             BackendConfig config = BackendConfig.builder()
                     .backendType(BackendType.OLLAMA)
-                    .baseUrl("http://localhost:11434")
+                    .baseUrl(getOllamaBaseUrl())
                     .model("qwen3:4b")
                     .requestTimeout(Duration.ofSeconds(60))
                     .build();
@@ -81,13 +81,30 @@ class SimpleAgentIntegrationTest {
         } catch (Exception e) {
             System.err.println("✗ Failed to initialize test environment: " + e.getMessage());
             System.err.println("\nREQUIREMENTS:");
-            System.err.println("  1. Ollama must be running on localhost:11434");
+            System.err.println("  1. Ollama must be running (default: localhost:11434, set OLLAMA_BASE_URL to override)");
             System.err.println("  2. Model 'qwen2.5:3b' must be available");
             System.err.println("  3. Network access to wttr.in and restcountries.com");
             System.err.println("\nTo skip these tests, set: SKIP_INTEGRATION_TESTS=true");
             
             fail("Test environment setup failed: " + e.getMessage(), e);
         }
+    }
+    
+    /**
+     * Get Ollama base URL from environment or system property
+     */
+    private static String getOllamaBaseUrl() {
+        String url = System.getProperty("ollama.base.url");
+        if (url != null && !url.isBlank()) {
+            return url;
+        }
+        
+        url = System.getenv("OLLAMA_BASE_URL");
+        if (url != null && !url.isBlank()) {
+            return url;
+        }
+        
+        return "http://localhost:11434";
     }
     
     @AfterEach

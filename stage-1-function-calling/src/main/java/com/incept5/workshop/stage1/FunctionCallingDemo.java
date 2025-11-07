@@ -45,7 +45,25 @@ public class FunctionCallingDemo {
     private static final int NUM_RUNS = 10;
     private static final double TEMPERATURE = 0.6;
     private static final double DEFAULT_MAX_SIZE_GB = 100.0;
-    private static final String OLLAMA_BASE_URL = "http://localhost:11434";
+    private static final String OLLAMA_BASE_URL = getOllamaBaseUrl();
+    
+    /**
+     * Get Ollama base URL from environment or system property
+     * Precedence: System property > Environment variable > localhost:11434
+     */
+    private static String getOllamaBaseUrl() {
+        String url = System.getProperty("ollama.base.url");
+        if (url != null && !url.isBlank()) {
+            return url;
+        }
+        
+        url = System.getenv("OLLAMA_BASE_URL");
+        if (url != null && !url.isBlank()) {
+            return url;
+        }
+        
+        return "http://localhost:11434";
+    }
 
     private static String modelFilter = null;
     private static double maxSizeGB = DEFAULT_MAX_SIZE_GB;

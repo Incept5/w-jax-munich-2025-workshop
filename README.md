@@ -43,7 +43,7 @@ By the end of this workshop, you'll have built:
    mvn -version
    ```
 
-3. **Ollama** running locally
+3. **Ollama** running locally (or remote - see [Configuration Guide](./CONFIGURATION.md))
    ```bash
    # Install Ollama from https://ollama.ai
    ollama serve
@@ -109,6 +109,27 @@ cd stage-2-simple-agent
 ```
 
 Expected: Agent uses tools to look up weather information and responds.
+
+## Configuration
+
+### Using Remote Ollama Servers
+
+All workshop stages support configurable backend URLs. See [CONFIGURATION.md](./CONFIGURATION.md) for complete details.
+
+**Quick Example**:
+```bash
+# Set environment variable once
+export OLLAMA_BASE_URL=http://192.168.1.100:11434
+
+# All stages now use remote server
+cd stage-2-simple-agent
+./run.sh "What's the weather in Munich?"
+```
+
+**Supported Backends**:
+- **Ollama**: `OLLAMA_BASE_URL` or `-Dollama.base.url`
+- **LM Studio**: `LMSTUDIO_BASE_URL` or `-Dlmstudio.base.url`
+- **MLX-VLM**: `MLX_VLM_BASE_URL` or `-Dmlx.vlm.base.url`
 
 ## Workshop Structure
 

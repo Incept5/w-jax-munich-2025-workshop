@@ -19,9 +19,11 @@ This is a multi-module Maven workshop project demonstrating modern Java 21+ AI a
 - **Testing**: JUnit 5.11.3
 
 ### AI Backends
-- **Ollama**: Primary local LLM backend (default)
-- **LM Studio**: OpenAI-compatible local inference
-- **MLX-VLM**: Apple Silicon optimized vision models
+- **Ollama**: Primary local LLM backend (default: localhost:11434, configurable)
+- **LM Studio**: OpenAI-compatible local inference (default: localhost:1234/v1, configurable)
+- **MLX-VLM**: Apple Silicon optimized vision models (default: localhost:8000, configurable)
+
+**Configuration**: All backend URLs are externally configurable via environment variables or system properties. See [CONFIGURATION.md](./CONFIGURATION.md) for details.
 
 ### Default Model
 - **Primary**: `incept5/Jan-v1-2509:fp16`
@@ -926,6 +928,7 @@ mvn package -DskipTests
    - Multi-step reasoning
    - Integration test with real Ollama
    - Verbose mode for debugging
+   - CLI model override support (--model flag)
 
 5. **stage-3-mcp-server/** - MCP server implementation
    - JSON-RPC 2.0 protocol over STDIO
@@ -1006,7 +1009,9 @@ cd stage-1-function-calling
 # Run Stage 2 (Simple Agent)
 cd stage-2-simple-agent
 ./run.sh "What's the weather in Munich?"
+./run.sh --model qwen2.5:7b "Tell me about Germany"
 ./run.sh --verbose "Tell me about Germany"
+./run.sh -m mistral:7b -v "Compare Paris and London"
 
 # Run Stage 3 (MCP Server)
 cd stage-3-mcp-server
@@ -1026,19 +1031,24 @@ mvn -pl stage-2-simple-agent -am clean package
 
 ### Switching Models
 
-Edit the default model in `SimpleAgentDemo.java`:
-```java
-BackendConfig config = BackendConfig.builder()
-    .backendType(BackendType.OLLAMA)
-    .baseUrl("http://localhost:11434")
-    .model("incept5/Jan-v1-2509:fp16")  // ← Change here
-    .requestTimeout(Duration.ofSeconds(300))
-    .build();
+**Stage 0 (Demo):**
+```bash
+cd stage-0-demo
+./run.sh -m "qwen2.5:7b" "Hello from W-JAX"
 ```
 
-Or use CLI (Stage 0):
+**Stage 2 (Simple Agent):**
 ```bash
-java -jar target/stage-0-demo.jar -m "qwen2.5:7b" -p "Hello"
+cd stage-2-simple-agent
+./run.sh --model qwen2.5:7b "What's the weather in Tokyo?"
+./run.sh -m mistral:7b -v "Tell me about Japan"
+```
+
+**Programmatically (all stages):**
+Edit the default model in `BackendConfig.Builder`:
+```java
+// In shared/src/main/java/com/incept5/ollama/config/BackendConfig.java
+private String model = "your-preferred-model";  // ← Change default here
 ```
 
 ## Resources

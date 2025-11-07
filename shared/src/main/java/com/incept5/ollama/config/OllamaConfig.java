@@ -13,10 +13,31 @@ public record OllamaConfig(
         Duration requestTimeout
 ) {
     // Default values
-    private static final String DEFAULT_BASE_URL = "http://localhost:11434";
+    private static final String DEFAULT_BASE_URL = getDefaultBaseUrl();
     private static final String DEFAULT_MODEL = "gemma3";
     private static final Duration DEFAULT_CONNECT_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration DEFAULT_REQUEST_TIMEOUT = Duration.ofMinutes(5);
+
+    /**
+     * Get the default base URL from environment or system property
+     * Precedence: System property > Environment variable > localhost:11434
+     */
+    private static String getDefaultBaseUrl() {
+        // Check system property first
+        String url = System.getProperty("ollama.base.url");
+        if (url != null && !url.isBlank()) {
+            return url;
+        }
+        
+        // Check environment variable
+        url = System.getenv("OLLAMA_BASE_URL");
+        if (url != null && !url.isBlank()) {
+            return url;
+        }
+        
+        // Default to localhost
+        return "http://localhost:11434";
+    }
 
     /**
      * Compact constructor with validation and defaults
