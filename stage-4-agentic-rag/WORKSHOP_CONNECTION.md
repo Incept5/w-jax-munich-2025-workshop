@@ -7,19 +7,32 @@
 
 **No Docker or ingestion needed!** Just connect to the shared database:
 
+**Method 1: Using --shared flag (Easiest!)**
 ```bash
-# Set environment variables
+cd stage-4-agentic-rag
+mvn clean package
+./run.sh --shared
+```
+
+**Method 2: Using environment variables**
+```bash
 export DB_URL="jdbc:postgresql://172.20.15.241:5432/workshop_rag"
 export DB_USER="workshop"
 export DB_PASSWORD="workshop123"
 
-# Build and run
 cd stage-4-agentic-rag
 mvn clean package
 ./run.sh
 ```
 
 **That's it!** You're ready to chat with 487 pre-loaded documents about Embabel.
+
+**Tip:** Combine with other flags:
+```bash
+./run.sh --shared --verbose              # Shared DB + verbose
+./run.sh -s --model qwen2.5:7b           # Shared DB + custom model
+./run.sh -s -m mistral:7b -v             # All options
+```
 
 ---
 

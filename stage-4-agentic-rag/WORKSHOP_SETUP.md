@@ -22,24 +22,35 @@ This guide explains how to use the shared workshop database OR run locally.
 
 **Connection Steps:**
 
-1. **Set the database URL:**
+**Method 1: Using --shared flag (Recommended)**
+```bash
+cd stage-4-agentic-rag
+mvn clean package
+./run.sh --shared
+```
+
+**Method 2: Using environment variables**
 ```bash
 export DB_URL="jdbc:postgresql://172.20.15.241:5432/workshop_rag"
 export DB_USER="workshop"
 export DB_PASSWORD="workshop123"
-```
 
-2. **Build and run:**
-```bash
 cd stage-4-agentic-rag
 mvn clean package
 ./run.sh
 ```
 
-3. **Start chatting:**
+**Start chatting:**
 ```
 💬 You: What is Embabel?
 🤖 Assistant: [Uses shared database with 487 pre-loaded documents]
+```
+
+**Tip: Combine flags for more control:**
+```bash
+./run.sh --shared --verbose              # See agent reasoning
+./run.sh -s --model qwen2.5:7b           # Use different model
+./run.sh -s -m mistral:7b -v             # All options combined
 ```
 
 **Test Connection:**

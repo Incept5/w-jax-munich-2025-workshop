@@ -17,6 +17,7 @@ fi
 # Parse command-line arguments
 VERBOSE=""
 MODEL=""
+USE_SHARED=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -28,22 +29,35 @@ while [[ $# -gt 0 ]]; do
             MODEL="--model $2"
             shift 2
             ;;
+        --shared|-s)
+            USE_SHARED=true
+            shift
+            ;;
         --help|-h)
             echo "Usage: ./run.sh [OPTIONS]"
             echo
             echo "Options:"
             echo "  --verbose, -v          Show agent reasoning steps"
             echo "  --model, -m MODEL      Override LLM model (default: qwen3:4b)"
+            echo "  --shared, -s           Connect to shared workshop database"
             echo "  --help, -h             Show this help message"
             echo
             echo "Examples:"
-            echo "  ./run.sh                           # Use default model"
-            echo "  ./run.sh --model qwen2.5:7b        # Use specific model"
-            echo "  ./run.sh -m mistral:7b --verbose   # Model + verbose mode"
+            echo "  ./run.sh                           # Use local database"
+            echo "  ./run.sh --shared                  # Use shared workshop database"
+            echo "  ./run.sh -s --model qwen2.5:7b     # Shared DB + specific model"
+            echo "  ./run.sh -s -m mistral:7b -v       # Shared DB + model + verbose"
             echo
             echo "Environment Variables:"
             echo "  OLLAMA_MODEL           Override default LLM model"
             echo "  OLLAMA_BASE_URL        Override Ollama URL (default: http://localhost:11434)"
+            echo "  DB_URL                 Override database URL"
+            echo "  DB_USER                Override database username"
+            echo "  DB_PASSWORD            Override database password"
+            echo
+            echo "Database Modes:"
+            echo "  Local (default):       jdbc:postgresql://localhost:5432/workshop_rag"
+            echo "  Shared (--shared):     jdbc:postgresql://172.20.15.241:5432/workshop_rag"
             echo
             exit 0
             ;;
@@ -54,6 +68,15 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# Set database connection if --shared flag is used
+if [ "$USE_SHARED" = true ]; then
+    export DB_URL="jdbc:postgresql://172.20.15.241:5432/workshop_rag"
+    export DB_USER="workshop"
+    export DB_PASSWORD="workshop123"
+    echo "📡 Connecting to shared workshop database at 172.20.15.241:5432"
+    echo
+fi
 
 # Display mode info
 if [ -n "$VERBOSE" ]; then
