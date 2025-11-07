@@ -145,8 +145,10 @@ Total documents: 487
 ### Step 3: Start Chatting!
 
 ```bash
-./run.sh          # Standard mode
-./run.sh --verbose  # See agent's thinking
+./run.sh                        # Standard mode (default model)
+./run.sh --verbose              # See agent's thinking
+./run.sh --model qwen2.5:7b     # Use specific model
+./run.sh -m mistral:7b -v       # Model + verbose mode
 ```
 
 **Try these:**
@@ -280,12 +282,37 @@ Explore these to understand the implementation:
 
 ## Configuration
 
-### Change LLM Model
+### Changing the Model
 
-Edit `RAGAgentDemo.java`:
-```java
-private static final String LLM_MODEL = "qwen2.5:7b";  // Faster alternative
+The RAG agent uses **two different models**:
+
+1. **LLM Model** (for reasoning and chat) - Configurable via multiple methods
+2. **Embedding Model** (for vector generation) - Fixed at `nomic-embed-text`
+
+#### Override LLM Model
+
+You can override the LLM model (used for reasoning) in three ways:
+
+**Method 1: Command-Line Flag** (recommended for testing)
+```bash
+./run.sh --model qwen2.5:7b
+./run.sh -m mistral:7b --verbose
 ```
+
+**Method 2: Environment Variable** (recommended for persistent config)
+```bash
+export OLLAMA_MODEL="qwen2.5:7b"
+./run.sh
+```
+
+**Method 3: System Property**
+```bash
+java -Dollama.model="mistral:7b" -jar target/stage-4-agentic-rag-1.0-SNAPSHOT.jar
+```
+
+**Default Model:** `incept5/Jan-v1-2509:fp16`
+
+**Note:** The embedding model (`nomic-embed-text`) remains unchanged regardless of LLM model override. This is intentional - embeddings must be generated with the same model used during ingestion for semantic search to work correctly.
 
 ### Add Your Repositories
 
