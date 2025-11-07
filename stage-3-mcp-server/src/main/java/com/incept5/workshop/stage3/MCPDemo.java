@@ -52,6 +52,23 @@ public class MCPDemo {
         return "http://localhost:11434";
     }
     
+    /**
+     * Get model name from environment, system property, or use default
+     */
+    private static String getModelName() {
+        String model = System.getProperty("ollama.model");
+        if (model != null && !model.isBlank()) {
+            return model;
+        }
+        
+        model = System.getenv("OLLAMA_MODEL");
+        if (model != null && !model.isBlank()) {
+            return model;
+        }
+        
+        return "incept5/Jan-v1-2509:fp16";
+    }
+    
     public static void main(String[] args) {
         // Determine mode from arguments
         String mode = args.length > 0 ? args[0] : "server";
@@ -108,30 +125,61 @@ public class MCPDemo {
     private static void runAgent(String[] args) {
         if (args.length < 2) {
             System.err.println("Error: Agent mode requires a task argument");
-            System.err.println("Usage: java -jar stage-3-mcp-server.jar agent \"Your task here\"");
+            System.err.println("Usage: java -jar stage-3-mcp-server.jar agent \"Your task here\" [options]");
+            System.err.println("Options:");
+            System.err.println("  --model, -m <model>    Use a specific model");
+            System.err.println("  --verbose, -v          Show detailed reasoning");
             System.exit(1);
         }
         
-        // Join all remaining args as the task
-        String task = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+        // Parse arguments
+        String modelOverride = null;
+        boolean verbose = false;
+        StringBuilder taskBuilder = new StringBuilder();
+        
+        for (int i = 1; i < args.length; i++) {
+            String arg = args[i];
+            
+            if (arg.equals("--model") || arg.equals("-m")) {
+                if (i + 1 < args.length) {
+                    modelOverride = args[++i];
+                } else {
+                    System.err.println("Error: --model requires a value");
+                    System.exit(1);
+                }
+            } else if (arg.equals("--verbose") || arg.equals("-v")) {
+                verbose = true;
+            } else {
+                if (taskBuilder.length() > 0) {
+                    taskBuilder.append(" ");
+                }
+                taskBuilder.append(arg);
+            }
+        }
+        
+        String task = taskBuilder.toString();
+        if (task.isBlank()) {
+            System.err.println("Error: No task specified");
+            System.exit(1);
+        }
+        
+        // Determine model to use
+        String model = modelOverride != null ? modelOverride : getModelName();
         
         System.out.println("=".repeat(60));
         System.out.println("MCP Agent Demo");
         System.out.println("=".repeat(60));
         System.out.println();
+        System.out.println("Model: " + model);
         System.out.println("Task: " + task);
         System.out.println();
-        
-        // Check for --verbose flag
-        boolean verbose = Arrays.asList(args).contains("--verbose") || 
-                         Arrays.asList(args).contains("-v");
         
         try {
             // Create AI backend
             AIBackend backend = BackendFactory.createBackend(
                     BackendType.OLLAMA,
                     getOllamaBaseUrl(),
-                    "incept5/Jan-v1-2509:fp16",
+                    model,
                     Duration.ofSeconds(300)
             );
             
@@ -165,10 +213,13 @@ public class MCPDemo {
      * Runs the interactive chat mode.
      */
     private static void runInteractive() {
+        String model = getModelName();
+        
         System.out.println("=".repeat(60));
         System.out.println("MCP Agent - Interactive Mode");
         System.out.println("=".repeat(60));
         System.out.println();
+        System.out.println("Model: " + model);
         System.out.println("This mode lets you chat with an AI agent that can use MCP tools.");
         System.out.println("Type 'exit' or 'quit' to end the session.");
         System.out.println();
@@ -177,8 +228,8 @@ public class MCPDemo {
             // Create AI backend
             AIBackend backend = BackendFactory.createBackend(
                     BackendType.OLLAMA,
-                    "http://localhost:11434",
-                    "incept5/Jan-v1-2509:fp16",
+                    getOllamaBaseUrl(),
+                    model,
                     Duration.ofSeconds(300)
             );
             
@@ -245,7 +296,12 @@ public class MCPDemo {
         System.out.println("  interactive         Start interactive chat mode");
         System.out.println();
         System.out.println("Agent mode options:");
-        System.out.println("  --verbose, -v       Show detailed agent reasoning");
+        System.out.println("  --model, -m <model>     Use a specific model");
+        System.out.println("  --verbose, -v           Show detailed agent reasoning");
+        System.out.println();
+        System.out.println("Environment variables:");
+        System.out.println("  OLLAMA_MODEL            Default model to use");
+        System.out.println("  OLLAMA_BASE_URL         Ollama server URL (default: http://localhost:11434)");
         System.out.println();
         System.out.println("Examples:");
         System.out.println("  # Start server for MCP Inspector");
@@ -253,6 +309,9 @@ public class MCPDemo {
         System.out.println();
         System.out.println("  # Run agent with task");
         System.out.println("  java -jar target/stage-3-mcp-server.jar agent \"What's the weather in Paris?\"");
+        System.out.println();
+        System.out.println("  # Run agent with specific model");
+        System.out.println("  java -jar target/stage-3-mcp-server.jar agent --model qwen2.5:7b \"Your task\"");
         System.out.println();
         System.out.println("  # Interactive mode");
         System.out.println("  java -jar target/stage-3-mcp-server.jar interactive");

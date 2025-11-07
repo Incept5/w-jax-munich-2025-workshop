@@ -225,7 +225,42 @@ The agent mode lets you use AI to reason about and use the MCP tools:
 
 # With verbose output to see the reasoning
 ./run.sh agent "Tell me about Japan" --verbose
+
+# With a different model
+./run.sh agent --model qwen2.5:7b "What's the weather in Tokyo?"
+
+# Combine model and verbose
+./run.sh agent -m mistral:7b -v "Tell me about Germany"
 ```
+
+#### Changing the Model
+
+You can override the default model (`incept5/Jan-v1-2509:fp16`) in three ways:
+
+**1. Command-line flag (recommended for testing):**
+```bash
+./run.sh agent --model qwen2.5:7b "Your task"
+./run.sh agent -m mistral:7b -v "Your task"  # Short form with verbose
+```
+
+**2. Environment variable (recommended for session):**
+```bash
+export OLLAMA_MODEL="qwen2.5:7b"
+./run.sh agent "Your task"
+./run.sh interactive  # Also uses env var
+```
+
+**3. System property:**
+```bash
+java -Dollama.model="mistral:7b" -jar target/stage-3-mcp-server.jar agent "Your task"
+```
+
+**Available models** (examples):
+- `incept5/Jan-v1-2509:fp16` (default)
+- `qwen2.5:7b`
+- `mistral:7b`
+- `gemma2:9b`
+- Any model you have pulled with `ollama pull <model>`
 
 ### Interactive Mode
 

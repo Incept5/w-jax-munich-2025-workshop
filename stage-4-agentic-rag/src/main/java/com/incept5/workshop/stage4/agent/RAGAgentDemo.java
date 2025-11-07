@@ -49,7 +49,28 @@ public class RAGAgentDemo {
         
         return "http://localhost:11434";
     }
-    private static final String LLM_MODEL = "qwen3:4b";
+    
+    /**
+     * Get LLM model name from environment or system property.
+     * 
+     * Priority order:
+     * 1. System property: ollama.model
+     * 2. Environment variable: OLLAMA_MODEL
+     * 3. Default: qwen3:4b
+     */
+    private static String getModelName() {
+        String model = System.getProperty("ollama.model");
+        if (model != null && !model.isBlank()) {
+            return model;
+        }
+        
+        model = System.getenv("OLLAMA_MODEL");
+        if (model != null && !model.isBlank()) {
+            return model;
+        }
+        
+        return "qwen3:4b";
+    }
 
     private static final String EMBEDDING_MODEL = "nomic-embed-text";
 
@@ -59,7 +80,20 @@ public class RAGAgentDemo {
     private static final String DB_PASSWORD = "workshop123";
     
     public static void main(String[] args) {
-        boolean verbose = args.length > 0 && "--verbose".equals(args[0]);
+        // Parse command-line arguments
+        boolean verbose = false;
+        String modelOverride = null;
+        
+        for (int i = 0; i < args.length; i++) {
+            if ("--verbose".equals(args[i]) || "-v".equals(args[i])) {
+                verbose = true;
+            } else if (("--model".equals(args[i]) || "-m".equals(args[i])) && i + 1 < args.length) {
+                modelOverride = args[++i];
+            }
+        }
+        
+        // Get LLM model (CLI override takes precedence)
+        final String llmModel = modelOverride != null ? modelOverride : getModelName();
         
         logger.info("Starting RAG Agent Demo (verbose: {})", verbose);
         
@@ -72,10 +106,10 @@ public class RAGAgentDemo {
             AIBackend backend = BackendFactory.createBackend(
                 BackendType.OLLAMA,
                 OLLAMA_BASE_URL,
-                LLM_MODEL,
+                llmModel,
                 Duration.ofSeconds(300)
             );
-            System.out.println("   └─ ✓ Backend ready (model: " + LLM_MODEL + ")");
+            System.out.println("   └─ ✓ Backend ready (LLM model: " + llmModel + ")");
             
             // 2. Setup database connection
             System.out.println("   └─ Connecting to PostgreSQL...");
@@ -100,6 +134,12 @@ public class RAGAgentDemo {
                 System.err.println("   Please run './ingest.sh' first to load documentation.");
                 System.exit(1);
             }
+            
+            // Display configuration summary
+            System.out.println("\n📋 Configuration:");
+            System.out.println("   └─ LLM Model: " + llmModel);
+            System.out.println("   └─ Embedding Model: " + EMBEDDING_MODEL);
+            System.out.println("   └─ Backend URL: " + OLLAMA_BASE_URL);
             
             // 5. Setup tools
             System.out.println("   └─ Registering tools...");
@@ -130,7 +170,7 @@ public class RAGAgentDemo {
             System.err.println("\n❌ Error: " + e.getMessage());
             System.err.println("\nPlease ensure:");
             System.err.println("  1. Ollama is running: ollama serve");
-            System.err.println("  2. Models are available: ollama pull " + LLM_MODEL);
+            System.err.println("  2. Models are available: ollama pull " + getModelName());
             System.err.println("                          ollama pull " + EMBEDDING_MODEL);
             System.err.println("  3. PostgreSQL is running: docker-compose up -d");
             System.err.println("  4. Documents are ingested: ./ingest.sh");
@@ -195,7 +235,7 @@ public class RAGAgentDemo {
     
     private static void printWelcomeBanner() {
         System.out.println("\n" + "═".repeat(70));
-        System.out.println("  RAG Agent - Embabel & Spring AI Documentation Assistant");
+        System.out.println("  RAG Agent - Embabel Code & Documentation Assistant");
         System.out.println("═".repeat(70));
         System.out.println("\nCommands:");
         System.out.println("  • Type your question to chat with the agent");
