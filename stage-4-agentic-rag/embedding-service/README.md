@@ -124,6 +124,19 @@ The model is downloaded automatically on first run and cached locally.
 
 ## Troubleshooting
 
+### Quick Verification
+
+First, run the verification script to check your setup:
+
+```bash
+./verify-setup.sh
+```
+
+This will check:
+- ✅ Conda environment exists
+- ✅ Python 3.11 is installed
+- ✅ All required packages are available
+
 ### Conda Not Found
 
 If you get "conda: command not found":
@@ -136,42 +149,68 @@ conda init bash  # or zsh, fish, etc.
 source ~/.bashrc  # or ~/.zshrc
 ```
 
-### Module Not Found Errors (einops, etc.)
+### Environment Not Created
 
-If you see "No module named 'einops'" or similar import errors despite successful installation:
+If the environment doesn't exist:
 
-**Root Cause:** Old venv or PYTHONPATH interfering with conda environment.
+```bash
+# Manually create the environment
+cd stage-4-agentic-rag/embedding-service
+conda env create -f environment.yml
 
-**Solution:**
+# Verify it was created
+conda env list | grep embedding-service
+```
 
-1. Run the verification script:
+### Wrong Python Version
+
+If you see Python 3.14 or system Python instead of 3.11:
+
+**Problem:** The start.sh script was using `conda run` which had PATH resolution issues on some systems.
+
+**Solution:** The updated start.sh now uses direct Python paths:
+```bash
+# The script now directly calls:
+/opt/miniconda3/envs/embedding-service/bin/python server.py
+
+# Instead of relying on conda run or activation
+```
+
+**Verify the fix:**
+```bash
+./verify-setup.sh
+# Should show: ✅ Python: Python 3.11.14
+```
+
+### Module Not Found Errors
+
+If you see "No module named 'einops'" or similar errors:
+
+1. **Run verification:**
    ```bash
-   ./test-conda-fix.sh
+   ./verify-setup.sh
    ```
 
-2. If issues persist, recreate the environment:
+2. **If packages are missing, recreate environment:**
    ```bash
-   # Remove old environment
    conda env remove -n embedding-service
+   conda env create -f environment.yml
+   ```
+
+3. **If verification passes but server still fails:**
+   ```bash
+   # Clear interfering environment variables
+   unset PYTHONPATH
+   unset VIRTUAL_ENV
    
-   # Remove any old venv directory
-   rm -rf venv/
-   
-   # Start fresh
+   # Try starting again
    ./start.sh
    ```
 
-3. Check for interfering environment variables:
-   ```bash
-   # These should be empty or not set
-   echo $PYTHONPATH
-   echo $VIRTUAL_ENV
-   ```
-
-**Why This Happens:**
-- The start.sh script now clears PYTHONPATH/VIRTUAL_ENV before activation
-- Uses `conda run` instead of `conda activate` for reliability
-- Python 3.11 is used (3.14 not yet supported by sentence-transformers)
+**Technical Details:**
+- See `CONDA_FIX_SUMMARY.md` for full analysis of conda run vs direct Python path
+- Python 3.11 is required (3.14 not yet supported by sentence-transformers)
+- Direct Python paths are more reliable than shell activation
 
 ### Port Already in Use
 

@@ -2,26 +2,41 @@
 
 ## Problem
 
-The embedding service was failing with "No module named 'einops'" despite successful installation because:
+The embedding service was failing because `conda run -n embedding-service` was not using the conda environment's Python. Instead, it was picking up the system Python 3.14.0 from Homebrew.
 
-1. **PYTHONPATH Interference**: Old `PYTHONPATH` environment variable was pointing to a previous venv directory
-2. **Python Version**: Python 3.14.0 was being used, which isn't yet supported by sentence-transformers (only 3.9-3.13)
-3. **Conda Activation Issues**: Using `conda activate` in shell scripts doesn't always work reliably
+### Root Causes:
+
+1. **PATH Configuration Issues**: `conda run` not properly resolving to environment Python
+2. **System Python Override**: Homebrew Python 3.14.0 at `/opt/homebrew/opt/python/libexec/bin/python` taking precedence
+3. **Python Version Mismatch**: System Python 3.14.0 vs required Python 3.11 for sentence-transformers
+4. **conda run Limitations**: Command doesn't reliably activate environment on all systems
+
+### Symptoms:
+```bash
+# Wrong: conda run uses system Python
+conda run -n embedding-service which python
+# → /opt/homebrew/opt/python/libexec/bin/python (3.14.0)
+
+# Correct: Direct path uses environment Python
+/opt/miniconda3/envs/embedding-service/bin/python --version
+# → Python 3.11.14 ✓
+```
 
 ## Solution Implemented
 
 ### 1. Updated start.sh Script
 
 **Key Changes:**
-- Clear interfering environment variables BEFORE conda operations:
+- **Use direct Python path** instead of `conda run`
+- **Auto-detect conda installation** (supports /opt/miniconda3, ~/miniconda3, ~/anaconda3)
+- **Verify Python executable** exists before starting
+- **Clear interfering environment variables** BEFORE operations:
   ```bash
   unset PYTHONPATH
   unset VIRTUAL_ENV
   unset CONDA_PREFIX
   ```
-- Use `conda run -n environment-name` instead of `conda activate`
-- Add verification steps to check Python version and package imports
-- Automatic fallback to reinstall dependencies if imports fail
+- **Better error messages** with specific troubleshooting steps
 
 ### 2. Environment Configuration
 
@@ -41,10 +56,11 @@ The embedding service was failing with "No module named 'einops'" despite succes
 
 ## Why This Fix Works
 
-1. **Clearing Environment Variables**: Removes interference from old installations
-2. **conda run**: More reliable than activation in shell scripts - handles all environment setup internally
+1. **Direct Python Path**: Bypasses PATH resolution issues by using absolute path to environment Python
+2. **No Shell Activation**: Avoids conda activation complexity in shell scripts
 3. **Python 3.11**: Stable version with full sentence-transformers ecosystem support
-4. **Verification**: Catches issues before server starts
+4. **Auto-detection**: Finds conda installation regardless of location
+5. **Verification**: Catches issues before server starts and shows actual Python being used
 
 ## Testing the Fix
 
@@ -85,31 +101,35 @@ echo $VIRTUAL_ENV   # Should be empty
 
 ### Manual Verification
 ```bash
-# Check what Python is being used
-conda run -n embedding-service which python
+# Check what Python is being used (direct path)
+/opt/miniconda3/envs/embedding-service/bin/python --version
 
 # Check sys.path
-conda run -n embedding-service python -c "import sys; print('\n'.join(sys.path))"
+/opt/miniconda3/envs/embedding-service/bin/python -c "import sys; print('\n'.join(sys.path))"
 
 # Test einops import
-conda run -n embedding-service python -c "import einops; print(einops.__file__)"
+/opt/miniconda3/envs/embedding-service/bin/python -c "import einops; print(einops.__file__)")
+
+# Compare with conda run (may show the problem)
+conda run -n embedding-service which python
 ```
 
 ## Technical Details
 
-### Why conda run vs conda activate?
+### Why Direct Python Path vs conda run?
 
-**conda activate** in shell scripts:
-- Modifies current shell environment
-- May not propagate to subprocess
-- Affected by shell type (bash/zsh/sh)
-- Can be overridden by environment variables
+**conda run** issues:
+- May not properly resolve to environment Python
+- Can be affected by PATH configuration
+- May pick up system Python instead
+- Inconsistent behavior across systems
 
-**conda run**:
-- Runs command in fresh environment
-- Handles all setup internally
-- Works regardless of shell type
-- Not affected by existing environment variables
+**Direct Python path** advantages:
+- Guaranteed to use correct Python
+- No PATH resolution ambiguity
+- Works regardless of shell or environment
+- Explicit and verifiable
+- Standard practice in production deployments
 
 ### Python Version Requirements
 
@@ -127,19 +147,21 @@ conda run -n embedding-service python -c "import einops; print(einops.__file__)"
 
 ## References
 
-### Web Research Findings
+### Key Findings
 
-1. **Conda Activation Issues**: Common problem with shell scripts - `conda run` is more reliable
-2. **PYTHONPATH Interference**: Old environment variables override conda package paths
-3. **Python 3.13 Support**: Only recently added to sentence-transformers (Nov 2024)
-4. **Python 3.14**: Not yet officially released, no library support yet
+1. **conda run Limitations**: While recommended for scripts, can have PATH resolution issues on some systems
+2. **Direct Python Path**: More reliable for production - used by Docker, systemd, etc.
+3. **PYTHONPATH Interference**: Old environment variables can override conda package paths
+4. **Python 3.14**: Not yet officially released, no sentence-transformers support
+5. **Homebrew Python**: macOS Homebrew Python can interfere with conda environments
 
 ### Key Insights
 
-- `conda run` is the recommended approach for running Python in conda environments from scripts
-- Clearing PYTHONPATH is critical when switching from venv to conda
+- Direct Python paths are standard practice in production deployments
+- Clearing PYTHONPATH/VIRTUAL_ENV is critical when switching environments
 - Python 3.11/3.12 are the sweet spot for ML/AI libraries in late 2024/early 2025
 - Verification steps help catch environment issues early
+- Auto-detecting conda location makes scripts portable
 
 ## Files Modified
 
