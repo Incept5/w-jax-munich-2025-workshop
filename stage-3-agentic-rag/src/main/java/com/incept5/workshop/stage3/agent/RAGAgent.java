@@ -203,7 +203,7 @@ public class RAGAgent {
     private String buildSystemPrompt() {
         StringBuilder prompt = new StringBuilder();
         
-        prompt.append("You are a helpful assistant specializing in Embabel and Spring AI frameworks.\n\n");
+        prompt.append("You are a helpful assistant specializing in Embabel framework.\n\n");
         
         prompt.append("Available Tools:\n");
         prompt.append(toolRegistry.generateToolSchemas());
@@ -221,7 +221,7 @@ public class RAGAgent {
         prompt.append("```\n\n");
         
         prompt.append("Guidelines:\n");
-        prompt.append("1. Search documentation when you need specific information about Embabel or Spring AI\n");
+        prompt.append("1. Search documentation when you need specific information about Embabel\n");
         prompt.append("2. Use expandContext: true when looking for code examples or detailed explanations\n");
         prompt.append("3. After receiving tool results, provide a natural, helpful answer to the user\n");
         prompt.append("4. Don't mention that you searched documentation unless specifically asked\n");

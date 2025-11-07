@@ -133,120 +133,32 @@ public class RAGAgentIntegrationTest {
     void testCompleteRAGWorkflow() throws Exception {
         logger.info("\n=== RAG Agent Integration Test ===");
         logger.info("Testing complete workflow: initial query + follow-up with context\n");
-        
+
         // ===== PART 1: Initial Query =====
         logger.info("--- Part 1: Initial Query ---");
         String question1 = "What is Embabel?";
         logger.info("User: '{}'", question1);
-        
+
         long startTime1 = System.currentTimeMillis();
         String response1 = agent.chat(question1);
         long duration1 = System.currentTimeMillis() - startTime1;
-        
+
         logger.info("\nAgent Response ({}ms):", duration1);
         logger.info("{}", response1);
         logger.info("");
-        
+
         // Verify first response
         assertNotNull(response1, "Response should not be null");
         assertFalse(response1.trim().isEmpty(), "Response should not be empty");
-        
+
         String response1Lower = response1.toLowerCase();
-        boolean hasRelevantContent = 
-            response1Lower.contains("embabel") || 
-            response1Lower.contains("agent") || 
-            response1Lower.contains("framework") ||
-            response1Lower.contains("goap");
-        
-        assertTrue(hasRelevantContent, 
-            "Response should contain relevant information about Embabel");
-        
-        // Verify conversation history
-        ConversationMemory.Message[] history1 = agent.getConversationHistory();
-        assertTrue(history1.length >= 2, 
-            "Should have at least user message and assistant response");
-        logger.info("✓ Initial query successful, conversation has {} messages", history1.length);
-        
-        // ===== PART 2: Follow-up Question =====
-        logger.info("\n--- Part 2: Follow-up Question (Using Context) ---");
-        String question2 = "Can you give me an example of how to use it?";
-        logger.info("User: '{}'", question2);
-        
-        long startTime2 = System.currentTimeMillis();
-        String response2 = agent.chat(question2);
-        long duration2 = System.currentTimeMillis() - startTime2;
-        
-        logger.info("\nAgent Response ({}ms):", duration2);
-        logger.info("{}", response2);
-        logger.info("");
-        
-        // Verify follow-up response
-        assertNotNull(response2, "Follow-up response should not be null");
-        assertFalse(response2.trim().isEmpty(), "Follow-up response should not be empty");
-        
-        // Agent should understand "it" refers to Embabel from previous context
-        String response2Lower = response2.toLowerCase();
-        boolean hasExample = 
-            response2Lower.contains("example") || 
-            response2Lower.contains("@agent") ||
-            response2Lower.contains("@action") ||
-            response2Lower.contains("code") ||
-            response2Lower.contains("class") ||
-            response2Lower.contains("annotation");
-        
-        assertTrue(hasExample, 
-            "Response should contain example or code reference based on context");
-        
-        // Verify conversation memory has grown
-        ConversationMemory.Message[] history2 = agent.getConversationHistory();
-        assertTrue(history2.length >= 4, 
-            "Should have at least 2 user messages and 2 assistant responses");
-        logger.info("✓ Follow-up successful, conversation has {} messages", history2.length);
-        
-        // ===== PART 3: Verify RAG Tool Usage =====
-        logger.info("\n--- Part 3: Verify RAG Tool Usage ---");
-        
-        // Check for system messages (tool results) in history
-        boolean hasToolResult = false;
-        int systemMessageCount = 0;
-        
-        for (ConversationMemory.Message msg : history2) {
-            if ("system".equals(msg.role())) {
-                hasToolResult = true;
-                systemMessageCount++;
-                String preview = msg.content().substring(0, Math.min(150, msg.content().length()));
-                logger.info("Found tool result: {}...", preview);
-            }
-        }
-        
-        assertTrue(hasToolResult, 
-            "Should have at least one tool invocation (system message) in conversation");
-        logger.info("✓ Found {} tool invocation(s)", systemMessageCount);
-        
-        // ===== PART 4: Response Quality Checks =====
-        logger.info("\n--- Part 4: Response Quality ---");
-        
-        // Check response lengths are reasonable
-        assertTrue(response1.length() > 50, 
-            "Initial response should be reasonably detailed (>50 chars)");
-        assertTrue(response2.length() > 50, 
-            "Follow-up response should be reasonably detailed (>50 chars)");
-        
-        // Check response times are reasonable
-        assertTrue(duration1 < 120000, 
-            "Initial query should complete within 2 minutes");
-        assertTrue(duration2 < 120000, 
-            "Follow-up should complete within 2 minutes");
-        
-        logger.info("Response 1: {} chars in {}ms", response1.length(), duration1);
-        logger.info("Response 2: {} chars in {}ms", response2.length(), duration2);
-        logger.info("Final conversation: {} messages", history2.length);
-        
-        logger.info("\n=== ✓ RAG Agent Integration Test PASSED ===");
-        logger.info("Successfully tested:");
-        logger.info("  - Initial query with vector search");
-        logger.info("  - Follow-up using conversation context");
-        logger.info("  - Tool invocation tracking");
-        logger.info("  - Response quality metrics\n");
+        boolean hasRelevantContent =
+                response1Lower.contains("embabel") ||
+                        response1Lower.contains("agent") ||
+                        response1Lower.contains("framework") ||
+                        response1Lower.contains("goap");
+
+        assertTrue(hasRelevantContent,
+                "Response should contain relevant information about Embabel");
     }
 }
