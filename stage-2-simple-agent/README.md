@@ -66,6 +66,22 @@ See each step of the agent loop:
 ./run.sh --verbose "Tell me about Brazil"
 ```
 
+### Run with Specific Model
+
+Override the default model:
+
+```bash
+./run.sh --model qwen2.5:7b "What's the weather in Tokyo?"
+```
+
+### Combine Options
+
+Use multiple options together:
+
+```bash
+./run.sh -m mistral:7b -v "Tell me about Spain"
+```
+
 ## Example Tasks
 
 ### Simple Weather Query
@@ -198,13 +214,16 @@ By studying this stage, you'll understand:
 Usage: ./run.sh [OPTIONS] [TASK]
 
 Options:
-  -v, --verbose    Show detailed step-by-step execution
-  -h, --help       Show help message
+  -m, --model MODEL    Specify the model to use (e.g., qwen2.5:7b)
+  -v, --verbose        Show detailed step-by-step execution
+  -h, --help           Show help message
 
 Examples:
   ./run.sh                                    # Use default task
   ./run.sh "What's the weather in Tokyo?"     # Custom task
   ./run.sh --verbose "Tell me about Brazil"   # Verbose mode
+  ./run.sh --model qwen2.5:7b "Task"          # Specific model
+  ./run.sh -m mistral:7b -v "Task"            # Combined options
 ```
 
 ## Building
@@ -224,10 +243,21 @@ mvn exec:java -Dexec.args="What's the weather in Paris?"
 
 The agent uses the same backend configuration as Stage 0:
 - Default backend: Ollama
-- Default model: qwen2.5:3b
+- Default model: gemma3 (configurable via CLI)
 - Default URL: http://localhost:11434
 
-To use a different backend or model, modify `BackendConfig` in `SimpleAgentDemo.java`.
+### Changing the Model
+
+**Method 1: Command Line (Recommended)**
+```bash
+./run.sh --model qwen2.5:7b "Your task"
+```
+
+**Method 2: Modify Default**
+Edit `BackendConfig.Builder` in `shared/src/main/java/com/incept5/ollama/config/BackendConfig.java`:
+```java
+private String model = "your-preferred-model";
+```
 
 ## Error Handling
 

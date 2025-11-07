@@ -35,10 +35,18 @@ public class SimpleAgentDemo {
         // Parse arguments
         boolean verbose = false;
         String task = null;
+        String model = null;
         
         for (int i = 0; i < args.length; i++) {
             if ("--verbose".equals(args[i]) || "-v".equals(args[i])) {
                 verbose = true;
+            } else if ("--model".equals(args[i]) || "-m".equals(args[i])) {
+                if (i + 1 < args.length) {
+                    model = args[++i];
+                } else {
+                    System.err.println("Error: --model requires a model name");
+                    System.exit(1);
+                }
             } else if ("--help".equals(args[i]) || "-h".equals(args[i])) {
                 printHelp();
                 return;
@@ -77,7 +85,12 @@ public class SimpleAgentDemo {
             
             // Initialize AI backend
             System.out.println("Connecting to AI backend...");
-            BackendConfig config = BackendConfig.builder().build(); // Uses defaults
+            BackendConfig.Builder configBuilder = BackendConfig.builder();
+            if (model != null) {
+                configBuilder.model(model);
+                System.out.println("Using model: " + model);
+            }
+            BackendConfig config = configBuilder.build();
             AIBackend backend = BackendFactory.createBackend(
                     config.backendType(),
                     config.baseUrl(),
@@ -132,8 +145,9 @@ public class SimpleAgentDemo {
                   java -jar stage-2-simple-agent.jar [OPTIONS] [TASK]
                 
                 Options:
-                  -v, --verbose    Show detailed step-by-step execution
-                  -h, --help       Show this help message
+                  -m, --model MODEL    Specify the model to use (e.g., qwen2.5:7b)
+                  -v, --verbose        Show detailed step-by-step execution
+                  -h, --help           Show this help message
                 
                 Examples:
                   # Use default task
@@ -150,6 +164,12 @@ public class SimpleAgentDemo {
                 
                   # With verbose output
                   java -jar stage-2-simple-agent.jar --verbose "Tell me about Brazil"
+                
+                  # With specific model
+                  java -jar stage-2-simple-agent.jar --model qwen2.5:7b "What's the weather?"
+                
+                  # Combined options
+                  java -jar stage-2-simple-agent.jar -m mistral:7b -v "Tell me about Spain"
                 
                 Available Tools:
                   - weather: Gets real-time weather for any city (wttr.in API)
