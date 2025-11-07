@@ -31,3 +31,4 @@ buildNumber.properties
 logs/
 *.log
 /function_calling_results.csv
+/stage-4-agentic-rag/embedding-service/condaenv.wm_lfiu2.requirements.txt
