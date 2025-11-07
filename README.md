@@ -14,10 +14,11 @@ A comprehensive hands-on workshop building modern AI agents using Java 21+ and l
 
 By the end of this workshop, you'll have built:
 
-1. ✅ **Simple AI Agent** - Tool-calling agent with real API integrations
-2. ✅ **MCP Server** - Model Context Protocol server exposing tools
-3. ✅ **RAG Agent** - Retrieval-augmented generation with PostgreSQL vector search
-4. 🔍 **Enterprise Multi-Agent** - Explore production Embabel Tripper system
+1. ✅ **Function Calling Demo** - Understand LLM function calling fundamentals
+2. ✅ **Simple AI Agent** - Tool-calling agent with real API integrations
+3. ✅ **MCP Server** - Model Context Protocol server exposing tools
+4. ✅ **RAG Agent** - Retrieval-augmented generation with PostgreSQL vector search
+5. 🔍 **Enterprise Multi-Agent** - Explore production Embabel Tripper system
 
 ### Key Learning Outcomes
 
@@ -60,14 +61,14 @@ By the end of this workshop, you'll have built:
 - **MLX-VLM** for Apple Silicon vision models
 - **Alternative Models**: Qwen 2.5 7B, Mistral 7B, Gemma 2 9B
 
-### For Stage 4 (Enterprise Reference)
+### For Stage 5 (Enterprise Reference)
 
 - **Docker Desktop** with Model Runner for MCP Gateway
-- **API Keys** (for exploration, not required for stages 1-3):
+- **API Keys** (for exploration, not required for stages 1-4):
   - OpenAI API key (GPT-4.1 models)
   - Brave Search API key (web search)
   - Google Maps API key (location services)
-- See `stage-4-embabel-tripper/API_KEYS.md` for setup details
+- See `stage-5-embabel-tripper/API_KEYS.md` for setup details
 
 ## Quick Start
 
@@ -91,10 +92,19 @@ cd stage-0-demo
 
 Expected output: Response from your local LLM with timing information.
 
-### 3. Run Your First Agent (Stage 1)
+### 3. Test Function Calling (Stage 1)
 
 ```bash
-cd stage-1-simple-agent
+cd stage-1-function-calling
+./run.sh
+```
+
+Expected: Tests various models for function calling capabilities.
+
+### 4. Run Your First Agent (Stage 2)
+
+```bash
+cd stage-2-simple-agent
 ./run.sh "What's the weather in Munich?"
 ```
 
@@ -121,16 +131,43 @@ cd stage-0-demo
 - Model parameter control
 - Multi-modal support (images)
 
-### Stage 1: Simple Agent (1h 50min) ✅
+### Stage 1: Function Calling Demo (50 min) ✅
 
-**Time**: 10:50-12:30  
-**Module**: `stage-1-simple-agent/`  
+**Time**: 10:50-11:40  
+**Module**: `stage-1-function-calling/`  
+**Status**: Complete
+
+Understand LLM function calling fundamentals before building agents.
+
+```bash
+cd stage-1-function-calling
+./run.sh                    # Test all models
+./run.sh jan                # Test models with "jan"
+./run.sh "qwen*" 20         # Test qwen models under 20GB
+```
+
+**What You'll Learn**:
+- Function calling protocol with Ollama
+- Define function schemas using JSON Schema
+- Test multiple models for function calling support
+- Analyze function calling results and statistics
+
+**Key Files**:
+- `FunctionCallingDemo.java` - Main test runner
+- `FunctionCallingClient.java` - Ollama function calling client
+- `tool/DayOfWeekTool.java` - Parameter-free function
+- `tool/WeatherTool.java` - Function with parameters
+
+### Stage 2: Simple Agent (50 min) ✅
+
+**Time**: 11:40-12:30  
+**Module**: `stage-2-simple-agent/`  
 **Status**: Complete
 
 Build your first working AI agent with tool-calling capabilities.
 
 ```bash
-cd stage-1-simple-agent
+cd stage-2-simple-agent
 ./run.sh "What's the weather in the capital of Japan?"
 ./run.sh --verbose "Tell me about Brazil"
 ```
@@ -148,16 +185,16 @@ cd stage-1-simple-agent
 - `tool/CountryInfoTool.java` - Real REST Countries API
 - `SimpleAgentIntegrationTest.java` - Integration tests
 
-### Stage 2: MCP Server (40 min) ✅
+### Stage 3: MCP Server (40 min) ✅
 
 **Time**: 13:40-14:20  
-**Module**: `stage-2-mcp-server/`  
+**Module**: `stage-3-mcp-server/`  
 **Status**: Complete
 
 Build a Model Context Protocol server that exposes tools.
 
 ```bash
-cd stage-2-mcp-server
+cd stage-3-mcp-server
 ./run.sh server  # Run as MCP server
 ./run.sh agent "What's the weather in Tokyo?"  # Run as agent
 ```
@@ -173,16 +210,16 @@ cd stage-2-mcp-server
 - `MCPClient.java` - Client with subprocess management
 - `MCPAgent.java` - Agent using MCP tools
 
-### Stage 3: Agentic RAG (35 min) ✅
+### Stage 4: Agentic RAG (35 min) ✅
 
 **Time**: 14:20-14:55  
-**Module**: `stage-3-agentic-rag/`  
+**Module**: `stage-4-agentic-rag/`  
 **Status**: Complete
 
 Add retrieval-augmented generation with PostgreSQL + pgvector.
 
 ```bash
-cd stage-3-agentic-rag
+cd stage-4-agentic-rag
 docker-compose up -d  # Start PostgreSQL
 ./ingest.sh           # Ingest documents
 ./run.sh              # Run RAG agent
@@ -199,10 +236,10 @@ docker-compose up -d  # Start PostgreSQL
 - `RAGAgent.java` - Agent with RAG capabilities
 - `RAGTool.java` - Document retrieval tool
 
-### Stage 4: Enterprise Multi-Agent (65 min) 🔍
+### Stage 5: Enterprise Multi-Agent (65 min) 🔍
 
 **Time**: 15:15-16:20  
-**Module**: `stage-4-embabel-tripper/` (External Reference)  
+**Module**: `stage-5-embabel-tripper/` (External Reference)  
 **Repository**: https://github.com/Incept5/tripper
 **Status**: Exploration & Discussion
 
@@ -228,9 +265,9 @@ Explore a production multi-agent travel planning system built with Spring Boot a
 - See `stage-4-embabel-tripper/README.md` for detailed setup
 - See `stage-4-embabel-tripper/API_KEYS.md` for API key instructions
 
-**Exploration Guide**: See `stage-4-embabel-tripper/EXPLORATION.md`
+**Exploration Guide**: See `stage-5-embabel-tripper/EXPLORATION.md`
 
-**Note**: This stage focuses on reading and discussing production code rather than building from scratch. The goal is to understand how the patterns from stages 1-3 scale to enterprise applications.
+**Note**: This stage focuses on reading and discussing production code rather than building from scratch. The goal is to understand how the patterns from stages 1-4 scale to enterprise applications.
 
 ## Project Structure
 
@@ -250,10 +287,11 @@ w-jax-munich-2025-workshop/
 │   └── util/                    # Utilities
 │
 ├── stage-0-demo/                # ✅ Foundation demo
-├── stage-1-simple-agent/        # ✅ First working agent
-├── stage-2-mcp-server/          # ✅ MCP server
-├── stage-3-agentic-rag/         # ✅ RAG agent
-└── stage-4-embabel-tripper/     # 🔍 Enterprise reference (docs only)
+├── stage-1-function-calling/    # ✅ Function calling fundamentals
+├── stage-2-simple-agent/        # ✅ First working agent
+├── stage-3-mcp-server/          # ✅ MCP server
+├── stage-4-agentic-rag/         # ✅ RAG agent
+└── stage-5-embabel-tripper/     # 🔍 Enterprise reference (docs only)
 ```
 
 ## Technologies
@@ -300,7 +338,7 @@ mvn clean package
 ### Run Specific Stage
 
 ```bash
-cd stage-1-simple-agent
+cd stage-2-simple-agent
 ./run.sh "Your task here"
 ```
 
@@ -311,7 +349,7 @@ cd stage-1-simple-agent
 mvn test
 
 # Specific stage
-mvn -pl stage-1-simple-agent test
+mvn -pl stage-2-simple-agent test
 ```
 
 ### Skip Tests (if Ollama not available)
@@ -361,7 +399,7 @@ Each stage includes a **single comprehensive integration test** that:
 - ✅ Verifies end-to-end functionality
 - ✅ Includes verbose output for debugging
 
-**Example**: `stage-1-simple-agent/src/test/java/.../SimpleAgentIntegrationTest.java`
+**Example**: `stage-2-simple-agent/src/test/java/.../SimpleAgentIntegrationTest.java`
 
 ### Test Requirements
 
@@ -471,8 +509,8 @@ while (!completed && iterations < maxIterations) {
 
 - **Agenda**: [AGENDA.md](./AGENDA.md) - Detailed schedule
 - **Architecture**: [architecture.md](./architecture.md) - System design
-- **Stage 1 Guide**: [stage-1-simple-agent/README.md](./stage-1-simple-agent/README.md)
-- **Stage 1 Notes**: [stage-1-simple-agent/IMPLEMENTATION_NOTES.md](./stage-1-simple-agent/IMPLEMENTATION_NOTES.md)
+- **Stage 2 Guide**: [stage-2-simple-agent/README.md](./stage-2-simple-agent/README.md)
+- **Stage 2 Notes**: [stage-2-simple-agent/IMPLEMENTATION_NOTES.md](./stage-2-simple-agent/IMPLEMENTATION_NOTES.md)
 
 ### External Resources
 
@@ -509,8 +547,8 @@ while (!completed && iterations < maxIterations) {
 1. **Real Integration Tests**: Every stage includes tests with real APIs and real LLMs
 2. **Modern Java**: Showcases Java 21+ features in practical AI scenarios
 3. **Multiple Backends**: Not locked to one provider or API
-4. **Privacy-First**: Everything runs locally by default (stages 1-3)
-5. **Progressive Complexity**: Build from scratch (stages 1-3), then explore production code (stage 4)
+4. **Privacy-First**: Everything runs locally by default (stages 1-4)
+5. **Progressive Complexity**: Build from scratch (stages 1-4), then explore production code (stage 5)
 6. **Production Reference**: Learn from a real-world multi-agent system (Embabel Tripper)
 7. **Enterprise Patterns**: See Spring Boot, OAuth2, distributed tracing, and MCP at scale
 
@@ -535,7 +573,7 @@ Built for W-JAX Munich 2025 to demonstrate modern Java AI agent development patt
 
 **Ready to build intelligent agents with Java?**
 
-Start with Stage 0 to verify your setup, then dive into Stage 1 to build your first working agent!
+Start with Stage 0 to verify your setup, then progress through function calling (Stage 1) to build your first working agent (Stage 2)!
 
 ```bash
 cd stage-0-demo && ./run.sh "Let's begin!"
