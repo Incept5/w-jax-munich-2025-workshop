@@ -195,7 +195,7 @@ public class RAGAgentDemo {
     
     private static void printWelcomeBanner() {
         System.out.println("\n" + "═".repeat(70));
-        System.out.println("  RAG Agent - Embabel & Spring AI Documentation Assistant");
+        System.out.println("  RAG Agent - Embabel Code & Documentation Assistant");
         System.out.println("═".repeat(70));
         System.out.println("\nCommands:");
         System.out.println("  • Type your question to chat with the agent");

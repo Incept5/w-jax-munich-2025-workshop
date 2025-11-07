@@ -48,7 +48,6 @@ public class VectorSearchIntegrationTest {
     private static final String[] TEST_QUERIES = {
         "what is embabel",
         "embabel framework",
-        "spring ai",
         "how to create an agent",
         "agent examples"
     };

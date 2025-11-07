@@ -58,7 +58,7 @@ public class RAGTool implements Tool {
     
     @Override
     public String description() {
-        return "Search Embabel and Spring AI documentation for relevant information. " +
+        return "Search Embabel source code and documentation for relevant information. " +
                "Use this when you need to look up specific details, examples, or explanations " +
                "from the documentation to answer the user's question.";
     }
