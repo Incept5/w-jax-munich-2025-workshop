@@ -26,7 +26,7 @@ repositories:
 
 settings:
   chunkSize: 800          # tokens per chunk
-  chunkOverlap: 200       # overlap for context
-  similarityThreshold: 0.7
-  embeddingModel: nomic-embed-text
+  chunkOverlap: 200       # overlap for context (25% of chunk size)
+  similarityThreshold: 0.3  # Lower threshold for better recall
+  embeddingModel: qwen3-embedding:0.6b
   ollamaBaseUrl: http://localhost:11434

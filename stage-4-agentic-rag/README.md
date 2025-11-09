@@ -92,90 +92,73 @@ If you're hosting the shared database, you need to open port 5432 on your macOS 
 
 Make sure you have:
 
-1. **Conda/Miniconda** installed ([Download](https://docs.conda.io/en/latest/miniconda.html))
-   ```bash
-   conda --version  # Should show version number
-   ```
-
-2. **Docker** running
+1. **Docker** running
    ```bash
    docker ps  # Should not error
    ```
 
-3. **Ollama** running with model
+2. **Ollama** with embedding model
    ```bash
    ollama serve
+   ollama pull qwen3-embedding:0.6b
    ```
 
-4. **Python 3.9+**
+3. **Java 21+** and **Maven**
    ```bash
-   python3 --version
+   java --version
+   mvn --version
    ```
 
 ---
 
-### Step 1: Start Python Embedding Service (Terminal 1)
-
-⚠️ **Important:** You MUST use the Python embedding service (Ollama has a bug).
-
-```bash
-cd stage-4-agentic-rag/embedding-service
-./start.sh
-```
-
-**First run:** Takes 2-3 minutes (downloads model, creates conda environment)
-
-**Wait for this:**
-```
-✓ Model loaded successfully (768 dimensions)
-INFO:     Uvicorn running on http://0.0.0.0:8001
-```
-
-**Subsequent runs:** Starts in seconds (everything cached)
-
-**Troubleshooting:**
-- `conda: command not found` → Run `conda init bash` then restart terminal
-- Port 8001 in use → Change port in `server.py`
-- More help: See [`embedding-service/README.md`](./embedding-service/README.md)
-
----
-
-### Step 2: Run Ingestion Pipeline (Terminal 2)
+### Step 1: Run Ingestion Pipeline
 
 ```bash
 cd stage-4-agentic-rag
 ./ingest.sh
 ```
 
-**This will:**
-1. ✓ Verify Python service is running
-2. ✓ Start PostgreSQL with pgvector (Docker)
-3. ✓ Load 5 Embabel repositories (committed files)
-4. ✓ Chunk into ~800 token segments
-5. ✓ Generate embeddings (768 dimensions)
-6. ✓ Store 487 searchable chunks
+**What the script does:**
+1. ✓ Verify Ollama is running
+2. ✓ Check/pull qwen3-embedding:0.6b model
+3. ✓ Build the Java project (automatically builds shared module dependencies)
+4. ✓ Start PostgreSQL with pgvector (Docker)
+5. ✓ Load 5 Embabel repositories (committed files)
+6. ✓ Chunk into ~512 token segments
+7. ✓ Generate embeddings (1024 dimensions with qwen3-embedding:0.6b)
+8. ✓ Store ~3,200 searchable chunks
 
-**Takes 2-3 minutes.** You'll see:
+**Note:** The script automatically handles multi-module Maven builds, building both the shared module and stage-4 module in the correct order.
+
+**Takes 15-20 minutes** (rate-limited to avoid overwhelming Ollama). You'll see:
 ```
 🚀 Stage 4: RAG Ingestion Pipeline
 
-🐍 Using Python embedding service
-✓ Python service is ready at http://localhost:8001
+🦙 Using Ollama for embeddings
+Using default model: qwen3-embedding:0.6b
+✓ Ollama is ready
 
+🔨 Building project (including shared module)...
+✓ Build complete
+
+🐘 Starting PostgreSQL with pgvector...
+✓ PostgreSQL is ready
+
+📚 Starting ingestion pipeline...
 Processing embabel-agent...
-  → Chunks created: 98
-  → Embeddings generated: 98/98
-  → Stored: 98 documents
+  → Chunks created: 2798
+  → Embeddings generated: 2798/2798
+  → Stored: 2798 documents
 
 ✅ Ingestion pipeline complete!
-Total documents: 487
+Total documents: ~3,200
 ```
 
 **Note:** Files are in git, no downloads needed. For fresh content: `./ingest.sh --refresh`
 
 ---
 
-### Step 3: Start Chatting!
+### Step 2: Start Chatting!
 
 ```bash
 ./run.sh                        # Standard mode (default model)
@@ -374,6 +357,23 @@ settings:
 
 ## Troubleshooting
 
+### Build Error: "Could not find artifact com.incept5:shared:jar"
+
+**Problem:** Maven can't find the shared module dependency.
+
+**Fix:** The `ingest.sh` script now automatically handles this. If you're building manually:
+```bash
+# Build from parent directory
+cd /path/to/w-jax-munich-2025-workshop
+mvn clean install -DskipTests
+
+# Or use the script (recommended)
+cd stage-4-agentic-rag
+./ingest.sh
+```
+
+The script builds both the shared module and stage-4 module in the correct order using Maven's reactor build.
+
 ### "No documents found"
 
 **Fix:**
@@ -386,18 +386,15 @@ docker exec -it stage4-pgvector psql -U workshop -d workshop_rag \
 # Should show: 487 (or similar)
 ```
 
-### Python service not running
+### Ollama not running
 
 **Fix:**
 ```bash
-cd embedding-service
-./start.sh
+ollama serve
 
 # Test:
-curl http://localhost:8001/health
+curl http://localhost:11434/api/tags
 ```
-
-**More help:** [`embedding-service/README.md`](./embedding-service/README.md)
 
 ### PostgreSQL connection refused
 
@@ -426,8 +423,7 @@ ollama pull qwen2.5:7b  # Smaller model
 ./cleanup.sh  # Removes database and data
 
 # Then restart:
-cd embedding-service && ./start.sh  # Terminal 1
-./ingest.sh                         # Terminal 2
+./ingest.sh
 ```
 
 ---
@@ -457,11 +453,6 @@ stage-4-agentic-rag/
 ├── docker-compose.yml           # PostgreSQL + pgvector
 ├── repos.yaml                   # What to ingest
 │
-├── embedding-service/           # Python embedding service
-│   ├── start.sh                 # Start service
-│   ├── server.py                # FastAPI server
-│   └── README.md                # Troubleshooting
-│
 └── src/main/java/.../stage4/
     ├── agent/
     │   ├── RAGAgent.java        # Main agent
@@ -473,6 +464,7 @@ stage-4-agentic-rag/
     │   └── PgVectorStore.java   # Database
     └── ingestion/
         ├── IngestionService.java
+        ├── EmbeddingService.java # Ollama embeddings
         └── DocumentChunker.java
 ```
 
@@ -517,6 +509,6 @@ stage-4-agentic-rag/
 
 ---
 
-**Last Updated:** 2025-11-07  
-**Total Code:** ~1,800 lines across 15 files  
-**Dependencies:** Docker, Ollama, PostgreSQL, Java 21+, Conda
+**Last Updated:** 2025-11-09
+**Total Code:** ~1,800 lines across 15 files
+**Dependencies:** Docker, Ollama, PostgreSQL, Java 21+, Maven

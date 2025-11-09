@@ -31,13 +31,13 @@ public class RAGTool implements Tool {
     
     /**
      * Creates a RAG tool with default similarity threshold.
-     * 
+     *
      * @param vectorStore The vector store to search
      */
     public RAGTool(PgVectorStore vectorStore) {
-        // Lower threshold (0.5) based on integration testing
+        // Lower threshold (0.3) optimized for nomic-embed-text model
         // This provides better recall while maintaining good precision
-        this(vectorStore, 0.5);
+        this(vectorStore, 0.3);
     }
     
     /**

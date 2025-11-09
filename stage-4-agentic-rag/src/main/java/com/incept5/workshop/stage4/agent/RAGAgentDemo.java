@@ -72,7 +72,29 @@ public class RAGAgentDemo {
         return "qwen3:4b";
     }
 
-    private static final String EMBEDDING_MODEL = "nomic-embed-text";
+    private static final String EMBEDDING_MODEL = getEmbeddingModel();
+
+    /**
+     * Get embedding model name from environment or system property.
+     *
+     * Priority order:
+     * 1. System property: embedding.model
+     * 2. Environment variable: EMBEDDING_MODEL
+     * 3. Default: qwen3-embedding:0.6b
+     */
+    private static String getEmbeddingModel() {
+        String model = System.getProperty("embedding.model");
+        if (model != null && !model.isBlank()) {
+            return model;
+        }
+
+        model = System.getenv("EMBEDDING_MODEL");
+        if (model != null && !model.isBlank()) {
+            return model;
+        }
+
+        return "qwen3-embedding:0.6b";
+    }
 
     
     // Database connection is now configured via DatabaseConfig (reads from environment)

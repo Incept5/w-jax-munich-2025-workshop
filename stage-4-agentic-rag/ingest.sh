@@ -1,6 +1,6 @@
 #!/bin/bash
 # Stage 4: RAG Ingestion Pipeline
-# Supports both Ollama and Python embedding backends
+# Uses Ollama for embeddings
 
 set -e  # Exit on error
 
@@ -16,15 +16,10 @@ NC='\033[0m' # No Color
 
 # Parse command line arguments
 REFRESH_MODE=false
-EMBEDDING_BACKEND=${EMBEDDING_BACKEND:-"python"}  # default to python
 
 for arg in "$@"; do
     if [[ "$arg" == "--refresh" ]]; then
         REFRESH_MODE=true
-    elif [[ "$arg" == "--backend=ollama" ]]; then
-        EMBEDDING_BACKEND="ollama"
-    elif [[ "$arg" == "--backend=python" ]]; then
-        EMBEDDING_BACKEND="python"
     fi
 done
 
@@ -32,66 +27,44 @@ if [ "$REFRESH_MODE" = true ]; then
     echo -e "${BLUE}🔄 Refresh mode enabled - will fetch fresh repository data${NC}"
 fi
 
-# Step 1: Backend selection and verification
+# Step 1: Check Ollama
 echo
-if [ "$EMBEDDING_BACKEND" = "python" ]; then
-    echo -e "${BLUE}🐍 Using Python embedding service (recommended)${NC}"
-    EMBEDDING_URL="http://localhost:8001"
-    
-    # Check if Python service is running
-    if ! curl -s $EMBEDDING_URL/health > /dev/null 2>&1; then
-        echo -e "${RED}❌ Python embedding service not running!${NC}"
-        echo
-        echo "Start it with:"
-        echo -e "  ${GREEN}cd embedding-service && ./start.sh${NC}"
-        echo
-        echo "Or switch to Ollama (not recommended due to bug):"
-        echo -e "  ${YELLOW}EMBEDDING_BACKEND=ollama ./ingest.sh${NC}"
-        echo
-        exit 1
-    fi
-    echo -e "${GREEN}✓ Python service is ready${NC}"
-    
-elif [ "$EMBEDDING_BACKEND" = "ollama" ]; then
-    echo -e "${YELLOW}🦙 Using Ollama (⚠️  has known bug, may fail)${NC}"
-    EMBEDDING_URL="http://localhost:11434"
-    
-    # Check if Ollama is running
-    if ! curl -s $EMBEDDING_URL/api/tags > /dev/null 2>&1; then
-        echo -e "${RED}❌ Ollama not running!${NC}"
-        echo
-        echo "Start Ollama with:"
-        echo -e "  ${GREEN}ollama serve${NC}"
-        echo
-        echo "Or switch to Python service (recommended):"
-        echo -e "  ${GREEN}EMBEDDING_BACKEND=python ./ingest.sh${NC}"
-        echo
-        exit 1
-    fi
-    
-    # Check if embedding model is available
-    if ! curl -s $EMBEDDING_URL/api/tags | grep -q "nomic-embed-text"; then
-        echo -e "${YELLOW}⚠️  nomic-embed-text model not found${NC}"
-        echo "Pulling model... (this may take a few minutes)"
-        ollama pull nomic-embed-text
-        echo -e "${GREEN}✓ Model pulled${NC}"
-    fi
-    echo -e "${GREEN}✓ Ollama is ready${NC}"
-    
+echo -e "${BLUE}🦙 Using Ollama for embeddings${NC}"
+EMBEDDING_URL="http://localhost:11434"
+
+# Allow custom model name via env var, otherwise use Qwen3 embedding model
+if [ -n "$EMBEDDING_MODEL" ]; then
+    echo -e "${BLUE}Using custom model: $EMBEDDING_MODEL${NC}"
 else
-    echo -e "${RED}❌ Unknown backend: $EMBEDDING_BACKEND${NC}"
-    echo "Valid options: python, ollama"
+    # Use Qwen3 embedding model (1024 dimensions, fast and efficient)
+    EMBEDDING_MODEL="qwen3-embedding:0.6b"
+    echo -e "${BLUE}Using default model: $EMBEDDING_MODEL${NC}"
+    echo -e "${YELLOW}(Set EMBEDDING_MODEL env var to use a different model)${NC}"
+fi
+
+# Check if Ollama is running
+if ! curl -s $EMBEDDING_URL/api/tags > /dev/null 2>&1; then
+    echo -e "${RED}❌ Ollama not running!${NC}"
     echo
-    echo "Usage:"
-    echo "  ./ingest.sh                    # Use Python (default)"
-    echo "  EMBEDDING_BACKEND=ollama ./ingest.sh"
-    echo "  ./ingest.sh --backend=python"
+    echo "Start Ollama with:"
+    echo -e "  ${GREEN}ollama serve${NC}"
+    echo
     exit 1
 fi
 
+# Check if embedding model is available
+if ! curl -s $EMBEDDING_URL/api/tags | grep -q "$EMBEDDING_MODEL"; then
+    echo -e "${YELLOW}⚠️  $EMBEDDING_MODEL model not found${NC}"
+    echo "Pulling model... (this may take a few minutes)"
+    ollama pull "$EMBEDDING_MODEL"
+    echo -e "${GREEN}✓ Model pulled${NC}"
+fi
+echo -e "${GREEN}✓ Ollama is ready${NC}"
+
 # Export for Java to use
 export EMBEDDING_SERVICE_URL=$EMBEDDING_URL
-export EMBEDDING_BACKEND=$EMBEDDING_BACKEND
+export EMBEDDING_BACKEND="ollama"
+export EMBEDDING_MODEL=$EMBEDDING_MODEL
 
 # Step 2: Check gitingest only if refresh mode
 if [ "$REFRESH_MODE" = true ]; then
@@ -116,9 +89,11 @@ fi
 
 # Step 3: Build the Java project
 echo
-echo -e "${BLUE}🔨 Building Stage 3 project...${NC}"
-cd "$(dirname "$0")"
-mvn clean package -DskipTests
+echo -e "${BLUE}🔨 Building project (including shared module)...${NC}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR/.."
+mvn clean install -DskipTests -pl shared,stage-4-agentic-rag -am
+cd "$SCRIPT_DIR"
 echo -e "${GREEN}✓ Build complete${NC}"
 
 # Step 4: Start PostgreSQL + pgvector
