@@ -3,6 +3,12 @@
 
 A comprehensive hands-on workshop building modern AI agents using Java 21+ and local LLMs. Learn to create intelligent agents that can reason, use tools, and collaborate - all running locally with privacy-first, open-source technologies.
 
+## The slides have been uploaded
+**W-JAX 2025 - Hands-on Agentic AI.pdf**
+These are relatively unchanged from Friday, I'd accidentally pasted a section twice into my "live" slides and got confused while presenting in the afternoon, these have been taken out. At the time of writing this (Sunday 9th Nov) I've not checked all the code but wanted to get the slides published.
+If you have any questions on the code, slides or generally on this subject please email me, my details are on the last page of the slides.
+
+
 ## Workshop Overview
 
 **Duration**: 7 hours (09:00-16:30)  
